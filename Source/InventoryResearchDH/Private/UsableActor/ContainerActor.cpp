@@ -3,6 +3,8 @@
 
 #include "UsableActor/ContainerActor.h"
 #include "InventoryComponent/InventoryComponent.h"
+#include "Controller/IRPlayerController.h"
+#include "InventoryComponent/InventoryManagerComponent.h"
 
 AContainerActor::AContainerActor()
 {
@@ -21,32 +23,73 @@ void AContainerActor::BeginPlay()
 	InitInventory();
 }
 
-void AContainerActor::InitInventory()
+bool AContainerActor::OnActorUsed(APlayerController* PlayerController)
 {
-	InventoryComponent->InitInventory();
+	if (bIsUsable)
+	{
+		AIRPlayerController* PC = Cast<AIRPlayerController>(PlayerController);
+		if (PC)
+		{
+			PC->GetInventoryManagerComponent()->UseContainer(this);
+			bool bSucces = Super::OnActorUsed(PlayerController);
+			return bSucces;
+		} else {
+			return false;
+		}	
+	}
+	else
+	{
+		return false;
+	}
 }
 
-void AContainerActor::LoadInventoryItems()
+void AContainerActor::InitInventory()
 {
-	//InventoryComponent->LoadInventoryItems();
+	InventoryComponent->InitInventory(SlotsPerRow);
+}
+
+bool AContainerActor::LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> InvItems)
+{
+	InventorySize = InvSize;
+	if (InventoryComponent)
+	{
+		bool bSucces = InventoryComponent->LoadInventoryItems(InventorySize, InvItems);
+		return bSucces;
+	}
+	return false;
 }
 
 FContainerProperties AContainerActor::GetContainerProperties()
 {
-	return FContainerProperties();
+	FContainerProperties ContainerProperties;
+	ContainerProperties.ContainerName = Name;
+	ContainerProperties.SlotsPerRow = SlotsPerRow;
+	ContainerProperties.bIsStorageContainer = bCanStoreItem;
+	ContainerProperties.InvetorySize = InventorySize;
+
+	return ContainerProperties;
 }
 
 UInventoryComponent* AContainerActor::GetContainerInvetory()
 {
-	return nullptr;
+	return InventoryComponent;
 }
 
 bool AContainerActor::GetCanStoreItems()
 {
-	return false;
+	return bCanStoreItem;
 }
 
 bool AContainerActor::ContainerLooted()
 {
-	return false;
+	bIsUsable = false;
+	if (AIRPlayerController* IRPC = Cast<AIRPlayerController>(GetOwner()->GetInstigatorController()))
+	{
+		return true;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("PlayerController Invalid From Container Actor"));
+		return false;
+	}
 }

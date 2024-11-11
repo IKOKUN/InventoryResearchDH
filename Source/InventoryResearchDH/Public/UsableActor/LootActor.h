@@ -14,4 +14,9 @@ class INVENTORYRESEARCHDH_API ALootActor : public AContainerActor
 {
 	GENERATED_BODY()
 	
+public:
+	ALootActor();
+
+protected:
+	virtual void BeginPlay() override;
 };

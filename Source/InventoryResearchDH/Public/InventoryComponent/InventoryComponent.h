@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "../Data/InventoryItem.h"
 #include "InventoryComponent.generated.h"
 
 
@@ -16,7 +17,11 @@ public:
 	UInventoryComponent();
 
 	// Initialize Inventory 
-	void InitInventory();
+	void InitInventory(int32 InventorySize);
+
+	// Load all item from Inventory
+	bool LoadInventoryItems(int32 InventorySize, TArray<FInventoryItem> InventoryItems);
+
 protected:
 	virtual void BeginPlay() override;
 

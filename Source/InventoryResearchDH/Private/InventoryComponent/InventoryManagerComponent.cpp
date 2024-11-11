@@ -37,3 +37,8 @@ bool UInventoryManagerComponent::TryAddItemToInventory(UInventoryComponent* Inve
 	return false;
 }
 
+void UInventoryManagerComponent::UseContainer(AActor* ContainerActor)
+{
+
+}
+

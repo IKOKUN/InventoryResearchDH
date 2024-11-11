@@ -10,7 +10,7 @@
 
 AWorldActor::AWorldActor()
 {
-
+	ActionText = FText::FromString("Pickup");
 }
 
 bool AWorldActor::LoadItemFromList()

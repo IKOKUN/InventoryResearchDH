@@ -16,15 +16,14 @@ class INVENTORYRESEARCHDH_API UInventoryManagerComponent : public UActorComponen
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UInventoryManagerComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	bool TryAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item);
+	void UseContainer(AActor* ContainerActor);
 		
 };

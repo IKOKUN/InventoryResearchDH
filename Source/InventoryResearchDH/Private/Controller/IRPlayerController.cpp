@@ -97,11 +97,11 @@ void AIRPlayerController::Move(const FInputActionValue& Value)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-		UE_LOG(LogTemp, Log, TEXT("Move function called"));
+		//UE_LOG(LogTemp, Log, TEXT("Move function called"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("No controlled pawn found."));
+		//UE_LOG(LogTemp, Error, TEXT("No controlled pawn found."));
 	}
 }
 

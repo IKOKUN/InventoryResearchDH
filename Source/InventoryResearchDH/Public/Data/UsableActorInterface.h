@@ -23,7 +23,7 @@ class INVENTORYRESEARCHDH_API IUsableActorInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual bool OnActorUsed(APlayerController* PlayerController);
-	virtual bool OnOutlineFocus();
+	virtual bool BeginOutlineFocus();
 	virtual bool EndOutlineFocus();
 	virtual bool GetIsActorUsable();
 	virtual FText GetUseActionText();

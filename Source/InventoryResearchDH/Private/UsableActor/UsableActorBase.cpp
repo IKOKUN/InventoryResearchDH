@@ -34,7 +34,7 @@ bool AUsableActorBase::OnActorUsed(APlayerController* PlayerController)
 	return true;
 }
 
-bool AUsableActorBase::OnOutlineFocus()
+bool AUsableActorBase::BeginOutlineFocus()
 {
 	StaticMeshComponent->SetRenderCustomDepth(true);
 	return true;

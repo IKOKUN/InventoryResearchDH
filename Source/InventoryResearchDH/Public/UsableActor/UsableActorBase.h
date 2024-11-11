@@ -50,7 +50,7 @@ protected:
 
 	// IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
-	virtual bool OnOutlineFocus() override;
+	virtual bool BeginOutlineFocus() override;
 	virtual bool EndOutlineFocus() override;
 	virtual bool GetIsActorUsable() override;
 	virtual FText GetUseActionText() override;

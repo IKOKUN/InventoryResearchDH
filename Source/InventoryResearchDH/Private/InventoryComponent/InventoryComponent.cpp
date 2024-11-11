@@ -13,10 +13,14 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
-
-void UInventoryComponent::InitInventory()
+void UInventoryComponent::InitInventory(int32 InventorySize)
 {
 
+}
+
+bool UInventoryComponent::LoadInventoryItems(int32 InventorySize, TArray<FInventoryItem> InventoryItems)
+{
+	return true;
 }
 
 // Called when the game starts

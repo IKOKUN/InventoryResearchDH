@@ -10,7 +10,7 @@ bool IUsableActorInterface::OnActorUsed(APlayerController* PlayerController)
 	return false;
 }
 
-bool IUsableActorInterface::OnOutlineFocus()
+bool IUsableActorInterface::BeginOutlineFocus()
 {
 	return false;
 }

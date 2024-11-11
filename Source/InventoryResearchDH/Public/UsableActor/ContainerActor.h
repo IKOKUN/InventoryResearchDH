@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UsableActor/UsableActorBase.h"
 #include "../Data/InventoryInterface.h"
+#include "../Data/InventoryItem.h"
 #include "ContainerActor.generated.h"
 
 class UInventoryComponent;
@@ -30,15 +31,25 @@ protected:
 	void InitInventory();
 
 	// Load Inventory Items
-	void LoadInventoryItems();
+	bool LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> InvItems);
 
 	/* Implementing Inventory Interface */
 	virtual FContainerProperties GetContainerProperties() override;
 	virtual UInventoryComponent* GetContainerInvetory() override;
 	virtual bool GetCanStoreItems() override;
 	virtual bool ContainerLooted() override;
-	//virtual bool AddItemToInventory(FItemDetails Item) override;
-	//virtual bool RemoveItemFromInventory(FItemDetails Item) override;
-	//virtual bool RemoveItemFromInventoryByIndex(int32 Index) override;
 	/* End Implementing Inventory Interface */
+
+	// Implementing IUsableActorInterface
+	virtual bool OnActorUsed(APlayerController* PlayerController) override;
+	// End Implementing IUsableActorInterface
+
+	// Total Amount of Item can store
+	int32 InventorySize = 4;
+
+	// Total amount of item can store each row
+	uint8 SlotsPerRow = 4;
+
+	// Is Actor Can Store An Items
+	bool bCanStoreItem;
 };
