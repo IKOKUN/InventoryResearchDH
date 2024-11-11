@@ -27,8 +27,6 @@ protected:
 	// IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
 private:
-	UPROPERTY(EditAnywhere, Category = "Item List")
-	TObjectPtr<UDataTable> ItemList;
 
 	UPROPERTY(EditAnywhere, Category = "Item List")
 	FName ID;

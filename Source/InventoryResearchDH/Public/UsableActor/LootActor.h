@@ -4,7 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UsableActor/ContainerActor.h"
+#include "../Data/InventoryItem.h"
+#include "../Data/LootList.h"
+#include "Engine/DataTable.h"
 #include "LootActor.generated.h"
+
 
 /**
  * 
@@ -17,6 +21,35 @@ class INVENTORYRESEARCHDH_API ALootActor : public AContainerActor
 public:
 	ALootActor();
 
+	UFUNCTION(BlueprintCallable, Category = "Data Table")
+	TArray<FName> GetDataTableRowNames(UDataTable* SrcDataTable);
+
 protected:
 	virtual void BeginPlay() override;
+
+	// Load Item From Inventory
+	virtual bool InitInventory() override;
+
+	// Get List Avaliable Loot From This Actor
+	TArray<FLootList> GetLootList();
+
+	// Generate Random Loot Item
+	TArray<FInventoryItem> GetRandomLootItems();
+
+	// Set Total Item Amount From This Actor
+	FInventoryItem SetItemAmount(FInventoryItem InvItem, int32 Amount);
+
+	// Minimal amount of Loot Items
+	UPROPERTY(EditDefaultsOnly, Category = "Items")
+	int32 MinLootItems;
+
+	// Maximal amount of Loot Items
+	UPROPERTY(EditDefaultsOnly, Category = "Items")
+	int32 MaxLootItems;
+
+public:
+	// Get Item Max Size From Inventory 
+	int32 GetItemMaxStackSize(FInventoryItem InventoryItem);
+	// Check if item is Currency
+	bool GetItemIsCurrency(FInventoryItem InventoryItem);
 };

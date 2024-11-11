@@ -43,9 +43,10 @@ bool AContainerActor::OnActorUsed(APlayerController* PlayerController)
 	}
 }
 
-void AContainerActor::InitInventory()
+bool AContainerActor::InitInventory()
 {
 	InventoryComponent->InitInventory(SlotsPerRow);
+	return true;
 }
 
 bool AContainerActor::LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> InvItems)

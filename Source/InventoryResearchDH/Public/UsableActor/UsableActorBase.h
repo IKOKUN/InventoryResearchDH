@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Data/UsableActorInterface.h"
+#include "Data/InventoryItem.h"
+#include "Data/LootList.h"
 #include "UsableActorBase.generated.h"
 
 class UStaticMeshComponent;
 class USoundBase;
+class UDataTable;
 
 UCLASS()
 class INVENTORYRESEARCHDH_API AUsableActorBase : public AActor, public IUsableActorInterface
@@ -55,4 +58,11 @@ protected:
 	virtual bool GetIsActorUsable() override;
 	virtual FText GetUseActionText() override;
 	// end IUsableActorInterface
+
+	// Fungsi untuk mendapatkan data berdasarkan RowName
+	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutInvItemRow);
+	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FLootList& OutLootListRow);
+
+	UPROPERTY(EditAnywhere, Category = "Data Table")
+	TObjectPtr<UDataTable> DataTable;
 };

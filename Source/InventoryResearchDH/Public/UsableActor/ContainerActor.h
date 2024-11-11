@@ -28,7 +28,7 @@ protected:
 	TObjectPtr<UInventoryComponent> InventoryComponent;
 
 	// function fo loading inventory
-	void InitInventory();
+	virtual bool InitInventory();
 
 	// Load Inventory Items
 	bool LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> InvItems);

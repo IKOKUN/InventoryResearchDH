@@ -1,10 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/DataTable.h"
 #include "LootList.generated.h"
 
 USTRUCT(BlueprintType)
-struct FLootList
+struct FLootList : public FTableRowBase
 {
     GENERATED_BODY()
 

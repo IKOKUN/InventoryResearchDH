@@ -17,7 +17,7 @@ public:
 	UInventoryComponent();
 
 	// Initialize Inventory 
-	void InitInventory(int32 InventorySize);
+	bool InitInventory(int32 InventorySize);
 
 	// Load all item from Inventory
 	bool LoadInventoryItems(int32 InventorySize, TArray<FInventoryItem> InventoryItems);

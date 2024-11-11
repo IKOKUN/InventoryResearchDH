@@ -13,9 +13,9 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
-void UInventoryComponent::InitInventory(int32 InventorySize)
+bool UInventoryComponent::InitInventory(int32 InventorySize)
 {
-
+	return true;
 }
 
 bool UInventoryComponent::LoadInventoryItems(int32 InventorySize, TArray<FInventoryItem> InventoryItems)

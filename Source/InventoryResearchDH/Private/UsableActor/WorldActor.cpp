@@ -15,12 +15,11 @@ AWorldActor::AWorldActor()
 
 bool AWorldActor::LoadItemFromList()
 {
-	FInventoryItem* Item = ItemList->FindRow<FInventoryItem>(ID, "");
-	if (Item)
+	FInventoryItem ItemInventory;
+	if (GetDataTableRowByName(DataTable,ID, ItemInventory))
 	{
-		//Name = FName(*Item->Name);
-		Name = Item->Name;
-		if (Item->WorldMesh)
+		Name = ItemInventory.Name;
+		if (ItemInventory.WorldMesh)
 		{
 			return true;
 		}
