@@ -28,12 +28,12 @@ protected:
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
 private:
 
-	UPROPERTY(EditAnywhere, Category = "Item List")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	FName ID;
 
-	UPROPERTY(EditAnywhere, Category = "Item List")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	int32 Amount;
 
-	UPROPERTY(EditAnywhere, Category = "Item List")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	FInventoryItem InventoryItem;
 };

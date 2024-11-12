@@ -9,6 +9,7 @@
 AContainerActor::AContainerActor()
 {
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	ActionText = FText::FromString("Open");
 	/*InventoryComponent->SetCapacity(20);
 	InventoryComponent->SetWeightCapacity(100);
 	InventoryComponent->SetWeight(0);

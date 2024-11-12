@@ -13,9 +13,12 @@ struct FItem
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    UTexture2D* Icon;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
     FName ItemID;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    int32 Amount;
+
+    // Parameterized constructor
+    struct FItem(FName InItemID = "None", int32 InAmount = 1)
+        : ItemID(InItemID), Amount(InAmount) {}
 };

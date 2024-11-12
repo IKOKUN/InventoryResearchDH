@@ -74,8 +74,8 @@ public:
     float Duration;
 
     // Weapon actor class for the item
-    //UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    //TSubclassOf<AWeaponActor> WeaponActorClass;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    TSubclassOf<AActor> WeaponActorClass;
 
     // Mesh for the item when equipped
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")

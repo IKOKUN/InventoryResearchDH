@@ -40,12 +40,15 @@ protected:
 	FInventoryItem SetItemAmount(FInventoryItem InvItem, int32 Amount);
 
 	// Minimal amount of Loot Items
-	UPROPERTY(EditDefaultsOnly, Category = "Items")
+	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	int32 MinLootItems;
 
 	// Maximal amount of Loot Items
-	UPROPERTY(EditDefaultsOnly, Category = "Items")
+	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	int32 MaxLootItems;
+
+	UPROPERTY(EditAnywhere, Category = "Data Table")
+	TObjectPtr<UDataTable> DataTableLootCommon;
 
 public:
 	// Get Item Max Size From Inventory 

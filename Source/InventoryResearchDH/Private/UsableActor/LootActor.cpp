@@ -44,10 +44,10 @@ TArray<FLootList> ALootActor::GetLootList()
 	TArray<FName> RowNames;
 	TArray<FLootList> LootListArray;
 	FLootList LootListTemp;
-	RowNames = GetDataTableRowNames(DataTable);
+	RowNames = GetDataTableRowNames(DataTableLootCommon);
 	for (FName RowName : RowNames)
 	{
-		if (GetDataTableRowByName(DataTable, RowName, LootListTemp))
+		if (GetDataTableRowByName(DataTableLootCommon, RowName, LootListTemp))
 		{
 			LootListArray.Add(LootListTemp);
 		}

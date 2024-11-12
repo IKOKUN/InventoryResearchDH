@@ -45,11 +45,14 @@ protected:
 	// End Implementing IUsableActorInterface
 
 	// Total Amount of Item can store
+	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	int32 InventorySize = 4;
 
 	// Total amount of item can store each row
+	UPROPERTY(EditDefaultsOnly, Category = "Properties")
 	uint8 SlotsPerRow = 4;
 
 	// Is Actor Can Store An Items
-	bool bCanStoreItem;
+	UPROPERTY(EditDefaultsOnly, Category = "Properties")
+	bool bCanStoreItem = true;
 };
