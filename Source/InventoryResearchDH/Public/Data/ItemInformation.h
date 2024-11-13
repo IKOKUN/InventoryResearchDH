@@ -14,6 +14,16 @@ struct FItemInformation
     GENERATED_BODY()
 
 public:
+    // Konstruktor default
+    FItemInformation()
+        : ID(NAME_None)
+        , Icon(nullptr)
+        , Name(TEXT("None"))
+        , Quality(EItemQuality::Common) // atau nilai default lainnya
+        , Type(EItemType::Miscellaneous)      // atau nilai default lainnya
+        , Amount(1)                    // Nilai default Amount adalah 1
+    {}
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Information")
     FName ID;
 
@@ -30,6 +40,6 @@ public:
     EItemType Type;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Information")
-    int32 Amount = 1;
+    int32 Amount;
 };
 

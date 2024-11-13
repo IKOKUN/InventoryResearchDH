@@ -57,7 +57,21 @@ private:
 	TObjectPtr<UInputAction> LookAction;
 	/* End Input */
 
+	/* Character Properties */
+	UPROPERTY(EditAnywhere, Category = "Character")
+	FName Name = FName(TEXT("Player"));
+
+	UPROPERTY(EditAnywhere, Category = "Character")
+	float Health = 60.f;
+
+	UPROPERTY(EditAnywhere, Category = "Character")
+	float MaxHealth = 100.0f;
+	/* Character Properties */
+
 public:
 	FORCEINLINE UEquipmentInventoryComponent* GetPlayerInventoryComponent() const { return PlayerInventoryComponent.Get(); }
 	FORCEINLINE UInventoryManagerComponent* GetInventoryManagerComponent() const { return InventoryManagerComponent.Get(); }
+	FORCEINLINE FName GetPlayerName() const { return Name; }
+	FORCEINLINE float GetPlayerHealth() const { return Health; }
+	FORCEINLINE float GetPlayerMaxHealth() const { return MaxHealth; }
 };
