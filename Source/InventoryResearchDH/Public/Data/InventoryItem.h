@@ -67,7 +67,7 @@ public:
 
     // Health provided by the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Health;
+    float Health;
 
     // Duration of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")

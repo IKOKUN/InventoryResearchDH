@@ -31,7 +31,7 @@ public:
     UTexture2D* Icon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Information")
-    FString Name;
+    FName Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Information")
     EItemQuality Quality;

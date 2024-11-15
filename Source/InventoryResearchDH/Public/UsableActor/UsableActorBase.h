@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Data/UsableActorInterface.h"
+#include "Interfaces/UsableActorInterface.h"
 #include "Data/InventoryItem.h"
 #include "Data/LootList.h"
 #include "UsableActorBase.generated.h"

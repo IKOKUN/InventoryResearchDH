@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UsableActor/UsableActorBase.h"
-#include "../Data/InventoryInterface.h"
+#include "../Interfaces/InventoryInterface.h"
 #include "../Data/InventoryItem.h"
 #include "ContainerActor.generated.h"
 

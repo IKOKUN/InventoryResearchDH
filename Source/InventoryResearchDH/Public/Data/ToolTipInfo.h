@@ -21,7 +21,7 @@ public:
     UTexture2D* Icon;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToolTip Info")
-    FString Name;
+    FName Name;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToolTip Info")
     FString Description;
@@ -39,7 +39,7 @@ public:
     int32 MaxStackSize;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToolTip Info")
-    int32 Health;
+    float Health;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ToolTip Info")
     float Duration;
@@ -66,7 +66,7 @@ public:
     int32 Intelligence;
 
     // Constructor
-    /*FToolTipInfo()
+    FToolTipInfo()
         : Icon(nullptr),
         Name(TEXT("")),
         Description(TEXT("")),
@@ -77,11 +77,11 @@ public:
         Health(0),
         Duration(0.0f),
         EquipmentType(EEquipmentType::Armor),
-        EquipmentSlot(EEquipmentSlotType::Head),
+        EquipmentSlot(EEquipmentSlotsType::Head),
         Damage(0),
         Armor(0),
         Strength(0),
         Dexterity(0),
         Intelligence(0)
-    {}*/
+    {}
 };

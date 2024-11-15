@@ -133,3 +133,103 @@ void AIRPlayerController::StopJumping()
 		ControlledCharacter->StopJumping();
 	}
 }
+
+
+void AIRPlayerController::UI_Close_Inventory()
+{
+}
+
+void AIRPlayerController::UI_Close_Equipment()
+{
+}
+
+void AIRPlayerController::UI_Close_Container()
+{
+}
+
+void AIRPlayerController::UI_Set_IsMouseOverUI(bool bIsMouseOver)
+{
+}
+
+FPlayerStats AIRPlayerController::UI_Get_PlayerStats()
+{
+	return FPlayerStats();
+}
+
+bool AIRPlayerController::UI_Get_IsShiftKeyDown()
+{
+	return false;
+}
+
+void AIRPlayerController::UI_Equip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
+{
+}
+
+void AIRPlayerController::UI_UnEquip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
+{
+}
+
+void AIRPlayerController::UI_Split_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot, int32 Amount)
+{
+}
+
+void AIRPlayerController::UI_Move_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
+{
+}
+
+void AIRPlayerController::UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
+{
+}
+
+void AIRPlayerController::UI_Move_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
+{
+}
+
+void AIRPlayerController::UI_Take_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
+{
+}
+
+void AIRPlayerController::UI_Deposit_Container_Item(int32 FromInvSlot, int32 ToContainerSlot)
+{
+}
+
+void AIRPlayerController::UI_Split_Item_From_Inventory(int32 FromInventorySlot, int32 ToSlot, int32 Amount)
+{
+}
+
+void AIRPlayerController::UI_Split_Item_From_Container(int32 FromContainerSlot, int32 ToSlot, int32 Amount)
+{
+}
+
+void AIRPlayerController::UI_Use_Inventory_Item(int32 InvSlot)
+{
+}
+
+void AIRPlayerController::UI_Use_Container_Item(int32 ContainerSlot)
+{
+}
+
+void AIRPlayerController::UI_Move_Hotbar_Item(int32 FromSlot, int32 ToSlot, bool bIsDraggedFromInventory, bool bIsDraggedFromHotbar)
+{
+}
+
+void AIRPlayerController::UI_Drop_Inventory_Item(int32 FromInvSlot)
+{
+}
+
+void AIRPlayerController::UI_Clear_Hotbar_Item(int32 FromHotbarSlot)
+{
+}
+
+void AIRPlayerController::UI_Equip_From_Container(int32 FromContainerSlot, int32 ToInvSlot)
+{
+}
+
+void AIRPlayerController::UI_UnEquip_To_Container(int32 FromInvSlot, int32 ToContainerSlot)
+{
+}
+
+FInventoryItem AIRPlayerController::UI_Get_ToolTip_Info(FName ItemID)
+{
+	return FInventoryItem();
+}
