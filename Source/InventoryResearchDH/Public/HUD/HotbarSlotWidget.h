@@ -20,13 +20,13 @@ class INVENTORYRESEARCHDH_API UHotbarSlotWidget : public UUserWidget
 public:
 	UHotbarSlotWidget(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
 	FItemInformation HotbarItemInformation;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
 	int32 HotBarNumber = 0;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
 	TObjectPtr<UTexture2D> BackgroundIcon;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
@@ -47,6 +47,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Drag Widget")
 	TSubclassOf<UUserWidget> ToolTipWidgetClass;
 
+	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;

@@ -56,6 +56,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FSlateBrush GetIconBrush() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;

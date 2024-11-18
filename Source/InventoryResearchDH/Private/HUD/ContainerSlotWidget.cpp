@@ -9,6 +9,7 @@
 #include "Components/TextBlock.h"
 #include "Data/ItemQuality.h"
 #include "Data/QualityColors.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 UContainerSlotWidget::UContainerSlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -195,4 +196,19 @@ FSlateBrush UContainerSlotWidget::GetIconBrush() const
 		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
 	}
 	return LocalBrush;
+}
+
+FEventReply UContainerSlotWidget::IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	UE_LOG(LogTemp, Log, TEXT("IconOnMouseButtonDown called via Blueprint Callable."));
+
+	// Panggil NativeOnMouseButtonDown, lalu ubah hasilnya menjadi FEventReply
+	FReply NativeReply = NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+
+	// Konversi FReply ke FEventReply
+	if (NativeReply.IsEventHandled())
+	{
+		return UWidgetBlueprintLibrary::Handled();
+	}
+	return UWidgetBlueprintLibrary::Unhandled();
 }

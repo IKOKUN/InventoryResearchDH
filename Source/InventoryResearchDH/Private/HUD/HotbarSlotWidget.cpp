@@ -73,6 +73,21 @@ UUserWidget* UHotbarSlotWidget::GetToolTipWidget() const
 	return nullptr;
 }
 
+FEventReply UHotbarSlotWidget::IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	UE_LOG(LogTemp, Log, TEXT("IconOnMouseButtonDown called via Blueprint Callable."));
+
+	// Panggil NativeOnMouseButtonDown, lalu ubah hasilnya menjadi FEventReply
+	FReply NativeReply = NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+
+	// Konversi FReply ke FEventReply
+	if (NativeReply.IsEventHandled())
+	{
+		return UWidgetBlueprintLibrary::Handled();
+	}
+	return UWidgetBlueprintLibrary::Unhandled();
+}
+
 FReply UHotbarSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	// Memeriksa apakah tombol mouse kiri ditekan

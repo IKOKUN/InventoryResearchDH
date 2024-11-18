@@ -14,4 +14,6 @@ class INVENTORYRESEARCHDH_API UEquipmentWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+
 };
