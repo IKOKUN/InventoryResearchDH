@@ -15,66 +15,66 @@ struct FNPCItems : public FTableRowBase
 
     // Default constructor
     FNPCItems()
-        : Head(TEXT("None")),
-        Shoulders(TEXT("None")),
-        Chest(TEXT("None")),
-        Hands(TEXT("None")),
-        Legs(TEXT("None")),
-        Feet(TEXT("None")),
-        Accessory(TEXT("None")),
-        Back(TEXT("None")),
-        RightRing(TEXT("None")),
-        LeftRing(TEXT("None")),
-        Waist(TEXT("None")),
-        Trinket(TEXT("None")),
-        MainHand(TEXT("None")),
-        OffHand(TEXT("None"))
+        : Head("None"),
+        Shoulders("None"),
+        Chest("None"),
+        Hands("None"),
+        Legs("None"),
+        Feet("None"),
+        Accessory("None"),
+        Back("None"),
+        RightRing("None"),
+        LeftRing("None"),
+        Waist("None"),
+        Trinket("None"),
+        MainHand("None"),
+        OffHand("None")
     {
         // Initialize Inventory with one FInventoryItem with ItemID as "None" and Amount as 1
-        Inventory.Add(FItem(TEXT("None"), 1));
+        Inventory.Add(FItem("None", 1));
     }
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Head;
+    FName Head;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Shoulders;
+    FName Shoulders;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Chest;
+    FName Chest;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Hands;
+    FName Hands;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Legs;
+    FName Legs;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Feet;
+    FName Feet;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Accessory;
+    FName Accessory;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Back;
+    FName Back;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString RightRing;
+    FName RightRing;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString LeftRing;
+    FName LeftRing;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Waist;
+    FName Waist;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString Trinket;
+    FName Trinket;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString MainHand;
+    FName MainHand;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
-    FString OffHand;
+    FName OffHand;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "NPC Items")
     TArray<FItem> Inventory;

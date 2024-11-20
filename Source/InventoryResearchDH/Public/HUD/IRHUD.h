@@ -7,6 +7,8 @@
 #include "IRHUD.generated.h"
 
 class UUSerWidget;
+class UHUDLayoutWidget;
+
 /**
  * 
  */
@@ -22,11 +24,11 @@ public:
     virtual void DrawHUD() override;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
-    TSubclassOf<UUserWidget> MainHUDWidgetClass;
+    TSubclassOf<UHUDLayoutWidget> MainHUDWidgetClass;
 
     // Pointer ke instance widget yang akan diinisialisasi
     UPROPERTY()
-    TObjectPtr<UUserWidget> MainHUDWidgetInstance;
+    TObjectPtr<UHUDLayoutWidget> MainHUDWidgetInstance;
 protected:
 	virtual void BeginPlay() override;
 

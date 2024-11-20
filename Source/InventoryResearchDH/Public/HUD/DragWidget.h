@@ -21,4 +21,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Drag and Drop", meta = (ExposeOnSpawn = "true", DisplayName = "WidgetToDrag"))
 	TObjectPtr<UUserWidget> WidgetToDrag;
+
 };

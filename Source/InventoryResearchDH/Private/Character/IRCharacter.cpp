@@ -46,8 +46,19 @@ AIRCharacter::AIRCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
+	Chest = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Chest"));
+	Hands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
+	Shoulder = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoulder"));
+	Waist = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Waist"));
+	Back = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Back"));
+	Legs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
+	Feet = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Feet"));
+	Accessory = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Accessory"));
+	RightRing = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightRing"));
+	LeftRing = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftRing"));
+	MainHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MainHand"));
+	OffHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("OffHand"));
 }
 
 void AIRCharacter::BeginPlay()

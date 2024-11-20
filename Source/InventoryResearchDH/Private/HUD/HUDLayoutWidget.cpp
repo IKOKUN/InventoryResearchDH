@@ -3,3 +3,8 @@
 
 #include "HUD/HUDLayoutWidget.h"
 
+UHUDLayoutWidget::UHUDLayoutWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+
+}

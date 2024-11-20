@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "HUDLayoutWidget.generated.h"
 
+class UInteractTextWidget;
+class UInventoryLayoutWidget;
+class UPlayerFrameWidget;
 /**
  * 
  */
@@ -14,4 +17,15 @@ class INVENTORYRESEARCHDH_API UHUDLayoutWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	UHUDLayoutWidget(const FObjectInitializer& ObjectInitializer);
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInteractTextWidget> InteractText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInventoryLayoutWidget> InventoryLayout;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UPlayerFrameWidget> PlayerFrame;
 };

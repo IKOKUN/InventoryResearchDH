@@ -14,6 +14,11 @@ UInventoryManagerComponent::UInventoryManagerComponent()
 }
 
 
+void UInventoryManagerComponent::LoadInventory()
+{
+
+}
+
 // Called when the game starts
 void UInventoryManagerComponent::BeginPlay()
 {
@@ -21,6 +26,11 @@ void UInventoryManagerComponent::BeginPlay()
 
 	// ...
 	
+}
+
+void UInventoryManagerComponent::InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget)
+{
+	InventoryUI = InventoryWidget;
 }
 
 
@@ -38,6 +48,20 @@ bool UInventoryManagerComponent::TryAddItemToInventory(UInventoryComponent* Inve
 }
 
 void UInventoryManagerComponent::UseContainer(AActor* ContainerActor)
+{
+
+}
+
+void UInventoryManagerComponent::InitPlayerInventory(int32 InventorySize)
+{
+}
+
+void UInventoryManagerComponent::InitInventoryManager(UInventoryComponent* PlayerInventoryRef)
+{
+	PlayerInventory = PlayerInventoryRef;
+}
+
+void UInventoryManagerComponent::InitInventoryItems()
 {
 
 }

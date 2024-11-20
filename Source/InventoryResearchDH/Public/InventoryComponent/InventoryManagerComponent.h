@@ -10,6 +10,7 @@
 
 class UInventoryComponent;
 class UUserWidget;
+class UInventoryLayoutWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class INVENTORYRESEARCHDH_API UInventoryManagerComponent : public UActorComponent
@@ -23,6 +24,18 @@ public:
 	bool TryAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item);
 	void UseContainer(AActor* ContainerActor);
 
+	void InitPlayerInventory(int32 InventorySize);
+	void InitInventoryManager(UInventoryComponent* PlayerInventoryRef);
+	void InitInventoryItems();
+
+	/* Function User Interface */
+	UFUNCTION(BlueprintCallable, Category = "User Interface")
+	void InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget);
+
+
+	/* Custom Event */
+	UFUNCTION(BlueprintCallable, Category = "Custom Event")
+	void LoadInventory();
 protected:
 	virtual void BeginPlay() override;
 
@@ -51,7 +64,7 @@ protected:
 	uint8 InventorySlotsPerRow = 6;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly,Category = "User Interface")
-	TSubclassOf<UUserWidget> InventoryWidgetClass;
+	TObjectPtr<UInventoryLayoutWidget> InventoryUI;
 	/* End User Interface*/
 public:	
 	FORCEINLINE bool IsInventoryOpen() const { return bIsInventoryOpen; }

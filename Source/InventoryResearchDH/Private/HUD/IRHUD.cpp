@@ -3,6 +3,7 @@
 
 #include "HUD/IRHUD.h"
 
+#include "HUD/HUDLayoutWidget.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Canvas.h"
 #include "Engine/Font.h"
@@ -27,7 +28,7 @@ void AIRHUD::BeginPlay()
 
     if (MainHUDWidgetClass)
     {
-        MainHUDWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainHUDWidgetClass);
+        MainHUDWidgetInstance = CreateWidget<UHUDLayoutWidget>(GetWorld(), MainHUDWidgetClass);
         if (MainHUDWidgetInstance)
         {
             // Menambahkan widget ke viewport
