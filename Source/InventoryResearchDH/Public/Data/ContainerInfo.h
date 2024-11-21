@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "ContainerInfo.generated.h"
 
-/ USTRUCT(BlueprintType)
+USTRUCT(BlueprintType)
 struct FContainerInfo
 {
     GENERATED_BODY()
