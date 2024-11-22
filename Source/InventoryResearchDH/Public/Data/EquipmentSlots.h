@@ -22,5 +22,8 @@ enum class EEquipmentSlots : uint8
     Waist        UMETA(DisplayName = "Waist"),
     Trinket     UMETA(DisplayName = "Trinket"),
     MainHand    UMETA(DisplayName = "Main-Hand"),
-    OffHand     UMETA(DisplayName = "Off-Hand")
+    OffHand     UMETA(DisplayName = "Off-Hand"),
+
+    // Enumerator untuk menentukan jumlah total entri
+    EEquipmentSlots_MAX UMETA(Hidden)
 };

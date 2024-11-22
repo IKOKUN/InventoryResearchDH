@@ -13,5 +13,8 @@ enum class EItemQuality : uint8
     Uncommon       UMETA(DisplayName = "Uncommon"),
     Rare       UMETA(DisplayName = "Rare"),
     Epic        UMETA(DisplayName = "Epic"),
-    Legendary        UMETA(DisplayName = "Legendary")
+    Legendary        UMETA(DisplayName = "Legendary"),
+
+	// Enumerator untuk menentukan jumlah total entri
+	EItemQuality_MAX UMETA(Hidden)
 };

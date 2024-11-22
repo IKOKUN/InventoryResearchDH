@@ -47,18 +47,31 @@ AIRCharacter::AIRCharacter()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	Head = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Head"));
+	Head->SetupAttachment(GetMesh());
 	Chest = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Chest"));
+	Chest->SetupAttachment(GetMesh());
 	Hands = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Hands"));
+	Hands->SetupAttachment(GetMesh());
 	Shoulder = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Shoulder"));
+	Shoulder->SetupAttachment(GetMesh());
 	Waist = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Waist"));
+	Waist->SetupAttachment(GetMesh());
 	Back = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Back"));
+	Back->SetupAttachment(GetMesh());
 	Legs = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Legs"));
+	Legs->SetupAttachment(GetMesh());
 	Feet = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Feet"));
+	Feet->SetupAttachment(GetMesh());
 	Accessory = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Accessory"));
+	Accessory->SetupAttachment(GetMesh());
 	RightRing = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("RightRing"));
+	RightRing->SetupAttachment(GetMesh());
 	LeftRing = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LeftRing"));
+	LeftRing->SetupAttachment(GetMesh());
 	MainHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MainHand"));
+	MainHand->SetupAttachment(GetMesh());
 	OffHand = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("OffHand"));
+	OffHand->SetupAttachment(GetMesh());
 }
 
 void AIRCharacter::BeginPlay()

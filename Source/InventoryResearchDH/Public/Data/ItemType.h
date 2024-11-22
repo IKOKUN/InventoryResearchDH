@@ -11,5 +11,8 @@ enum class EItemType : uint8
     Miscellaneous        UMETA(DisplayName = "Miscellaneous"),
     Equipment    UMETA(DisplayName = "Equipment"),
     Consumable       UMETA(DisplayName = "Consumable"),
-    Currency       UMETA(DisplayName = "Currency")
+    Currency       UMETA(DisplayName = "Currency"),
+
+	// Enumerator untuk menentukan jumlah total entri
+	EItemType_MAX UMETA(Hidden)
 };

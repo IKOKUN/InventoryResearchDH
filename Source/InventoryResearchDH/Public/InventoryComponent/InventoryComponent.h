@@ -56,4 +56,7 @@ protected:
 
 	// Inventory Array
 	TArray<FInventoryItem> InventoryItems;
+
+public:
+	FORCEINLINE TArray<FInventoryItem> GetInventoryItems() const { return InventoryItems; }
 };

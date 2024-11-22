@@ -21,5 +21,8 @@ enum class EEquipmentSlotsType : uint8
     Ring        UMETA(DisplayName = "Ring"),
     Trinket     UMETA(DisplayName = "Trinket"),
     MainHand    UMETA(DisplayName = "Main-Hand"),
-    OffHand     UMETA(DisplayName = "Off-Hand")
+    OffHand     UMETA(DisplayName = "Off-Hand"),
+
+    // Enumerator untuk menentukan jumlah total entri
+    EEquipmentSlotsType_MAX UMETA(Hidden)
 };

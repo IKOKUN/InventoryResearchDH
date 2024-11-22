@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "../Data/ItemInformation.h"
+#include "../Data/EquipmentSlots.h"
 #include "InventorySlotWidget.generated.h"
 
 class UImage;
@@ -58,9 +59,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
 	TSubclassOf<UUserWidget> ToolTipWidgetClass;
 
-	UFUNCTION(BlueprintCallable, Category = "Inv Slot Function")
-	static int32 GetNumberOfEquipmentSlots();
-
 	/* Binding Function */
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetBorderVisibility() const;
@@ -93,4 +91,12 @@ protected:
 	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+
+public:
+
+	// Fungsi untuk mendapatkan jumlah entri dalam EEquipmentSlots
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Helper")
+	FORCEINLINE int32 GetNumberOfEquipmentSlots() const {
+		return static_cast<int32>(EEquipmentSlots::EEquipmentSlots_MAX);
+	}
 };

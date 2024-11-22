@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InventoryComponent/InventoryComponent.h"
 #include "../Data/InventoryItem.h"
+#include "../Data/EquipmentSlots.h"
 #include "../Data/EquipmentSlotType.h"
 #include "../Data/ItemInformation.h"
 #include "../Data/ContainerInfo.h"
@@ -14,6 +15,7 @@
 class UInventoryComponent;
 class UUserWidget;
 class UInventoryLayoutWidget;
+class AContainerActor;
 
 USTRUCT(BlueprintType)
 struct FWorldItem
@@ -149,15 +151,15 @@ public:
 
 	//Sets A New Item Amount(Amount Validation Should Be Done Before Calling Function)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
-	int32 SetItemAmount(UInventoryComponent* Inventory, int32 InvSlot, int32 AmountToAdd);
+	FInventoryItem SetItemAmount(FInventoryItem Inventory, int32 AmountToAdd);
 
 	// Adds Amount To Item Amount(Amount Validation Should Be Done Before Calling Function)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
-	int32 AddToItemAmount(FInventoryItem InvItem, int32 AmountToAdd);
+	FInventoryItem AddToItemAmount(FInventoryItem InvItem, int32 AmountToAdd);
 
 	// Remove Amount From Item Amount
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
-	bool RemoveFromItemAmount(FInventoryItem InvItem, int32& AmountToRemove);
+	bool RemoveFromItemAmount(FInventoryItem& OutInvItem, int32& AmountToRemove);
 
 	// Adds Item To Inventory Than Creates The UI Item Info And Sends To Clients
 	// And If Player Inventory Updated Update HUD Inventory Slot Info
@@ -203,11 +205,11 @@ public:
 
 	// Use Container (If Already Using It, Close It)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Container")
-	void UseContainer(AActor* ContainerActor);
+	void UseContainer(AContainerActor* ContainerActor);
 
 	// Get Container Inventory And Create/Send The Inventory Into To The Clients Container UI
 	UFUNCTION(BlueprintCallable, Category = "Manager | Container")
-	void OpenContainer(AActor* ContainerActor);
+	void OpenContainer(AContainerActor* ContainerActor);
 
 	// Close Container And Clear References
 	UFUNCTION(BlueprintCallable, Category = "Manager | Container")
@@ -313,7 +315,7 @@ public:
 
 	// Loads The Container Data Into The Container UI
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
-	void LoadContainerSlots(FContainerInfo ContainerProeperties, FItemInformation ItemInfo);
+	void LoadContainerSlots(FContainerInfo ContainerProeperties, TArray<FItemInformation> ItemInfo);
 
 	// Creates The Container Inventory UI Slots (Or Rebuilds If Already Loaded)
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
@@ -419,7 +421,7 @@ protected:
 	int32 InventorySize = 28;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<AActor> CurrentContainer;
+	TObjectPtr<AContainerActor> CurrentContainer;
 
 public:	
 	FORCEINLINE bool IsInventoryOpen() const { return bIsInventoryOpen; }
@@ -476,4 +478,13 @@ public:
 		return LocWorldItem;
 	}
 	/* End Macros */
+
+
+	/* Helper Function */
+
+	 // Fungsi untuk mendapatkan jumlah entri dalam EEquipmentSlots
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Helper")
+	FORCEINLINE int32 GetNumberOfEquipmentSlots() const {
+		return static_cast<int32>(EEquipmentSlots::EEquipmentSlots_MAX);
+	}
 };

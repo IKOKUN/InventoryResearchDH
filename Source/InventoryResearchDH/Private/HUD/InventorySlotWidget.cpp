@@ -7,7 +7,6 @@
 #include "HUD/DraggedItemWidget.h"
 #include "HUD/ToolTipWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Data/EquipmentSlots.h"
 #include "Data/ItemQuality.h"
 #include "Data/QualityColors.h"
 
@@ -44,19 +43,6 @@ void UInventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 	{
 		bIsRightMouseButtonDown = false;
 	}
-}
-
-int32 UInventorySlotWidget::GetNumberOfEquipmentSlots()
-{
-	// Menggunakan StaticEnum untuk mendapatkan informasi enum
-	const UEnum* EnumPtr = StaticEnum<EEquipmentSlots>();
-	if (!EnumPtr)
-	{
-		return 0; // Jika enum tidak ditemukan
-	}
-
-	// Hitung jumlah entri
-	return EnumPtr->GetMaxEnumValue(); // Mengembalikan jumlah entries dalam enum
 }
 
 void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

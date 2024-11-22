@@ -24,11 +24,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Data Table")
 	TArray<FName> GetDataTableRowNames(UDataTable* SrcDataTable);
 
-protected:
-	virtual void BeginPlay() override;
-
 	// Load Item From Inventory
 	virtual bool InitInventory() override;
+
+protected:
+	virtual void BeginPlay() override;
 
 	// Get List Avaliable Loot From This Actor
 	TArray<FLootList> GetLootList();

@@ -20,13 +20,6 @@ class INVENTORYRESEARCHDH_API AContainerActor : public AUsableActorBase, public 
 public:
 	AContainerActor();
 
-protected:
-	virtual void BeginPlay() override;
-
-	// Inventory Component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
-	TObjectPtr<UInventoryComponent> InventoryComponent;
-
 	// function fo loading inventory
 	virtual bool InitInventory();
 
@@ -43,6 +36,13 @@ protected:
 	// Implementing IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
 	// End Implementing IUsableActorInterface
+
+protected:
+	virtual void BeginPlay() override;
+
+	// Inventory Component
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TObjectPtr<UInventoryComponent> InventoryComponent;
 
 	// Total Amount of Item can store
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")
