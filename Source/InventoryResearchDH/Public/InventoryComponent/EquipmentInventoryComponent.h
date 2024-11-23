@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InventoryComponent/InventoryComponent.h"
+#include "../Data/EquipmentSlots.h"
 #include "EquipmentInventoryComponent.generated.h"
 
 class AIRCharacter;
@@ -41,10 +42,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Character")
 	TObjectPtr<AIRCharacter> PlayerCharacter;
-
-	int32 GetEnumEquimentSlotsElementCount();
-
 public:
-	void SetPlayerCharacter(AIRCharacter* Character);
+	// Fungsi untuk mendapatkan karakter pemain
+	FORCEINLINE void SetPlayerCharacter(AIRCharacter* Character) {
+		PlayerCharacter = Character;
+		//PlayerCharacter = Character;
+	}
+
+	// Fungsi untuk mendapatkan jumlah entri dalam EEquipmentSlots
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Helper")
+	FORCEINLINE int32 GetNumberOfEquipmentSlots() const {
+		return static_cast<int32>(EEquipmentSlots::EEquipmentSlots_MAX);
+	}
 };
 

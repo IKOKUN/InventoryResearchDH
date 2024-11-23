@@ -22,6 +22,17 @@ void UInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+			5.0f,                 // Durasi pesan dalam detik
+			FColor::Green,        // Warna pesan
+			FString::Printf(TEXT("Equipment Slot Total : %d"), GetNumberOfEquipmentSlots()) // Pesan
+		);
+
+	}
 }
 
 void UInventoryManagerComponent::InitInventoryItems()
@@ -46,9 +57,9 @@ void UInventoryManagerComponent::EquipFromInventory(int32 FromInvSlot, int32 ToI
 	EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
 }
 
-void UInventoryManagerComponent::UnequipFromInventory(int32 FromInvSlot, int32 ToInvSlot)
+void UInventoryManagerComponent::UnEquipFromInventory(int32 FromInvSlot, int32 ToInvSlot)
 {
-	UnequipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
+	UnEquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
 }
 
 void UInventoryManagerComponent::DropItemFromInventory(int32 FromInvSlot)
@@ -128,7 +139,7 @@ void UInventoryManagerComponent::UnEquipToContainer(int32 FromInvSlot, int32 ToC
 {
 	if (ContainerInventory)
 	{
-		UnequipItem(PlayerInventory, FromInvSlot, ContainerInventory, ToContainerSlot);
+		UnEquipItem(PlayerInventory, FromInvSlot, ContainerInventory, ToContainerSlot);
 	}
 	else
 	{
@@ -136,10 +147,9 @@ void UInventoryManagerComponent::UnEquipToContainer(int32 FromInvSlot, int32 ToC
 	}
 }
 
-void UInventoryManagerComponent::SplitContainerItem(int32 FromContainerSlot, int32 ToContainerSlot)
+void UInventoryManagerComponent::SplitContainerItem(int32 FromContainerSlot, int32 ToContainerSlot, int32 Amount)
 {
-	SplitItem(ContainerInventory, FromContainerSlot, ContainerInventory, ToContainerSlot, 1);
-
+	SplitItem(ContainerInventory, FromContainerSlot, PlayerInventory, ToContainerSlot, Amount);
 }
 
 void UInventoryManagerComponent::SplitItemFromContainer(int32 FromContainerSlot, int32 ToSlot, int32 Amount)
@@ -152,7 +162,7 @@ void UInventoryManagerComponent::LoadInventory()
 
 }
 
-void UInventoryManagerComponent::CreateInventorySlots(int32 InvSize, UINT8 SlotsPerRow)
+void UInventoryManagerComponent::CreateInventorySlots(int32 InvSize, uint8 SlotsPerRow)
 {
 }
 
@@ -448,7 +458,7 @@ void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 F
 {
 }
 
-void UInventoryManagerComponent::UnequipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
+void UInventoryManagerComponent::UnEquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
 }
 

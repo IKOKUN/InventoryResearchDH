@@ -63,7 +63,7 @@ public:
     virtual void UI_UnEquip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot) = 0;
     virtual void UI_Split_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot, int32 Amount) = 0;
     virtual void UI_Move_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot) = 0;
-    virtual void UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) = 0;
+    virtual void UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot, int32 Amount) = 0;
     virtual void UI_Move_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) = 0;
     virtual void UI_Take_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) = 0;
     virtual void UI_Deposit_Container_Item(int32 FromInvSlot, int32 ToContainerSlot) = 0;

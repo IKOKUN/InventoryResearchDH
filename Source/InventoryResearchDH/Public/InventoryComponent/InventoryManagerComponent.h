@@ -56,7 +56,7 @@ public:
 	void EquipFromInventory(int32 FromInvSlot, int32 ToInvSlot);
 
 	UFUNCTION(BlueprintCallable, Category = "Event | Inventory Events")
-	void UnequipFromInventory(int32 FromInvSlot, int32 ToInvSlot);
+	void UnEquipFromInventory(int32 FromInvSlot, int32 ToInvSlot);
 
 	UFUNCTION(BlueprintCallable, Category = "Event | Inventory Events")
 	void DropItemFromInventory(int32 FromInvSlot);
@@ -89,7 +89,7 @@ public:
 	void UnEquipToContainer(int32 FromInvSlot, int32 ToContainerSlot);
 
 	UFUNCTION(BlueprintCallable, Category = "Event | Container Events")
-	void SplitContainerItem(int32 FromContainerSlot, int32 ToContainerSlot);
+	void SplitContainerItem(int32 FromContainerSlot, int32 ToContainerSlot, int32 Amount);
 
 	UFUNCTION(BlueprintCallable, Category = "Event | Container Events")
 	void SplitItemFromContainer(int32 FromContainerSlot, int32 ToSlot, int32 Amount);
@@ -237,7 +237,7 @@ public:
 
 	// Tries To Unequip An Item From Specified Inventory
 	UFUNCTION(BlueprintCallable, Category = "Manager | Equipment")
-	void UnequipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot);
+	void UnEquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot);
 
 	// Updates The Players Equipped Stats And Replicates The Changes
 	UFUNCTION(BlueprintCallable, Category = "Manager | Equipment")
@@ -427,9 +427,18 @@ public:
 	FORCEINLINE bool IsInventoryOpen() const { return bIsInventoryOpen; }
 	FORCEINLINE bool IsContainerOpen() const { return bIsContainerOpen; }
 	FORCEINLINE bool IsEquipmentOpen() const { return bIsEquipmentOpen; }
+	FORCEINLINE int32 GetGold() const { return Gold; }
+	FORCEINLINE int32 GetInventorySize() const { return InventorySize; }
+	FORCEINLINE int32 GetDamage() const { return Damage; }
+	FORCEINLINE int32 GetArmor() const { return Armor; }
+	FORCEINLINE int32 GetStrength() const { return Strength; }
+	FORCEINLINE int32 GetDexterity() const { return Dexterity; }
+	FORCEINLINE int32 GetIntelligence() const { return Intelligence; }
+	FORCEINLINE UInventoryLayoutWidget* GetInventoryUI() const { return InventoryUI; }
 	FORCEINLINE UINT8 GetInventorySlotsPerRow() const { return InventorySlotsPerRow; }
 	FORCEINLINE UInventoryComponent* GetPlayerInventory() const { return PlayerInventory; }
 	FORCEINLINE UInventoryComponent* GetContainerInventory() const { return ContainerInventory; }
+	FORCEINLINE AContainerActor* GetCurrentContainer() const { return CurrentContainer; }
 		
 	/* Macros */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Macros")

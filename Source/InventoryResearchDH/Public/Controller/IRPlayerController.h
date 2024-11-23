@@ -48,7 +48,7 @@ public:
 	virtual void UI_UnEquip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot) override;
 	virtual void UI_Split_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot, int32 Amount) override;
 	virtual void UI_Move_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot) override;
-	virtual void UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) override;
+	virtual void UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot, int32 Amount) override;
 	virtual void UI_Move_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) override;
 	virtual void UI_Take_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot) override;
 	virtual void UI_Deposit_Container_Item(int32 FromInvSlot, int32 ToContainerSlot) override;
@@ -78,7 +78,7 @@ public:
 	void HideInteractText();
 
 	/* Interact belum beres*/
-	AActor* GetUsableActor();
+	AUsableActorBase* GetUsableActor();
 	void OnActorUsed();
 	void GetUsableActorFocus();
 
@@ -154,7 +154,7 @@ private:
 	bool bIsNewFocus;
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Interaction")
-	TObjectPtr<AActor> LastUsableActor;
+	TObjectPtr<AUsableActorBase> LastUsableActor;
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Interaction")
 	float MaxUseDistance = 200.f;

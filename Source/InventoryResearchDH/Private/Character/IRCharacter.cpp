@@ -92,3 +92,84 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
+void AIRCharacter::UpdateEquipmentMesh()
+{
+	if (HeadMesh)
+	{
+		Head->SetSkeletalMesh(HeadMesh);
+		Head->LeaderPoseComponent = GetMesh();
+	}
+	
+	if (ChestMesh)
+	{
+		Chest->SetSkeletalMesh(ChestMesh);
+		Chest->LeaderPoseComponent = GetMesh();
+	}
+
+	if (HandsMesh)
+	{
+		Hands->SetSkeletalMesh(HandsMesh);
+		Hands->LeaderPoseComponent = GetMesh();
+	}
+
+	if (ShoulderMesh)
+	{
+		Shoulder->SetSkeletalMesh(ShoulderMesh);
+		Shoulder->LeaderPoseComponent = GetMesh();
+	}
+
+	if (WaistMesh)
+	{
+		Waist->SetSkeletalMesh(WaistMesh);
+		Waist->LeaderPoseComponent = GetMesh();
+	}
+
+	if (BackMesh)
+	{
+		Back->SetSkeletalMesh(BackMesh);
+		Back->LeaderPoseComponent = GetMesh();
+	}
+
+	if (LegsMesh)
+	{
+		Legs->SetSkeletalMesh(LegsMesh);
+		Legs->LeaderPoseComponent = GetMesh();
+	}
+
+	if (FeetMesh)
+	{
+		Feet->SetSkeletalMesh(FeetMesh);
+		Feet->LeaderPoseComponent = GetMesh();
+	}
+
+	if (AccessoryMesh)
+	{
+		Accessory->SetSkeletalMesh(AccessoryMesh);
+		Accessory->LeaderPoseComponent = GetMesh();
+	}
+
+	if (RightRingMesh)
+	{
+		RightRing->SetSkeletalMesh(RightRingMesh);
+		RightRing->LeaderPoseComponent = GetMesh();
+	}
+
+	if (LeftRingMesh)
+	{
+		LeftRing->SetSkeletalMesh(LeftRingMesh);
+		LeftRing->LeaderPoseComponent = GetMesh();
+	}
+
+	if (MainHandMesh)
+	{
+		MainHand->SetSkeletalMesh(MainHandMesh);
+		MainHand->LeaderPoseComponent = GetMesh();
+	}
+	
+	if (OffHandMesh)
+	{
+		OffHand->SetSkeletalMesh(OffHandMesh);
+		OffHand->LeaderPoseComponent = GetMesh();
+	}
+}
+

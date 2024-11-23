@@ -3,7 +3,6 @@
 
 #include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "Character/IRCharacter.h"
-#include "Data/EquipmentSlots.h"
 
 UEquipmentInventoryComponent::UEquipmentInventoryComponent()
 {
@@ -13,7 +12,7 @@ UEquipmentInventoryComponent::UEquipmentInventoryComponent()
 bool UEquipmentInventoryComponent::InitInventory(int32 InventorySize)
 {
 	InventoryItems.Empty();
-	for (int32 i = 0; i < GetEnumEquimentSlotsElementCount() + (InventorySize - 1); i++)
+	for (int32 i = 0; i < GetNumberOfEquipmentSlots() + (InventorySize - 1); i++)
 	{
 		InventoryItems.Add(FInventoryItem());
 	}
@@ -47,7 +46,7 @@ bool UEquipmentInventoryComponent::GetEmptyInventorySpace(int32& OutIndex)
 		if (!LocInvItem.Icon)
 		{
 			// Jika LocalIndex lebih besar atau sama dengan jumlah slot yang diinginkan
-			if (LocalIndex >= GetEnumEquimentSlotsElementCount())
+			if (LocalIndex >= GetNumberOfEquipmentSlots())
 			{
 				// Setel indeks keluar dan kembalikan true
 				OutIndex = LocalIndex;
@@ -64,7 +63,7 @@ bool UEquipmentInventoryComponent::GetEmptyInventorySpace(int32& OutIndex)
 
 bool UEquipmentInventoryComponent::LoadInventoryItems(int32 InventorySize, TArray<FInventoryItem> InvItems)
 {
-	int32 TempIndex = InventorySize + GetEnumEquimentSlotsElementCount();
+	int32 TempIndex = InventorySize + GetNumberOfEquipmentSlots();
 	bool bSucces = Super::LoadInventoryItems(TempIndex, InvItems);
 	return bSucces;
 }
@@ -75,7 +74,7 @@ void UEquipmentInventoryComponent::UpdateEquippedMeshes(int32 InvSlot)
 	TSubclassOf<AActor> LocalWeaponActorClass = nullptr;
 	if (PlayerCharacter)
 	{
-		if (InvSlot < GetEnumEquimentSlotsElementCount())
+		if (InvSlot < GetNumberOfEquipmentSlots())
 		{
 			FInventoryItem LocalInvItem = GetInventoryItem(InvSlot);
 			LocalWeaponActorClass = LocalInvItem.WeaponActorClass;
@@ -130,6 +129,12 @@ void UEquipmentInventoryComponent::UpdateEquippedMeshes(int32 InvSlot)
 				break;
 			}
 		}
+
+		PlayerCharacter->UpdateEquipmentMesh();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is nullptr"));
 	}
 }
 
@@ -162,21 +167,4 @@ void UEquipmentInventoryComponent::UpdateMainHandWeapon(TSubclassOf<AActor> Weap
 void UEquipmentInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-int32 UEquipmentInventoryComponent::GetEnumEquimentSlotsElementCount()
-{
-	UEnum* Enum = StaticEnum<EEquipmentSlots>();
-	int32 LocEquipmentSlots = 0;
-	if (Enum)
-	{
-		UE_LOG(LogTemp, Log, TEXT("Jumlah elemen dalam enum: %d"), Enum->NumEnums() - 1);
-		LocEquipmentSlots = Enum->NumEnums() - 1; // Kurangi 1 untuk mengabaikan "_MAX" atau elemen tersembunyi		
-	}
-	return LocEquipmentSlots;
-}
-
-void UEquipmentInventoryComponent::SetPlayerCharacter(AIRCharacter* Character)
-{
-	PlayerCharacter = Character;
 }

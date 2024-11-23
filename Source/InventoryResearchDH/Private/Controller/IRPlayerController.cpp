@@ -10,6 +10,8 @@
 #include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "UsableActor/UsableActorBase.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Character.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -275,63 +277,226 @@ void AIRPlayerController::HideInteractText()
 	}
 }
 
-AActor* AIRPlayerController::GetUsableActor()
+AUsableActorBase* AIRPlayerController::GetUsableActor()
 {
+	if (!PlayerCharacter)
+	{
+		return nullptr;
+	}
+
+	// 1. Ambil lokasi dan rotasi dari FollowCamera
+	UCameraComponent* FollowCamera = PlayerCharacter->GetFollowCamera();
+	USpringArmComponent* CameraBoom = PlayerCharacter->GetCameraBoom();
+
+	if (!FollowCamera || !CameraBoom)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FollowCamera or CameraBoom not found"));
+		return nullptr;
+	}
+
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector ForwardVector = FollowCamera->GetForwardVector();
+
+	// 2. Tentukan posisi End menggunakan ForwardVector dan MaxUseDistance
+	FVector End = Start + (ForwardVector * (MaxUseDistance + CameraBoom->TargetArmLength));
+
+	// 3. Konfigurasi Trace
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(PlayerCharacter); // Abaikan karakter pemain
+	Params.bTraceComplex = false;      // Tidak menggunakan Trace Complex
+
+	// 4. Lakukan LineTraceByChannel
+	bool bHit = PlayerCharacter->GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		Start,
+		End,
+		ECC_Visibility,  // Trace Channel (sama seperti Visibility di blueprint)
+		Params
+	);
+
+	// 5. Debug: Gambar garis di dunia untuk memverifikasi
+	DrawDebugLine(PlayerCharacter->GetWorld(), Start, End, FColor::Green, false, 2.0f);
+
+	// 6. Jika Line Trace mengenai sesuatu
+	if (bHit && HitResult.GetActor())
+	{
+		AUsableActorBase* UsableActor = Cast<AUsableActorBase>(HitResult.GetActor());
+		if (UsableActor)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+			return UsableActor; // Mengembalikan Actor yang ditemukan
+		}	
+	}
 
 	return nullptr;
 }
 
 void AIRPlayerController::OnActorUsed()
 {
+	if (GetUsableActor())
+	{
+		GetUsableActor()->OnActorUsed(this);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No UsableActor found"));
+	}
 }
 
 void AIRPlayerController::GetUsableActorFocus()
 {
+	if (GetUsableActor())
+	{
+		if (GetUsableActor() != LastUsableActor)
+		{
+			bIsNewFocus = true;
+			if (LastUsableActor)
+			{
+				LastUsableActor->EndOutlineFocus();
+				LastUsableActor = nullptr;
+				SetInteractText(FText());
+				HideInteractText();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("LastUsableActor is not a UsableActor"));
+			}
+		}
+
+		LastUsableActor = GetUsableActor();
+		if (bIsNewFocus)
+		{
+			LastUsableActor->BeginOutlineFocus();
+			bIsNewFocus = false;
+			SetInteractText(GetActorActionText(LastUsableActor));
+			ShowInteractText();
+		}
+	}
+	else
+	{
+		SetInteractText(FText());
+		HideInteractText();
+	}
+
+	if (LastUsableActor)
+	{
+		if (!LastUsableActor->GetIsActorUsable())
+		{
+			LastUsableActor->EndOutlineFocus();
+			if (InventoryManagerComponent)
+			{
+				if (InventoryManagerComponent->GetCurrentContainer() == Cast<AContainerActor>(LastUsableActor))
+				{
+					InventoryManagerComponent->CloseContainerWindow();
+				}
+			}
+			SetInteractText(FText());
+			HideInteractText();
+
+		}	
+	}
 }
 
 void AIRPlayerController::InitializePlayer()
 {
+	// Cast the controlled pawn to AIRCharacter
 	PlayerCharacter = Cast<AIRCharacter>(GetPawn());
-	if (PlayerCharacter)
+	if (!PlayerCharacter)
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerCharacter is not valid"));
+		return;
+	}
+
+	// Initialize Player Inventory Component
+	if (PlayerInventoryComponent)
 	{
 		PlayerInventoryComponent->SetPlayerCharacter(PlayerCharacter);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("PlayerInventoryComponent is not valid"));
+		return;
+	}
+
+	// Initialize Inventory Manager Component
+	if (InventoryManagerComponent)
+	{
 		InventoryManagerComponent->InitInventoryManager(PlayerInventoryComponent);
 		LoadPlayerItems();
-		AIRHUD* MainHUD = Cast<AIRHUD>(GetHUD());
-		if (MainHUD)
-		{
-			HUDReference = MainHUD->MainHUDWidgetInstance;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("HUD not found"));
-		}
-		if (IsLocalPlayerController() == false) return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+		return;
+	}
 
-		bShowMouseCursor = true;
-		DefaultMouseCursor = EMouseCursor::Default;
+	// Get HUD and validate it
+	AIRHUD* MainHUD = Cast<AIRHUD>(GetHUD());
+	if (!MainHUD)
+	{
+		UE_LOG(LogTemp, Error, TEXT("HUD not found or is invalid"));
+		return;
+	}
 
-		FInputModeGameAndUI InputModeData;
-		InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		InputModeData.SetHideCursorDuringCapture(false);
+	// Assign the MainHUD widget reference
+	HUDReference = MainHUD->MainHUDWidgetInstance;
+	if (!HUDReference)
+	{
+		UE_LOG(LogTemp, Error, TEXT("HUDReference (MainHUDWidgetInstance) is not valid"));
+		return;
+	}
+
+	// Check if this is a local player controller
+	if (!IsLocalPlayerController())
+	{
+		return;
+	}
+
+	// Configure input mode and mouse cursor
+	bShowMouseCursor = true;
+	DefaultMouseCursor = EMouseCursor::Default;
+
+	FInputModeGameAndUI InputModeData;
+	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	InputModeData.SetHideCursorDuringCapture(false);
+
+	if (HUDReference->IsValidLowLevel())
+	{
 		InputModeData.SetWidgetToFocus(HUDReference->TakeWidget());
-		SetInputMode(InputModeData);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("HUDReference is invalid for setting WidgetToFocus"));
+		return;
+	}
 
+	SetInputMode(InputModeData);
 
-		APawn* ControlledPawn = GetPawn<APawn>();
-		if (ControlledPawn)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Pawn controlled by this PlayerController: %s"), *ControlledPawn->GetName());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("No Pawn is being controlled by this PlayerController"));
-		}
+	// Log the controlled pawn
+	APawn* ControlledPawn = GetPawn<APawn>();
+	if (ControlledPawn)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Pawn controlled by this PlayerController: %s"), *ControlledPawn->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No Pawn is being controlled by this PlayerController"));
+	}
+
+	// Initialize Inventory UI and load inventory
+	if (HUDReference->InventoryLayout && InventoryManagerComponent)
+	{
 		InventoryManagerComponent->InitInventoryManagerUI(HUDReference->InventoryLayout);
 		InventoryManagerComponent->LoadInventory();
-
-		bIsMovementLocked = false;
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("HUDReference->InventoryLayout or InventoryManagerComponent is not valid"));
+	}
+
+	// Unlock movement
+	bIsMovementLocked = false;
 }
 
 // Fungsi untuk mengonversi enum ke FName
@@ -467,99 +632,197 @@ bool AIRPlayerController::GetDataTableRowByName(UDataTable* SrcDataTable, const 
 
 void AIRPlayerController::UI_Close_Inventory()
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->CloseInventoryWindow();
+	}
 }
 
 void AIRPlayerController::UI_Close_Equipment()
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->CloseEquipmentWindow();
+	}
 }
 
 void AIRPlayerController::UI_Close_Container()
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->CloseContainerWindow();
+	}
 }
 
 void AIRPlayerController::UI_Set_IsMouseOverUI(bool bIsMouseOver)
 {
+	bIsMouseOverUI = bIsMouseOver;
 }
 
 FPlayerStats AIRPlayerController::UI_Get_PlayerStats()
 {
-	return FPlayerStats();
+	FPlayerStats LocalPlayerStats;
+	if (InventoryManagerComponent)
+	{
+		LocalPlayerStats.Gold = InventoryManagerComponent->GetGold();
+		LocalPlayerStats.Damage = InventoryManagerComponent->GetDamage();
+		LocalPlayerStats.Armor = InventoryManagerComponent->GetArmor();
+		LocalPlayerStats.Strength = InventoryManagerComponent->GetStrength();
+		LocalPlayerStats.Dexterity = InventoryManagerComponent->GetDexterity();
+		LocalPlayerStats.Intelligence = InventoryManagerComponent->GetIntelligence();
+		LocalPlayerStats.InventorySize = InventoryManagerComponent->GetInventorySize();
+		return LocalPlayerStats;
+	}
+	
+	return LocalPlayerStats;
 }
 
 bool AIRPlayerController::UI_Get_IsShiftKeyDown()
 {
-	return false;
+	return bIsShiftKeyDown;
 }
 
 void AIRPlayerController::UI_Equip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->EquipFromInventory(FromInvSlot, ToInvSlot);
+	}
 }
 
 void AIRPlayerController::UI_UnEquip_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UnEquipFromInventory(FromInvSlot, ToInvSlot);
+	}
 }
 
 void AIRPlayerController::UI_Split_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot, int32 Amount)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->SplitInventoryItem(FromInvSlot, ToInvSlot, Amount);
+	}
 }
 
 void AIRPlayerController::UI_Move_Inventory_Item(int32 FromInvSlot, int32 ToInvSlot)
 {
-}
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->MoveInventoryItem(FromInvSlot, ToInvSlot);
+	}
 
-void AIRPlayerController::UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
-{
-}
-
-void AIRPlayerController::UI_Move_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
-{
-}
-
-void AIRPlayerController::UI_Take_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
-{
-}
-
-void AIRPlayerController::UI_Deposit_Container_Item(int32 FromInvSlot, int32 ToContainerSlot)
-{
 }
 
 void AIRPlayerController::UI_Split_Item_From_Inventory(int32 FromInventorySlot, int32 ToSlot, int32 Amount)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->SplitInventoryItem(FromInventorySlot, ToSlot, Amount);
+	}
+}
+
+void AIRPlayerController::UI_Split_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot, int32 Amount)
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->SplitContainerItem(FromContainerSlot, ToContainerSlot, Amount);
+	}
+}
+
+void AIRPlayerController::UI_Move_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->MoveContainerItem(FromContainerSlot, ToContainerSlot);
+	}
+}
+
+void AIRPlayerController::UI_Take_Container_Item(int32 FromContainerSlot, int32 ToContainerSlot)
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->TakeContainerItem(FromContainerSlot, ToContainerSlot);
+	}
+}
+
+void AIRPlayerController::UI_Deposit_Container_Item(int32 FromInvSlot, int32 ToContainerSlot)
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->DepositContainerItem(FromInvSlot, ToContainerSlot);
+	}
 }
 
 void AIRPlayerController::UI_Split_Item_From_Container(int32 FromContainerSlot, int32 ToSlot, int32 Amount)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->SplitContainerItem(FromContainerSlot, ToSlot, Amount);
+	}
 }
 
 void AIRPlayerController::UI_Use_Inventory_Item(int32 InvSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseInventoryItem(InvSlot);
+	}
 }
 
 void AIRPlayerController::UI_Use_Container_Item(int32 ContainerSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseContainerItem(ContainerSlot);
+	}
+
 }
 
 void AIRPlayerController::UI_Move_Hotbar_Item(int32 FromSlot, int32 ToSlot, bool bIsDraggedFromInventory, bool bIsDraggedFromHotbar)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->MoveHotbarSlotItem(FromSlot, ToSlot, bIsDraggedFromInventory, bIsDraggedFromHotbar);
+	}
 }
 
 void AIRPlayerController::UI_Drop_Inventory_Item(int32 FromInvSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->DropItemFromInventory(FromInvSlot);
+	}
 }
 
 void AIRPlayerController::UI_Clear_Hotbar_Item(int32 FromHotbarSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->ClearHotbarSlotItem(FromHotbarSlot);
+	}
 }
 
 void AIRPlayerController::UI_Equip_From_Container(int32 FromContainerSlot, int32 ToInvSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->EquipFromContainer(FromContainerSlot, ToInvSlot);
+	}
 }
 
 void AIRPlayerController::UI_UnEquip_To_Container(int32 FromInvSlot, int32 ToContainerSlot)
 {
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UnEquipToContainer(FromInvSlot, ToContainerSlot);
+	}
 }
 
 FInventoryItem AIRPlayerController::UI_Get_ToolTip_Info(FName ItemID)
 {
-	return FInventoryItem();
+	FInventoryItem LocToolTipItem;
+	GetDataTableRowByName(ItemListDataTable, ItemID, LocToolTipItem);
+	return LocToolTipItem;
 }

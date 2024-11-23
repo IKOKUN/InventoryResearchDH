@@ -48,9 +48,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	bool bWasUsed = false;
 
-protected:
-	virtual void BeginPlay() override;
-
 	// IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
 	virtual bool BeginOutlineFocus() override;
@@ -58,6 +55,9 @@ protected:
 	virtual bool GetIsActorUsable() override;
 	virtual FText GetUseActionText() override;
 	// end IUsableActorInterface
+
+protected:
+	virtual void BeginPlay() override;
 
 	// Fungsi untuk mendapatkan data berdasarkan RowName
 	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutInvItemRow);

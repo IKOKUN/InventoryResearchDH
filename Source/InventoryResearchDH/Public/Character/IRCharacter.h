@@ -24,44 +24,46 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void UpdateEquipmentMesh();
+
 	// Component for Attachment Equipment
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> MainHandMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> OffHandMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> HeadMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<USkeletalMesh> ShoulderMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> ChestMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> LegsMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> FeetMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> BackMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> WaistMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> HandsMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> AccessoryMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> RightRingMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
 	TObjectPtr<USkeletalMesh> LeftRingMesh;
 
 	// Equipment Placement
@@ -114,5 +116,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+
+public:
+	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 };
