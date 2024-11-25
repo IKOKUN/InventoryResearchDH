@@ -65,4 +65,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Data Table")
 	TObjectPtr<UDataTable> DataTable;
+
+public:
+	FORCEINLINE UStaticMeshComponent* GetStaticMeshComponent() const { return StaticMeshComponent; }
 };

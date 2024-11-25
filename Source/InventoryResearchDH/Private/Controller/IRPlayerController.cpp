@@ -36,6 +36,11 @@ void AIRPlayerController::BeginPlay()
 void AIRPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+
+	if (!bIsMovementLocked)
+	{
+		GetUsableActorFocus();
+	}
 }
 
 void AIRPlayerController::SetupInputComponent()
@@ -569,7 +574,7 @@ void AIRPlayerController::LoadPlayerItems()
 				LocalInventoryItem2.Amount = LocItem.Amount;
 				if (LocalInventoryItem2.ItemType == EItemType::Currency)
 				{
-					InventoryManagerComponent->TryAddItemToInventory(PlayerInventoryComponent, LocalInventoryItem2);
+					InventoryManagerComponent->TryToAddItemToInventory(PlayerInventoryComponent, LocalInventoryItem2);
 				}
 				else
 				{

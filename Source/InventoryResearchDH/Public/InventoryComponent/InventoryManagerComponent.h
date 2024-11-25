@@ -16,6 +16,7 @@ class UInventoryComponent;
 class UUserWidget;
 class UInventoryLayoutWidget;
 class AContainerActor;
+class AWorldActor;
 
 USTRUCT(BlueprintType)
 struct FWorldItem
@@ -108,7 +109,7 @@ public:
 		This must only be called by the authority.It is not an event because we may need to return an item.
 		For an example of it's use, please look at the OnActorUse function in the Usable\World_Actor blueprint.*/
 	UFUNCTION(BlueprintCallable, Category = "Manager | Public")
-	bool TryAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item);
+	bool TryToAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item);
 
 	// Remove the amount of an Item from the Inventory
 	UFUNCTION(BlueprintCallable, Category = "Manager | Public")
@@ -279,7 +280,7 @@ public:
 
 	// Sets Inventory UI Slot Item Info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
-	void SetInventorySlotItem(int32 InvSlot, FInventoryItem InvItem);
+	void SetInventorySlotItem(int32 InvSlot, FItemInformation InvItem);
 
 	// Clears Inventory UI Slot Item Info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
@@ -287,7 +288,7 @@ public:
 
 	// Gets Inventory UI Slot Item Info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
-	FInventoryItem GetInventorySlotItem(int32 InvSlot);
+	FItemInformation GetInventorySlotItem(int32 InvSlot);
 
 	// Add Specified Amount Of Slots To The Players Inventory UI
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
@@ -423,6 +424,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Properties")
 	TObjectPtr<AContainerActor> CurrentContainer;
 
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
+	TSubclassOf<AWorldActor> RandomDropClassActor;
+
 public:	
 	FORCEINLINE bool IsInventoryOpen() const { return bIsInventoryOpen; }
 	FORCEINLINE bool IsContainerOpen() const { return bIsContainerOpen; }
@@ -460,7 +465,10 @@ public:
 	FORCEINLINE int32 ItemMaxStackSize(FInventoryItem InvItem) const { return InvItem.MaxStackSize; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Macros")
-	FORCEINLINE int32 FreeStackSpace(FInventoryItem InvItem) const { return InvItem.MaxStackSize - InvItem.Amount; }
+	FORCEINLINE int32 ItemFreeStackSpace(FInventoryItem InvItem) const { return InvItem.MaxStackSize - InvItem.Amount; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Macros")
+	FORCEINLINE EEquipmentSlotsType ItemEquipSlot(FInventoryItem InvItem) const { return InvItem.EquipmentSlot; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Macros")
 	FORCEINLINE bool ItemIsDroppable(FInventoryItem InvItem) const { return InvItem.bIsDroppable; }

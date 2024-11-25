@@ -55,7 +55,7 @@ bool AWorldActor::OnActorUsed(APlayerController* PlayerController)
 	{
 		UInventoryComponent* InventoryComp = CastChecked<UInventoryComponent>(IRPlayerController->GetPlayerInventoryComponent(), ECastCheckedType::NullChecked);
 
-		bool bSucces = IRPlayerController->GetInventoryManagerComponent()->TryAddItemToInventory(InventoryComp, InventoryItem);
+		bool bSucces = IRPlayerController->GetInventoryManagerComponent()->TryToAddItemToInventory(InventoryComp, InventoryItem);
 		if (bSucces)
 		{
 			Destroy();

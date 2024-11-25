@@ -7,7 +7,12 @@
 #include "Data/EquipmentSlots.h"
 #include "Data/ItemInformation.h"
 #include "UsableActor/ContainerActor.h"
+#include "UsableActor/WorldActor.h"
 #include "Controller/IRPlayerController.h"
+#include "HUD/InventoryLayoutWidget.h"
+#include "HUD/InventoryWidget.h"
+#include "HUD/InventorySlotWidget.h"
+#include "Components/UniformGridPanel.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
@@ -21,18 +26,6 @@ UInventoryManagerComponent::UInventoryManagerComponent()
 void UInventoryManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-			5.0f,                 // Durasi pesan dalam detik
-			FColor::Green,        // Warna pesan
-			FString::Printf(TEXT("Equipment Slot Total : %d"), GetNumberOfEquipmentSlots()) // Pesan
-		);
-
-	}
 }
 
 void UInventoryManagerComponent::InitInventoryItems()
@@ -159,24 +152,100 @@ void UInventoryManagerComponent::SplitItemFromContainer(int32 FromContainerSlot,
 
 void UInventoryManagerComponent::LoadInventory()
 {
-
+	if (InventoryUI)
+	{
+		if (InventoryUI->InventoryWidgetComp)
+		{
+			if (InventoryUI->InventoryWidgetComp->InventoryGridPanel)
+			{
+				InventoryUI->InventoryWidgetComp->InventoryGridPanel->ClearChildren();
+				CreateInventorySlots(InventorySize, InventorySlotsPerRow);
+				RefreshInventorySlots();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Inventory Grid Panel Not Set"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::CreateInventorySlots(int32 InvSize, uint8 SlotsPerRow)
 {
+	if (InvSize > 0)
+	{
+		int32 LocalSlotNumber = GetNumberOfEquipmentSlots();
+		int32 LocalLoopCount = 0;
+
+		// ceil for row up!
+		// max for always make at least one row
+		int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(InvSize / UKismetMathLibrary::Conv_ByteToFloat(SlotsPerRow)) - 1, 0);
+
+		for (int32 i = 0; i <= LastIndex; i++) // Ubah < menjadi <= untuk mencakup LastIndex
+		{
+			for (int32 j = 0; j < UKismetMathLibrary::Conv_ByteToInt(SlotsPerRow); j++)
+			{
+				if (LocalLoopCount == InvSize) // Cek sebelum menambahkan slot
+				{
+					break; // Hentikan loop dalam jika LocalLoopCount mencapai InvSize
+				}
+
+				AddInventorySlot(i, j, LocalSlotNumber);
+				LocalSlotNumber++;
+				LocalLoopCount++;
+			}
+		}
+	}
 }
 
-void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FInventoryItem InvItem)
+void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FItemInformation InvItem)
 {
+	if (InventoryUI)
+	{
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.ID = InvItem.ID;
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Name = InvItem.Name;
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Amount = InvItem.Amount;
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Icon = InvItem.Icon;
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::ClearInventorySlotItem(int32 InvSlot)
 {
+	if (InventoryUI)
+	{
+		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation = FItemInformation();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
-FInventoryItem UInventoryManagerComponent::GetInventorySlotItem(int32 InvSlot)
+FItemInformation UInventoryManagerComponent::GetInventorySlotItem(int32 InvSlot)
 {
-	return FInventoryItem();
+	if (InventoryUI)
+	{
+		return InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+		return FItemInformation();
+	}
 }
 
 void UInventoryManagerComponent::IncreaseInventorySlots(int32 Amount)
@@ -197,10 +266,32 @@ void UInventoryManagerComponent::RemoveInventorySlot(int32 Amount)
 
 void UInventoryManagerComponent::RefreshInventorySlots()
 {
+	ClearInventorySlotItems();
+	int32 LocalIndex = 0;
+	for (FInventoryItem InvItem : PlayerInventory->GetInventoryItems())
+	{
+		if (ItemIsValid(InvItem))
+		{
+			SetInventorySlotItem(LocalIndex, ItemToItemInfo(InvItem));
+		}
+		LocalIndex++;
+	}
+	UpdateEquippedStats();
 }
 
 void UInventoryManagerComponent::ClearInventorySlotItems()
 {
+	if (InventoryUI)
+	{
+		for (auto ItemInfo : InventoryUI->InventorySlotWidgets)
+		{
+			ItemInfo->InvSlotItemInformation = FItemInformation();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::LoadContainerSlots(FContainerInfo ContainerProeperties, TArray<FItemInformation> ItemInfo)
@@ -266,7 +357,7 @@ void UInventoryManagerComponent::InitInventoryManager(UInventoryComponent* Playe
 	PlayerInventory = PlayerInventoryRef;
 }
 
-bool UInventoryManagerComponent::TryAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item)
+bool UInventoryManagerComponent::TryToAddItemToInventory(UInventoryComponent* Inventory, FInventoryItem& Item)
 {
 	FName LocItemID = Item.ID;
 	int32 LocItemAmount = Item.Amount;
@@ -426,7 +517,7 @@ void UInventoryManagerComponent::UseContainerItem(int32 ContainerSlot)
 	if (ContainerInventory)
 	{
 		FInventoryItem LocInventoryItem = ContainerInventory->GetInventoryItem(ContainerSlot);
-		bool bSuccesAddToInv = TryAddItemToInventory(PlayerInventory, LocInventoryItem);
+		bool bSuccesAddToInv = TryToAddItemToInventory(PlayerInventory, LocInventoryItem);
 		if (bSuccesAddToInv)
 		{
 			RemoveItem(ContainerInventory, ContainerSlot);
@@ -444,26 +535,356 @@ void UInventoryManagerComponent::UseContainerItem(int32 ContainerSlot)
 
 void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot)
 {
+	FInventoryItem LocalInvItem = PlayerInventory->GetInventoryItem(InvSlot);
+	if (CurrentContainer)
+	{
+		// Is Storage Container Open
+		if (CurrentContainer->GetCanStoreItems())
+		{
+			// Move Item To Container From Inventory
+			switch (ItemType(LocalInvItem))
+			{
+			case EItemType::Miscellaneous:
+			case EItemType::Consumable:
+			case EItemType::Currency:
+				if (TryToAddItemToInventory(ContainerInventory, LocalInvItem))
+				{
+					RemoveItem(PlayerInventory, InvSlot);
+				}
+				else
+				{
+					AddItem(PlayerInventory, InvSlot, LocalInvItem);
+				}
+				break;
+			case EItemType::Equipment:
+				if (InvSlot < GetNumberOfEquipmentSlots())
+				{
+					UseEquipmentItem(InvSlot, LocalInvItem, ContainerInventory);
+				}
+				else
+				{
+					if (TryToAddItemToInventory(ContainerInventory, LocalInvItem))
+					{
+						RemoveItem(PlayerInventory, InvSlot);
+					}
+					else
+					{
+						AddItem(PlayerInventory, InvSlot, LocalInvItem);
+					}
+				}
+				break;
+			default:
+				break;
+			}		
+		}
+		else
+		{
+			// use item from inventory
+			switch (ItemType(LocalInvItem))
+			{
+			case EItemType::Equipment:
+				UseEquipmentItem(InvSlot, LocalInvItem, ContainerInventory);
+				break;
+			case EItemType::Consumable:
+				UseConsumableItem(InvSlot, LocalInvItem);
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 void UInventoryManagerComponent::UseEquipmentItem(int32 InvSlot, FInventoryItem InvItem, UInventoryComponent* ToInventory)
 {
+	// Are We UnEquipping
+	if (InvSlot < GetNumberOfEquipmentSlots())
+	{
+		// Check if the container/inventory has free space
+		int32 LocEmptySlot = 0;
+		if (ToInventory->GetEmptyInventorySpace(LocEmptySlot))
+		{
+			UnEquipItem(PlayerInventory, InvSlot, ToInventory, LocEmptySlot);
+		}
+		else
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+					5.0f,                 // Durasi pesan dalam detik
+					FColor::Green,        // Warna pesan
+					FString::Printf(TEXT("No Free Space")) // Pesan
+				);
+
+			}
+		}
+	}
+	else
+	{
+		// Finds Empty Slot Of Type To Equip To
+		int32 LocEmptySlot = 0;
+		if (GetEmptyEquipmentSlotByType(ItemEquipSlot(InvItem), LocEmptySlot))
+		{
+			EquipFromInventory(InvSlot, LocEmptySlot);
+		}
+		else
+		{
+			LocEmptySlot = GetEquipmentSlotByType(ItemEquipSlot(InvItem));
+			EquipFromInventory(InvSlot, LocEmptySlot);
+		}
+	}
 }
 
 void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, FInventoryItem InvItem)
 {
+	AIRPlayerController* LocPlayerController = Cast< AIRPlayerController>(GetOwner());
+	if (LocPlayerController)
+	{
+		if (LocPlayerController->SetHealth(InvItem.Health, InvItem.Duration))
+		{
+			int32 LocAmount = 1;
+			bool bWasFullAmountRemoved = RemoveFromItemAmount(InvItem, LocAmount);
+			if (bWasFullAmountRemoved)
+			{
+				RemoveItem(PlayerInventory, InvSlot);
+			}
+			else
+			{
+				AddItem(PlayerInventory, InvSlot, InvItem);
+			}
+		}
+		else
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+					5.0f,                 // Durasi pesan dalam detik
+					FColor::Green,        // Warna pesan
+					FString::Printf(TEXT("Can't Use Item")) // Pesan
+				);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Player Controller Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
+	if (FromInv && ToInv)
+	{
+		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		{
+			FInventoryItem LocInvItem = FromInv->GetInventoryItem(FromInvSlot);
+			EEquipmentSlotsType LocEquipmentSlotType = ItemEquipSlot(LocInvItem);
+			if (ItemType(LocInvItem) == EItemType::Equipment)
+			{
+				if (GetEquipmentTypeBySlot(ToInvSlot) == LocEquipmentSlotType)
+				{
+					FInventoryItem LocSwapInvItem = FromInv->GetInventoryItem(FromInvSlot);
+					// Swap Item?
+					if (ItemIsValid(LocSwapInvItem))
+					{
+						// Can The Swap Destination Inventory Store Item
+						if (CanContainerStoreItem(FromInv))
+						{
+							// Swap Items
+							AddItem(ToInv, ToInvSlot, LocInvItem);
+							AddItem(FromInv, FromInvSlot, LocSwapInvItem);
+						}
+						else
+						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("CONTAINER CANNOT STORE ITEMS")) // Pesan
+								);
+							}
+						}
+					}
+					else
+					{
+						// Move item
+						AddItem(ToInv, ToInvSlot, LocInvItem);
+						RemoveItem(FromInv, FromInvSlot);
+					}
+					UpdateEquippedStats();
+				}
+				else
+				{
+					if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(
+							-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+							5.0f,                 // Durasi pesan dalam detik
+							FColor::Green,        // Warna pesan
+							FString::Printf(TEXT("Item Can Not Be equippped In That Slot")) // Pesan
+						);
+					}
+				}
+			}
+			else
+			{
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(
+						-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+						5.0f,                 // Durasi pesan dalam detik
+						FColor::Green,        // Warna pesan
+						FString::Printf(TEXT("Item Is Not Equippable")) // Pesan
+					);
+				}
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::UnEquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
+	if (FromInv && ToInv)
+	{
+		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		{
+			FInventoryItem LocInvItem = FromInv->GetInventoryItem(FromInvSlot);
+			FInventoryItem LocSwapInvItem = FromInv->GetInventoryItem(FromInvSlot);
+			EEquipmentSlotsType LocEquipmentSlotType = ItemEquipSlot(LocInvItem);
+
+			if (ItemIsValid(LocSwapInvItem))
+			{
+				// Can The Swap Destination Inventory Store Item
+				if (CanContainerStoreItem(FromInv))
+				{
+					if (ItemType(LocSwapInvItem) == EItemType::Equipment)
+					{
+						if (ItemEquipSlot(LocSwapInvItem) == LocEquipmentSlotType)
+						{
+							// Swap Items
+							AddItem(ToInv, ToInvSlot, LocInvItem);
+							AddItem(FromInv, FromInvSlot, LocSwapInvItem);
+						}
+						else
+						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("Item  Can't Be Equipped In That Slot")) // Pesan
+								);
+							}
+						}
+					}
+					else
+					{
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(
+								-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+								5.0f,                 // Durasi pesan dalam detik
+								FColor::Green,        // Warna pesan
+								FString::Printf(TEXT("Item Is Not Equippable")) // Pesan
+							);
+						}
+					}		
+				}
+				else
+				{
+					if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(
+							-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+							5.0f,                 // Durasi pesan dalam detik
+							FColor::Green,        // Warna pesan
+							FString::Printf(TEXT("CONTAINER CANNOT STORE ITEMS")) // Pesan
+						);
+					}
+				}
+			}
+			else
+			{
+				UEquipmentInventoryComponent* LocEqInvComp = Cast<UEquipmentInventoryComponent>(ToInv);
+				if (LocEqInvComp)
+				{
+					if (ToInvSlot < GetNumberOfEquipmentSlots())
+					{
+						if (GetEquipmentTypeBySlot(ToInvSlot) == LocEquipmentSlotType)
+						{
+							// Move Items
+							AddItem(ToInv, ToInvSlot, LocInvItem);
+							RemoveItem(FromInv, FromInvSlot);
+						}
+						else
+						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("Item Can Not Be Equipped In That Slot")) // Pesan
+								);
+							}
+						}
+					}
+					else
+					{
+						// Move Items
+						AddItem(ToInv, ToInvSlot, LocInvItem);
+						RemoveItem(FromInv, FromInvSlot);
+					}
+				}
+				else
+				{
+					// Move Items
+					AddItem(ToInv, ToInvSlot, LocInvItem);
+					RemoveItem(FromInv, FromInvSlot);
+
+					UE_LOG(LogTemp, Error, TEXT("Inventory Component is not Equipment InventoryComponent"));
+				}
+			}
+			UpdateEquippedStats();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::UpdateEquippedStats()
 {
+	int32 LocalDamage = 0;
+	int32 LocalArmor = 0;
+	int32 LocalStrength = 0;
+	int32 LocalDexterity = 0;
+	int32 LocalIntelligence = 0;
+
+	for (int32 i = 0; i < GetNumberOfEquipmentSlots() - 1; i++)
+	{
+		FInventoryItem LocInvItem = PlayerInventory->GetInventoryItem(i);
+		LocalDamage = LocalDamage + LocInvItem.Damage;
+		LocalArmor = LocalArmor + LocInvItem.Armor;
+		LocalStrength = LocalStrength + LocInvItem.Strength;
+		LocalDexterity = LocalDexterity + LocInvItem.Dexterity;
+		LocalIntelligence = LocalIntelligence + LocInvItem.Intelligence;
+	}
+	Damage = LocalDamage;
+	Armor = LocalArmor;
+	Strength = LocalStrength;
+	Dexterity = LocalDexterity;
+	Intelligence = LocalIntelligence;
 }
 
 void UInventoryManagerComponent::OpenInventoryWindow()
@@ -695,42 +1116,364 @@ bool UInventoryManagerComponent::RemoveFromItemAmount(FInventoryItem& OutInvItem
 
 void UInventoryManagerComponent::AddItem(UInventoryComponent* InvComp, int32 InvSlot, FInventoryItem InvItem)
 {
+	if (InvComp)
+	{
+		InvComp->SetInventoryItem(InvSlot, InvItem);
+		FItemInformation ItemInfo = ItemToItemInfo(InvItem);
+		if (PlayerInventory == InvComp)
+		{
+			// Update HUD Inventory Slot Info
+			SetInventorySlotItem(InvSlot, ItemInfo);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::RemoveItem(UInventoryComponent* InvComp, int32 InvSlot)
 {
+	if (InvComp)
+	{
+		InvComp->ClearInventoryItem(InvSlot);
+		if (PlayerInventory == InvComp)
+		{
+			// Update HUD Inventory Slot Info
+			ClearInventorySlotItem(InvSlot);
+		}
+	}
 }
 
 void UInventoryManagerComponent::MoveItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
+	if (FromInv && ToInv)
+	{
+		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		{
+			if (CanContainerStoreItem(ToInv))
+			{
+				FInventoryItem LocalInvItem = FromInv->GetInventoryItem(FromInvSlot);
+				if (ItemType(LocalInvItem) == EItemType::Currency)
+				{
+					AddGold(ItemAmount(LocalInvItem));
+					RemoveItem(FromInv, FromInvSlot);
+				}
+				else
+				{
+					FInventoryItem LocalSwapInvItem = ToInv->GetInventoryItem(ToInvSlot);
+					if (ItemIsValid(LocalSwapInvItem))
+					{
+						// Check if Items are Stackable
+						if (ItemIsStackable(LocalSwapInvItem) && ItemFreeStackSpace(LocalSwapInvItem) > 0 && ItemIsSame(LocalInvItem, LocalSwapInvItem))
+						{
+							// Add To Stack
+							int32 AmountRemaining = AddItemToStack(ToInv, ToInvSlot, ItemAmount(LocalInvItem));
+							if (AmountRemaining > 0)
+							{
+								// Update The From Stack Amount
+								SetItemAmount(LocalInvItem, AmountRemaining);
+								AddItem(FromInv, FromInvSlot, LocalInvItem);
+							}
+							else
+							{
+								// Full Amoun Was Moved Clear Old Stack
+								RemoveItem(FromInv, FromInvSlot);
+							}
+
+						}
+						else
+						{
+							// Swap Item
+							// We are trying to swap, but can the from inventory store items?
+							if (CanContainerStoreItem(FromInv))
+							{
+								AddItem(ToInv, ToInvSlot, LocalInvItem);
+								AddItem(FromInv, FromInvSlot, LocalSwapInvItem);
+							}
+							else
+							{
+								if (GEngine)
+								{
+									GEngine->AddOnScreenDebugMessage(
+										-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+										5.0f,                 // Durasi pesan dalam detik
+										FColor::Green,        // Warna pesan
+										FString::Printf(TEXT("Container Can't Store Items")) // Pesan
+									);
+
+								}
+							}
+						}
+					}
+					else
+					{
+						// Move Item
+						AddItem(ToInv, ToInvSlot, LocalInvItem);
+						RemoveItem(FromInv, FromInvSlot);
+					}
+				}
+			}
+		}
+	}
 }
 
 void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 InvSlot)
 {
+	if (InvComp)
+	{
+		FInventoryItem LocalInvItem = InvComp->GetInventoryItem(InvSlot);
+		if (ItemIsDroppable(LocalInvItem))
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+					5.0f,                 // Durasi pesan dalam detik
+					FColor::Green,        // Warna pesan
+					FString::Printf(TEXT("Dropped Item")) // Pesan
+				);
+
+			}
+			FTransform RandomTransform = RandomizeDropLocation();
+			// Define spawn parameters
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			// Spawn the actor
+			AWorldActor* DroppedRandomActor = GetWorld()->SpawnActor<AWorldActor>(RandomDropClassActor, RandomTransform, SpawnParams);
+			if (DroppedRandomActor)
+			{
+				// Generate random torque values
+				int32 TorqueX = FMath::RandRange(-512, 512);
+				int32 TorqueY = FMath::RandRange(-96, 96);
+				int32 TorqueZ = FMath::RandRange(-32, 32);
+				// Create a torque vector
+				FVector Torque(TorqueX, TorqueY, TorqueZ);
+
+
+				DroppedRandomActor->GetStaticMeshComponent()->AddTorqueInRadians(Torque, NAME_None, true);
+
+				UE_LOG(LogTemp, Log, TEXT("Torque applied: %s"), *Torque.ToString());
+			}
+			else
+			{
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(
+						-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+						5.0f,                 // Durasi pesan dalam detik
+						FColor::Green,        // Warna pesan
+						FString::Printf(TEXT("Failed To Spawn Actor")) // Pesan
+					);
+
+				}
+			}
+
+		}
+	}
 }
 
 bool UInventoryManagerComponent::HasItem(UInventoryComponent* InvComp, FName ItemID, int32& InvSlot)
 {
+	if (InvComp)
+	{
+		int32 LocInvSlot = 0;
+		for (FInventoryItem LocInvItem : InvComp->GetInventoryItems())
+		{
+			if (LocInvItem.ID == ItemID)
+			{
+				InvSlot = LocInvSlot;
+				return true;
+			}
+			LocInvSlot++;
+		}
+	}
 	return false;
 }
 
 void UInventoryManagerComponent::AddGold(int32 Amount)
 {
+	Gold = Gold + Amount;
 }
 
 void UInventoryManagerComponent::SplitItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot, int32 Amount)
 {
+	if (FromInv && ToInv)
+	{
+		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		{
+			// can the destination inventory store items?
+			if (CanContainerStoreItem(ToInv))
+			{
+				FInventoryItem LocalFromInvItem = FromInv->GetInventoryItem(FromInvSlot);
+				if (ItemType(LocalFromInvItem) == EItemType::Currency)
+				{
+					AddGold(ItemAmount(LocalFromInvItem));
+					RemoveItem(FromInv, FromInvSlot);
+				}
+				else
+				{
+					FInventoryItem LocalSwapInvItem = ToInv->GetInventoryItem(ToInvSlot);
+					// Are We Are Trying to Add The Split To An Item
+					if (ItemIsValid(LocalSwapInvItem))
+					{
+						// Check if Items are Stackable
+						// If Stack of same item and if not full
+						if (ItemIsStackable(LocalSwapInvItem) && ItemFreeStackSpace(LocalSwapInvItem) > 0 && ItemIsSame(LocalFromInvItem, LocalSwapInvItem))
+						{
+							// Add To Stack
+							int32 AmountRemaining = AddItemToStack(ToInv, ToInvSlot, Amount) - Amount;
+							if (RemoveFromItemAmount(LocalFromInvItem, AmountRemaining))
+							{
+								// Remove From Stack
+								RemoveItem(FromInv, FromInvSlot);
+							}
+							else
+							{
+								// Update From Stack
+								AddItem(FromInv, FromInvSlot, LocalFromInvItem);
+							}
+
+						}
+						else
+						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("Can't swap items while splitting stack")) // Pesan
+								);
+
+							}
+						}
+					}
+					else
+					{
+						// Split Item To Empty Slot
+						// Only Do This When We Are Successful In Our Split/Move
+						bool bWasFullAmountRemoved = RemoveFromItemAmount(LocalFromInvItem, Amount);
+						// Create The Split Item
+						SetItemAmount(LocalFromInvItem, Amount);
+						// Add The Split Item To Slot
+						AddItem(ToInv, ToInvSlot, LocalFromInvItem);
+						// Did We Split and Move The Full Stack?
+						if (bWasFullAmountRemoved)
+						{
+							RemoveItem(FromInv, FromInvSlot);
+						}
+						else
+						{
+							AddItem(FromInv, FromInvSlot, LocalFromInvItem);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 void UInventoryManagerComponent::IncreaseInventorySize(UInventoryComponent* InvComp, int32 Amount)
 {
+	if (InvComp)
+	{
+		// Validate Input
+		if (Amount > 0)
+		{
+			InvComp->IncreaseInventorySize(Amount);
+			// Are we updating the player inventory Size?
+			if (PlayerInventory == InvComp)
+			{
+				IncreaseInventorySlots(Amount);
+				InventorySize = InventorySize + Amount;
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::DecreaseInventorySize(UInventoryComponent* InvComp, int32 Amount)
 {
+	if (InvComp)
+	{
+		// Validate Input
+		if (Amount > 0)
+		{
+			InvComp->IncreaseInventorySize(Amount);
+			// Are we updating the player inventory Size?
+			if (PlayerInventory == InvComp)
+			{
+				UEquipmentInventoryComponent* LocEquipmentInventory = Cast<UEquipmentInventoryComponent>(InvComp);
+				if (LocEquipmentInventory)
+				{
+					if (CheckSlotsForItems(InvComp, Amount))
+					{
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(
+								-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+								5.0f,                 // Durasi pesan dalam detik
+								FColor::Green,        // Warna pesan
+								FString::Printf(TEXT("You Must Remove Items From The Last %d Slots"), Amount) // Pesan
+							);
+						}
+					}
+					else
+					{
+						if (InvComp->GetInventoryItems().Num() - 1 >= GetNumberOfEquipmentSlots())
+						{
+							InvComp->DecreaseInventorySize(Amount);
+							DecreaseInventorySlots(Amount);
+							InventorySize = InventorySize - Amount;
+						}
+						else
+						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("TRYING TO REMOVE EQUIPMENT SLOTS")) // Pesan
+								);
+							}
+						}
+					}
+					
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Casting To Equipment Inventory Component Failed"));
+					InvComp->DecreaseInventorySize(Amount);
+					InventorySize = InventorySize - Amount;
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Player Inventory And Inv Comp Not Same"));
+				InvComp->DecreaseInventorySize(Amount);
+				InventorySize = InventorySize - Amount;
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
+	}
 }
 
 bool UInventoryManagerComponent::CheckSlotsForItems(UInventoryComponent* InvComp, int32 Amount)
 {
+	for (int32 i = InvComp->GetInventoryItems().Num() - Amount; i > InvComp->GetInventoryItems().Num() - 1; i++)
+	{
+		if (ItemIsValid(InvComp->GetInventoryItem(i)))
+		{
+			return true;
+		}
+	}
 	return false;
 }
