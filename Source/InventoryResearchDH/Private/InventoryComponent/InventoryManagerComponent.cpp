@@ -12,7 +12,16 @@
 #include "HUD/InventoryLayoutWidget.h"
 #include "HUD/InventoryWidget.h"
 #include "HUD/InventorySlotWidget.h"
+#include "HUD/ContainerSlotWidget.h"
+#include "HUD/ContainerWidget.h"
+#include "HUD/HotbarWidget.h"
+#include "HUD/HotbarSlotWidget.h"
+#include "HUD/EquipmentWidget.h"
 #include "Components/UniformGridPanel.h"
+#include "Components/UniformGridSlot.h"
+#include "Components/GridPanel.h"
+#include "Components/GridSlot.h"
+#include "Components/Widget.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
@@ -187,7 +196,7 @@ void UInventoryManagerComponent::CreateInventorySlots(int32 InvSize, uint8 Slots
 
 		// ceil for row up!
 		// max for always make at least one row
-		int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(InvSize / UKismetMathLibrary::Conv_ByteToFloat(SlotsPerRow)) - 1, 0);
+		int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(InvSize / UKismetMathLibrary::Conv_ByteToDouble(SlotsPerRow)) - 1, 0);
 
 		for (int32 i = 0; i <= LastIndex; i++) // Ubah < menjadi <= untuk mencakup LastIndex
 		{
@@ -250,18 +259,184 @@ FItemInformation UInventoryManagerComponent::GetInventorySlotItem(int32 InvSlot)
 
 void UInventoryManagerComponent::IncreaseInventorySlots(int32 Amount)
 {
+	if (Amount > 0 && InventoryUI)
+	{
+		int32 LocalSlotNumber = InventoryUI->InventorySlotWidgets.Num();
+		int32 LocalNewInvSize = Amount + LocalSlotNumber;
+		int32 LocalInvChildCountIndex = InventoryUI->InventoryWidgetComp->InventoryGridPanel->GetChildrenCount() - 1;
+		int32 LocalRow = 0;
+		int32 LocalColumn = 0;
+		int32 LocalLoopCount = 0;
+		// Mendapatkan referensi ke Inventory Grid Panel
+		UUniformGridPanel* InventoryGridPanel = InventoryUI->InventoryWidgetComp->InventoryGridPanel;
+		if (InventoryGridPanel->GetChildAt(LocalInvChildCountIndex))
+		{
+			// Casting ke UUniformGridSlot untuk mendapatkan Row dan Column
+			UUniformGridSlot* LastSlot = Cast<UUniformGridSlot>(InventoryGridPanel->GetChildAt(LocalInvChildCountIndex)->Slot);
+			if (LastSlot)
+			{
+				LocalRow = LastSlot->GetRow();
+				LocalColumn = LastSlot->GetColumn();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Last Slot Not Set"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Last Slot Not Found"));
+		}
+
+		// ceil for row up!
+		// max for always make at least one row
+		int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(LocalNewInvSize / UKismetMathLibrary::Conv_ByteToDouble(InventorySlotsPerRow)) - 1, 0);
+
+		int32 RowFirstIndex = LocalRow;
+		int32 RowLastIndex = LastIndex;
+		// Tukar Jika ternyata First Index Lebih Besar dari last index
+		if (RowFirstIndex > RowLastIndex)
+		{
+			std::swap(RowFirstIndex, RowLastIndex);
+		}
+
+		int32 ColoumFirstIndex = LocalColumn;
+		int32 ColoumLastIndex = UKismetMathLibrary::Conv_ByteToInt(InventorySlotsPerRow) - 1;
+		// Tukar Jika ternyata First Index Lebih Besar dari last index
+		if (RowFirstIndex > RowLastIndex)
+		{
+			std::swap(RowFirstIndex, RowLastIndex);
+		}
+		if (ColoumFirstIndex > ColoumLastIndex)
+		{
+			std::swap(ColoumFirstIndex, ColoumLastIndex);
+		}
+		// Tambahkan logika untuk menambah slot baru di sini
+		for (int32 i = RowFirstIndex; i < RowLastIndex; i++)
+		{
+			for (int32 j = ColoumFirstIndex; j < ColoumLastIndex; j++)
+			{
+				if (LocalLoopCount != Amount)
+				{
+					AddInventorySlot(i, j, LocalSlotNumber);
+					LocalSlotNumber++;
+					LocalLoopCount++;
+				}
+				else
+				{
+					break;
+				}
+			}
+			LocalColumn = 0;
+			if (LocalLoopCount == Amount)
+			{
+				return;
+			}
+		}
+	}
 }
 
 void UInventoryManagerComponent::DecreaseInventorySlots(int32 Amount)
 {
+	// Only create new UI slots if an actual amount is passed in
+	if (Amount > 0 && InventoryUI)
+	{
+		int32 LastIndex = InventoryUI->InventoryWidgetComp->InventorySlotWidgets.Num();
+		TArray<int32> LocalAmountIndexes;
+
+		// Only Create New UI Slots If An Actual Amount Is Passed In
+		for (int32 i = 0; i < LastIndex - Amount; i++)
+		{
+			LocalAmountIndexes.Add(i);
+		}
+
+		// Reverse The Loop
+		for (int32 j = 0; j < LocalAmountIndexes.Last(); j++)
+		{
+			RemoveInventorySlot(LocalAmountIndexes[LocalAmountIndexes.Last() - j]);
+		}
+	}
 }
 
 void UInventoryManagerComponent::AddInventorySlot(int32 Row, int32 Column, int32 Slot)
 {
+	int32 LastIndex = InventoryUI->InventoryWidgetComp->InventorySlotWidgets.Num();
+	UInventorySlotWidget* LocalSlotRef = nullptr; // Inisialisasi dengan nullptr
+
+	if (InventoryUI)
+	{
+		if (LastIndex < Slot)
+		{
+			UInventorySlotWidget* NewSlot = InventoryUI->InventoryWidgetComp->InventorySlotWidgets[Slot];
+			if (NewSlot)
+			{
+				NewSlot->InvSlotItemInformation = FItemInformation();
+				LocalSlotRef = NewSlot;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Slot Already Exists"));
+			UInventorySlotWidget* NewSlot = CreateWidget<UInventorySlotWidget>(GetWorld(), InventorySlotWidgetClass);
+			if (NewSlot)
+			{
+				LocalSlotRef = NewSlot;
+				InventoryUI->InventorySlotWidgets.Add(LocalSlotRef);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
+			}
+		}
+
+		// Pastikan LocalSlotRef diinisialisasi sebelum digunakan
+		if (LocalSlotRef)
+		{
+			UPanelSlot* LocalSlotChild = InventoryUI->InventoryWidgetComp->InventoryGridPanel->AddChild(LocalSlotRef);
+			UUniformGridSlot* NewSlotSlot = Cast<UUniformGridSlot>(LocalSlotChild);
+			if (NewSlotSlot)
+			{
+				NewSlotSlot->SetRow(Row);
+				NewSlotSlot->SetColumn(Column);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("New Slot Slot Casting Failed On Inventory Manager Component"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("LocalSlotRef is not initialized."));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Invalid"));
+	}
 }
 
-void UInventoryManagerComponent::RemoveInventorySlot(int32 Amount)
+void UInventoryManagerComponent::RemoveInventorySlot(int32 InvSlotIndex)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->InventorySlotWidgets.Num() > InvSlotIndex)
+		{
+			InventoryUI->InventoryWidgetComp->InventoryGridPanel->RemoveChildAt(InvSlotIndex - GetNumberOfEquipmentSlots());
+			InventoryUI->InventorySlotWidgets.RemoveAt(InvSlotIndex);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Slot Index Out Of Range"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::RefreshInventorySlots()
@@ -296,55 +471,295 @@ void UInventoryManagerComponent::ClearInventorySlotItems()
 
 void UInventoryManagerComponent::LoadContainerSlots(FContainerInfo ContainerProeperties, TArray<FItemInformation> ItemInfo)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerName = ContainerProeperties.Name;
+			InventoryUI->ContainerWidgetComp->bIsStorageContainer = ContainerProeperties.bIsStorageContainer;
+			if (InventoryUI->ContainerWidgetComp->bIsStorageContainer)
+			{
+				CreateContainerSlots(ContainerProeperties.StorageInventorySize, ContainerProeperties.SlotsPerRow);
+			}
+			else
+			{
+				CreateContainerSlots(ItemInfo.Num(), ContainerProeperties.SlotsPerRow);
+			}
+			for (int32  i = 0; i < ItemInfo.Num(); i++)
+			{
+				SetContainerSlotItem(i, ItemInfo[i]);
+			}
+			OpenContainerWindow();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
-void UInventoryManagerComponent::CreateContainerSlots(int32 InvSize, uint8 SlotsPerRow)
+void UInventoryManagerComponent::CreateContainerSlots(int32 ContainerSize, uint8 SlotsPerRow)
 {
+	ClearContainerSlots();
+	if (ContainerSize > 0)
+	{
+		if (InventoryUI)
+		{
+			if (InventoryUI->ContainerWidgetComp)
+			{
+				bool bLocalIsStorage = InventoryUI->ContainerWidgetComp->bIsStorageContainer;
+				uint8 LocalMaxRowSize = SlotsPerRow;
+				int32 LocalLoopCount = 0;
+				// Is A Float To Handle Creating Partial Rows
+				// Round Rows Up!
+				// Always Make Atleast One Row
+				int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(ContainerSize / UKismetMathLibrary::Conv_ByteToDouble(LocalMaxRowSize)) - 1, 0);
+				for (int32 i = 0; i < LastIndex; i++)
+				{
+					for (int32 j = 0; j < UKismetMathLibrary::Conv_ByteToInt(LocalMaxRowSize) - 1; j++)
+					{
+						AddContainerSlot(i, j, LocalLoopCount, bLocalIsStorage);
+						LocalLoopCount++;
+						if (LocalLoopCount == ContainerSize)
+						{
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+		}
+	}
 }
 
 void UInventoryManagerComponent::ClearContainerSlots()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerSlots.Empty();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::SetContainerSlotItem(int32 ContainerSlot, FItemInformation ItemInfo)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.ID = ItemInfo.ID;
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Name = ItemInfo.Name;
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Amount = ItemInfo.Amount;
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon = ItemInfo.Icon;
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Quality = ItemInfo.Quality;
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Type = ItemInfo.Type;
+
+			if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
+			{
+				if (!InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon)
+				{
+					InventoryUI->ContainerWidgetComp->ContainerGridPanel->GetChildAt(ContainerSlot)->SetVisibility(ESlateVisibility::Collapsed);
+				}
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::ClearContainerSlotItem(int32 ContainerSlot)
 {
-}
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation = FItemInformation();
 
-void UInventoryManagerComponent::SetContainerSlotInfo(int32 ContainerSlot, FItemInformation ItemInfo)
-{
-}
-
-void UInventoryManagerComponent::ClearContainerSlotInfo(int32 ContainerSlot)
-{
+			if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
+			{
+				InventoryUI->ContainerWidgetComp->ContainerGridPanel->GetChildAt(ContainerSlot)->SetVisibility(ESlateVisibility::Collapsed);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::AddContainerSlot(int32 Row, int32 Column, int32 Slot, bool bIsStorage)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			UContainerSlotWidget* NewSlot = CreateWidget<UContainerSlotWidget>(GetWorld(), ContainerSlotWidgetClass);
+			if (NewSlot)
+			{
+				UPanelSlot* LocalSlotChild = InventoryUI->ContainerWidgetComp->ContainerGridPanel->AddChild(NewSlot);
+				UGridSlot* NewSlotSlot = Cast<UGridSlot>(LocalSlotChild);
+				if (NewSlotSlot)
+				{
+					NewSlotSlot->SetRow(Row);
+					NewSlotSlot->SetColumn(Column);
+					int32 LocAddedContainerSlot = InventoryUI->ContainerWidgetComp->ContainerSlots.Add(NewSlot);
+					InventoryUI->ContainerWidgetComp->ContainerSlots[LocAddedContainerSlot]->bIsStorageSlot = bIsStorage;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("New Slot Slot Casting Failed On Inventory Manager Component"));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 FItemInformation UInventoryManagerComponent::GetHotbarSlotItem(int32 HotbarSlot)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->HotbarWidgetComp)
+		{
+			return InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 	return FItemInformation();
 }
 
 void UInventoryManagerComponent::SetHotbarSlotItem(int32 HotbarSlot, FItemInformation ItemInfo)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->HotbarWidgetComp)
+		{
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation = ItemInfo;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Hotbar UI Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::ClearHotbarSlotItem(int32 HotbarSlot)
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->HotbarWidgetComp)
+		{
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation = FItemInformation();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Hotbar UI Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::MoveHotbarSlotItem(int32 FromSlot, int32 ToHotBarSlot, bool bFromInventory, bool bFromHotbar)
 {
+	if (bFromInventory)
+	{
+		FItemInformation ItemInfo = GetInventorySlotItem(FromSlot);
+		SetHotbarSlotItem(ToHotBarSlot, ItemInfo);
+	}
+	else if (bFromHotbar)
+	{
+		FItemInformation FromItemInfo = GetInventorySlotItem(FromSlot);
+		FItemInformation SwapItemInfo = GetInventorySlotItem(ToHotBarSlot);
+		// Is Swapping On Hotbar
+		if (SwapItemInfo.Icon)
+		{
+			SetHotbarSlotItem(ToHotBarSlot, FromItemInfo);
+			SetHotbarSlotItem(FromSlot, SwapItemInfo);
+		}
+		else
+		{
+			SetHotbarSlotItem(ToHotBarSlot, FromItemInfo);
+			ClearHotbarSlotItem(FromSlot);
+		}
+	}
 }
 
 void UInventoryManagerComponent::UseHotbarItem(int32 HotbarSlot)
 {
+	FItemInformation LocalItemInfo = GetHotbarSlotItem(HotbarSlot);
+	if (LocalItemInfo.Icon)
+	{
+		if (InventoryUI)
+		{
+			int32 LocalInventorySlotIndex = 0;
+			bool bLocalSucces = false;
+			for (int32 i = 0; i < InventoryUI->InventorySlotWidgets.Num() - 1; i++)
+			{
+				if (InventoryUI->InventorySlotWidgets[i]->InvSlotItemInformation.ID == LocalItemInfo.ID)
+				{
+					LocalInventorySlotIndex = i;
+					bLocalSucces = true;
+					break;
+				}				
+			}
+			if (bLocalSucces)
+			{
+				UseInventoryItem(LocalInventorySlotIndex);
+			}
+		}
+	}
 }
 
 void UInventoryManagerComponent::InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget)
@@ -889,26 +1304,143 @@ void UInventoryManagerComponent::UpdateEquippedStats()
 
 void UInventoryManagerComponent::OpenInventoryWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->InventoryWidgetComp)
+		{
+			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Visible;
+			bIsInventoryOpen = true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::CloseInventoryWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->InventoryWidgetComp)
+		{
+			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Hidden;
+			bIsInventoryOpen = false;
+			int32 StartIndex = GetNumberOfEquipmentSlots();
+			int32 EndIndex = InventoryUI->InventorySlotWidgets.Num() - 1;
+			if (StartIndex > EndIndex) {
+				std::swap(StartIndex, EndIndex);
+			}
+			for (int32 i = StartIndex; i < EndIndex; i++)
+			{
+				InventoryUI->InventorySlotWidgets[i]->bIsSlotHovered = false;
+				InventoryUI->InventorySlotWidgets[i]->bIsRightMouseButtonDown = false;
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
+
 }
 
 void UInventoryManagerComponent::OpenContainerWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerVisibility = ESlateVisibility::Visible;
+			bIsContainerOpen = true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::CloseContainerWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->ContainerWidgetComp)
+		{
+			InventoryUI->ContainerWidgetComp->ContainerVisibility = ESlateVisibility::Hidden;
+			bIsContainerOpen = false;
+			for (UContainerSlotWidget* ContSlotWidget : InventoryUI->ContainerWidgetComp->ContainerSlots)
+			{
+				ContSlotWidget->bIsSlotHovered = false;
+				ContSlotWidget->bIsRightMouseButtonDown = false;
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::OpenEquipmentWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->EquipmentWidgetComp)
+		{
+			InventoryUI->EquipmentWidgetComp->EquipmentVisibility = ESlateVisibility::Visible;
+			bIsEquipmentOpen = true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 void UInventoryManagerComponent::CloseEquipmentWindow()
 {
+	if (InventoryUI)
+	{
+		if (InventoryUI->EquipmentWidgetComp)
+		{
+			InventoryUI->EquipmentWidgetComp->EquipmentVisibility = ESlateVisibility::Hidden;
+			bIsEquipmentOpen = false;
+			for (int32 i = 0; i < GetNumberOfEquipmentSlots() - 1; i++)
+			{
+				InventoryUI->InventorySlotWidgets[i]->bIsSlotHovered = false;
+				InventoryUI->InventorySlotWidgets[i]->bIsRightMouseButtonDown = false;
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Widget Comp Not Set"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
 }
 
 EEquipmentSlotsType UInventoryManagerComponent::GetEquipmentTypeBySlot(int32 EquipmentSlotIndex)

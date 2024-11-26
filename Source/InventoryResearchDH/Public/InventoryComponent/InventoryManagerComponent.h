@@ -15,6 +15,8 @@
 class UInventoryComponent;
 class UUserWidget;
 class UInventoryLayoutWidget;
+class UInventorySlotWidget;
+class UContainerSlotWidget;
 class AContainerActor;
 class AWorldActor;
 
@@ -304,7 +306,7 @@ public:
 
 	// Removes a spesified slots from the inventory UI
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
-	void RemoveInventorySlot(int32 Amount);
+	void RemoveInventorySlot(int32 InvSlotIndex);
 
 	// Clear Invetory UI and Referesh From Inventory
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Inventory")
@@ -320,7 +322,7 @@ public:
 
 	// Creates The Container Inventory UI Slots (Or Rebuilds If Already Loaded)
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
-	void CreateContainerSlots(int32 InvSize, uint8 SlotsPerRow);
+	void CreateContainerSlots(int32 ContainerSize, uint8 SlotsPerRow);
 
 	// Clears The Container Inventory UI Slot Item Info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
@@ -333,14 +335,6 @@ public:
 	// Clear container UI slot item info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
 	void ClearContainerSlotItem(int32 ContainerSlot);
-
-	// Set Container UI Slot Info for All viewing clients
-	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
-	void SetContainerSlotInfo(int32 ContainerSlot, FItemInformation ItemInfo);
-
-	// Clear Container UI Slot Info for All viewing clients
-	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
-	void ClearContainerSlotInfo(int32 ContainerSlot);
 
 	// Add a new spesified slot to the container UI
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
@@ -427,6 +421,12 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
 	TSubclassOf<AWorldActor> RandomDropClassActor;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
+	TSubclassOf<UInventorySlotWidget> InventorySlotWidgetClass;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
+	TSubclassOf<UContainerSlotWidget> ContainerSlotWidgetClass;
 
 public:	
 	FORCEINLINE bool IsInventoryOpen() const { return bIsInventoryOpen; }

@@ -59,24 +59,25 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
+	FItemInformation ItemInformation;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
+	bool bIsStorageSlot = true;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
+	bool bIsSlotHovered = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
+	bool bIsRightMouseButtonDown = false;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
+	TSubclassOf<UUserWidget> ToolTipWidgetClass;
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
-private:
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties", meta = (AllowPrivateAccess = "true"))
-	FItemInformation ItemInformation;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties", meta = (AllowPrivateAccess = "true"))
-	bool bIsStorageSlot = true;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties", meta = (AllowPrivateAccess = "true"))
-	bool bIsSlotHovered = false;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties", meta = (AllowPrivateAccess = "true"))
-	bool bIsRightMouseButtonDown = false;
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> ToolTipWidgetClass;
 };
