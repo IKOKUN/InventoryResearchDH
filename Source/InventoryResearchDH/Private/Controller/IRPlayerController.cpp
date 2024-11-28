@@ -66,6 +66,29 @@ void AIRPlayerController::SetupInputComponent()
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRPlayerController::Look);
+
+		// Interacting
+		EnhancedInputComponent->BindAction(UseActorAction, ETriggerEvent::Started, this, &AIRPlayerController::OnActorUsed);
+
+		// Equipment and Inventory
+		EnhancedInputComponent->BindAction(OpenEquipmentAndInventoryAction, ETriggerEvent::Started, this, &AIRPlayerController::OpenEquipmentAndInventory);
+		UE_LOG(LogTemp, Log, TEXT("OpenEquipmentAndInventory action bound successfully."));
+
+		// Equipment
+		EnhancedInputComponent->BindAction(OpenEquipmentAction, ETriggerEvent::Started, this, &AIRPlayerController::OpenEquipment);
+
+		// Inventory
+		EnhancedInputComponent->BindAction(OpenInventoryAction, ETriggerEvent::Started, this, &AIRPlayerController::OpenInventory);
+
+		// Hotbar
+		EnhancedInputComponent->BindAction(Hotbar1Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar1);
+		EnhancedInputComponent->BindAction(Hotbar2Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar2);
+		EnhancedInputComponent->BindAction(Hotbar3Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar3);
+		EnhancedInputComponent->BindAction(Hotbar4Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar4);
+		EnhancedInputComponent->BindAction(Hotbar5Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar5);
+		EnhancedInputComponent->BindAction(Hotbar6Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar6);
+		EnhancedInputComponent->BindAction(Hotbar7Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar7);
+		EnhancedInputComponent->BindAction(Hotbar8Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar8);
 	}
 	else
 	{
@@ -120,6 +143,180 @@ void AIRPlayerController::StopJumping()
 	if (ACharacter* ControlledCharacter = Cast<ACharacter>(GetPawn()))
 	{
 		ControlledCharacter->StopJumping();
+	}
+}
+
+void AIRPlayerController::SteerCharacter(const FInputActionValue& Value)
+{
+
+}
+
+void AIRPlayerController::OpenEquipmentAndInventory()
+{
+	if (InventoryManagerComponent)
+	{
+		if (InventoryManagerComponent->GetIsInventoryOpen())
+		{
+			InventoryManagerComponent->CloseInventoryWindow();
+			InventoryManagerComponent->CloseEquipmentWindow();
+
+			UE_LOG(LogTemp, Error, TEXT("Close And Inventory"));
+		}
+		else
+		{
+			InventoryManagerComponent->OpenInventoryWindow();
+			InventoryManagerComponent->OpenEquipmentWindow();
+
+			UE_LOG(LogTemp, Error, TEXT("Open Equipment And Inventory"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::OpenEquipment()
+{
+	if (InventoryManagerComponent)
+	{
+		if (InventoryManagerComponent->GetIsEquipmentOpen())
+		{
+			InventoryManagerComponent->CloseEquipmentWindow();
+		}
+		else
+		{
+			InventoryManagerComponent->OpenEquipmentWindow();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::OpenInventory()
+{
+	if (InventoryManagerComponent)
+	{
+		if (InventoryManagerComponent->GetIsInventoryOpen())
+		{
+			InventoryManagerComponent->CloseInventoryWindow();
+		}
+		else
+		{
+			InventoryManagerComponent->OpenInventoryWindow();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::UseActor()
+{
+	OnActorUsed();
+}
+
+void AIRPlayerController::InspectActor()
+{
+}
+
+void AIRPlayerController::Hotbar1()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(0);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar2()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(1);
+		UE_LOG(LogTemp, Error, TEXT("Open Hotbar Slot"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar3()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(2);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar4()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(3);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar5()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(4);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar6()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(5);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar7()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(6);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
+	}
+}
+
+void AIRPlayerController::Hotbar8()
+{
+	if (InventoryManagerComponent)
+	{
+		InventoryManagerComponent->UseHotbarSlot(7);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
 	}
 }
 
@@ -270,7 +467,17 @@ void AIRPlayerController::ShowInteractText()
 		if (!HUDReference->InteractText->MessageText.IsEmpty())
 		{
 			HUDReference->InteractText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			//UE_LOG(LogTemp, Log, TEXT("InteractText is now visible with message: %s"), *HUDReference->InteractText->MessageText.ToString());
 		}
+		else
+		{
+			HUDReference->InteractText->SetVisibility(ESlateVisibility::Hidden);
+			//UE_LOG(LogTemp, Log, TEXT("InteractText is empty, setting visibility to Hidden"));
+		}
+
+		// Log untuk memeriksa visibilitas widget
+		ESlateVisibility CurrentVisibility = HUDReference->InteractText->GetVisibility();
+		//UE_LOG(LogTemp, Log, TEXT("Current visibility of InteractText: %d"), (int32)CurrentVisibility);
 	}
 }
 
@@ -321,7 +528,7 @@ AUsableActorBase* AIRPlayerController::GetUsableActor()
 	);
 
 	// 5. Debug: Gambar garis di dunia untuk memverifikasi
-	DrawDebugLine(PlayerCharacter->GetWorld(), Start, End, FColor::Green, false, 2.0f);
+	// DrawDebugLine(PlayerCharacter->GetWorld(), Start, End, FColor::Green, false, 2.0f);
 
 	// 6. Jika Line Trace mengenai sesuatu
 	if (bHit && HitResult.GetActor())
@@ -329,7 +536,7 @@ AUsableActorBase* AIRPlayerController::GetUsableActor()
 		AUsableActorBase* UsableActor = Cast<AUsableActorBase>(HitResult.GetActor());
 		if (UsableActor)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
+			// UE_LOG(LogTemp, Log, TEXT("Hit Actor: %s"), *HitResult.GetActor()->GetName());
 			return UsableActor; // Mengembalikan Actor yang ditemukan
 		}	
 	}
@@ -351,39 +558,51 @@ void AIRPlayerController::OnActorUsed()
 
 void AIRPlayerController::GetUsableActorFocus()
 {
-	if (GetUsableActor())
+	AUsableActorBase* CurrentUsableActor = GetUsableActor();
+
+	// Jika ada aktor yang dapat digunakan
+	if (CurrentUsableActor)
 	{
-		if (GetUsableActor() != LastUsableActor)
+		// Jika aktor baru ditemukan dan berbeda dari LastUsableActor
+		if (CurrentUsableActor != LastUsableActor)
 		{
 			bIsNewFocus = true;
+
+			// Akhiri fokus pada aktor sebelumnya
 			if (LastUsableActor)
 			{
 				LastUsableActor->EndOutlineFocus();
-				LastUsableActor = nullptr;
-				SetInteractText(FText());
-				HideInteractText();
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("LastUsableActor is not a UsableActor"));
 			}
 		}
 
-		LastUsableActor = GetUsableActor();
+		// Set LastUsableActor ke aktor yang baru ditemukan
+		LastUsableActor = CurrentUsableActor;
+
+		// Jika ini adalah fokus baru
 		if (bIsNewFocus)
 		{
 			LastUsableActor->BeginOutlineFocus();
 			bIsNewFocus = false;
-			SetInteractText(GetActorActionText(LastUsableActor));
+
+			// Atur teks interaksi
+			FText ActionText = GetActorActionText(LastUsableActor);
+			SetInteractText(ActionText);
 			ShowInteractText();
 		}
 	}
 	else
 	{
+		// Jika tidak ada aktor yang dapat digunakan, sembunyikan teks interaksi
+		if (LastUsableActor)
+		{
+			LastUsableActor->EndOutlineFocus();
+			LastUsableActor = nullptr; // Reset LastUsableActor
+		}
 		SetInteractText(FText());
 		HideInteractText();
 	}
 
+	// Cek apakah LastUsableActor masih valid dan dapat digunakan
 	if (LastUsableActor)
 	{
 		if (!LastUsableActor->GetIsActorUsable())
@@ -398,10 +617,10 @@ void AIRPlayerController::GetUsableActorFocus()
 			}
 			SetInteractText(FText());
 			HideInteractText();
-
-		}	
+		}
 	}
 }
+
 
 void AIRPlayerController::InitializePlayer()
 {
@@ -460,7 +679,7 @@ void AIRPlayerController::InitializePlayer()
 
 	// Configure input mode and mouse cursor
 	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::Default;
+	DefaultMouseCursor = EMouseCursor::GrabHand;
 
 	FInputModeGameAndUI InputModeData;
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
@@ -468,7 +687,8 @@ void AIRPlayerController::InitializePlayer()
 
 	if (HUDReference->IsValidLowLevel())
 	{
-		InputModeData.SetWidgetToFocus(HUDReference->TakeWidget());
+		TSharedPtr<SWidget> HUDRefTakeWidget = HUDReference->TakeWidget();
+		InputModeData.SetWidgetToFocus(HUDRefTakeWidget);
 	}
 	else
 	{

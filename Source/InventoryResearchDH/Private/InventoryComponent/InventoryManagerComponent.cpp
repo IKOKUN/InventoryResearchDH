@@ -360,62 +360,63 @@ void UInventoryManagerComponent::DecreaseInventorySlots(int32 Amount)
 
 void UInventoryManagerComponent::AddInventorySlot(int32 Row, int32 Column, int32 Slot)
 {
+	if (!InventoryUI)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Invalid"));
+		return;
+	}
+
 	int32 LastIndex = InventoryUI->InventoryWidgetComp->InventorySlotWidgets.Num();
 	UInventorySlotWidget* LocalSlotRef = nullptr; // Inisialisasi dengan nullptr
 
-	if (InventoryUI)
+	// Pastikan Slot tidak melebihi LastIndex
+	if (Slot >= 0 && Slot < LastIndex)
 	{
-		if (LastIndex < Slot)
+		UInventorySlotWidget* NewSlot = InventoryUI->InventoryWidgetComp->InventorySlotWidgets[Slot];
+		if (NewSlot)
 		{
-			UInventorySlotWidget* NewSlot = InventoryUI->InventoryWidgetComp->InventorySlotWidgets[Slot];
-			if (NewSlot)
-			{
-				NewSlot->InvSlotItemInformation = FItemInformation();
-				LocalSlotRef = NewSlot;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
-			}
+			NewSlot->InvSlotItemInformation = FItemInformation();
+			LocalSlotRef = NewSlot;
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Slot Already Exists"));
-			UInventorySlotWidget* NewSlot = CreateWidget<UInventorySlotWidget>(GetWorld(), InventorySlotWidgetClass);
-			if (NewSlot)
-			{
-				LocalSlotRef = NewSlot;
-				InventoryUI->InventorySlotWidgets.Add(LocalSlotRef);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
-			}
-		}
-
-		// Pastikan LocalSlotRef diinisialisasi sebelum digunakan
-		if (LocalSlotRef)
-		{
-			UPanelSlot* LocalSlotChild = InventoryUI->InventoryWidgetComp->InventoryGridPanel->AddChild(LocalSlotRef);
-			UUniformGridSlot* NewSlotSlot = Cast<UUniformGridSlot>(LocalSlotChild);
-			if (NewSlotSlot)
-			{
-				NewSlotSlot->SetRow(Row);
-				NewSlotSlot->SetColumn(Column);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("New Slot Slot Casting Failed On Inventory Manager Component"));
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("LocalSlotRef is not initialized."));
+			UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Inventory UI Invalid"));
+		// Jika Slot tidak ada, buat slot baru
+		UInventorySlotWidget* NewSlot = CreateWidget<UInventorySlotWidget>(GetWorld(), InventorySlotWidgetClass);
+		if (NewSlot)
+		{
+			LocalSlotRef = NewSlot;
+			InventoryUI->InventorySlotWidgets.Add(LocalSlotRef);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("New Slot Not Set"));
+			return;
+		}
+	}
+
+	// Pastikan LocalSlotRef diinisialisasi sebelum digunakan
+	if (LocalSlotRef)
+	{
+		UPanelSlot* LocalSlotChild = InventoryUI->InventoryWidgetComp->InventoryGridPanel->AddChild(LocalSlotRef);
+		UUniformGridSlot* NewSlotSlot = Cast<UUniformGridSlot>(LocalSlotChild);
+		if (NewSlotSlot)
+		{
+			NewSlotSlot->SetRow(Row);
+			NewSlotSlot->SetColumn(Column);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("New Slot Slot Casting Failed On Inventory Manager Component"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("LocalSlotRef is not initialized."));
 	}
 }
 
@@ -736,7 +737,7 @@ void UInventoryManagerComponent::MoveHotbarSlotItem(int32 FromSlot, int32 ToHotB
 	}
 }
 
-void UInventoryManagerComponent::UseHotbarItem(int32 HotbarSlot)
+void UInventoryManagerComponent::UseHotbarSlot(int32 HotbarSlot)
 {
 	FItemInformation LocalItemInfo = GetHotbarSlotItem(HotbarSlot);
 	if (LocalItemInfo.Icon)
@@ -752,7 +753,7 @@ void UInventoryManagerComponent::UseHotbarItem(int32 HotbarSlot)
 					LocalInventorySlotIndex = i;
 					bLocalSucces = true;
 					break;
-				}				
+				}
 			}
 			if (bLocalSucces)
 			{
@@ -776,39 +777,60 @@ bool UInventoryManagerComponent::TryToAddItemToInventory(UInventoryComponent* In
 {
 	FName LocItemID = Item.ID;
 	int32 LocItemAmount = Item.Amount;
+
+	// Log item yang akan ditambahkan
+	UE_LOG(LogTemp, Log, TEXT("Trying to add item: %s, Amount: %d"), *Item.ID.ToString(), LocItemAmount);
+
+	// Jika item adalah currency, tambahkan ke gold
 	if (Item.ItemType == EItemType::Currency)
 	{
 		AddGold(LocItemAmount);
 		return true;
 	}
-	else if (Item.bIsStackable)
+
+	// Jika item adalah stackable
+	if (Item.bIsStackable)
 	{
+		// Coba tambahkan ke stack yang ada
 		LocItemAmount = FindAndAddAmountToStacks(Inventory, LocItemID, LocItemAmount);
+
+		// Jika tidak ada sisa item yang perlu ditambahkan, kita bisa mengembalikan true
 		if (LocItemAmount == 0)
 		{
+			UE_LOG(LogTemp, Log, TEXT("All items added to stacks, no remaining amount to add."));
 			return true;
 		}
 		else
 		{
+			// Set jumlah item yang tersisa
 			SetItemAmount(Item, LocItemAmount);
 		}
-		if (Inventory)
+	}
+
+	// Pastikan inventory valid sebelum melanjutkan
+	if (Inventory)
+	{
+		int32 IndexEmptySlot = 0;
+		// Cek apakah ada slot kosong di inventory
+		if (Inventory->GetEmptyInventorySpace(IndexEmptySlot))
 		{
-			int32 IndexEmptySlot = 0;
-			if (Inventory->GetEmptyInventorySpace(IndexEmptySlot))
-			{
-				AddItem(Inventory, IndexEmptySlot, Item);
-				return true;
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Inventory Full"));
-				return false;
-			}
+			// Tambahkan item ke slot kosong
+			AddItem(Inventory, IndexEmptySlot, Item);
+			UE_LOG(LogTemp, Log, TEXT("Item added to inventory at slot: %d"), IndexEmptySlot);
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Full"));
+			return false;
 		}
 	}
+
+	// Jika inventory tidak valid
+	UE_LOG(LogTemp, Error, TEXT("Inventory is not valid."));
 	return false;
 }
+
 
 bool UInventoryManagerComponent::TryRemoveItemFromInventory(UInventoryComponent* Inventory, FName ItemID, int32 Amount)
 {
@@ -1310,6 +1332,8 @@ void UInventoryManagerComponent::OpenInventoryWindow()
 		{
 			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Visible;
 			bIsInventoryOpen = true;
+
+			UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Visible"));
 		}
 		else
 		{
@@ -1340,6 +1364,8 @@ void UInventoryManagerComponent::CloseInventoryWindow()
 				InventoryUI->InventorySlotWidgets[i]->bIsSlotHovered = false;
 				InventoryUI->InventorySlotWidgets[i]->bIsRightMouseButtonDown = false;
 			}
+
+			UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Hiding"));
 		}
 		else
 		{
@@ -1562,19 +1588,42 @@ FTransform UInventoryManagerComponent::RandomizeDropLocation()
 int32 UInventoryManagerComponent::FindAndAddAmountToStacks(UInventoryComponent* Inventory, FName ItemID, int32 Amount)
 {
 	int32 LocInvSlot = 0;
-	for (FInventoryItem InvItem : Inventory->GetInventoryItems())
+
+	// Loop melalui semua item di inventory
+	for (FInventoryItem& InvItem : Inventory->GetInventoryItems())
 	{
+		// Log ID yang sedang dibandingkan
+		//UE_LOG(LogTemp, Log, TEXT("Comparing ItemID: %s with InvItem.ID: %s"), *ItemID.ToString(), *InvItem.ID.ToString());
+
+		// Cek apakah item cocok dan stackable
 		if (InvItem.ID == ItemID && InvItem.bIsStackable)
 		{
+			//UE_LOG(LogTemp, Log, TEXT("Found stackable item: %s at slot %d"), *InvItem.ID.ToString(), LocInvSlot);
+
+			// Tambahkan item ke stack
 			Amount = AddItemToStack(Inventory, LocInvSlot, Amount);
+
+			// Jika tidak ada sisa item yang perlu ditambahkan, kembalikan 0
 			if (Amount == 0)
 			{
-				return Amount;
+				//UE_LOG(LogTemp, Log, TEXT("All items added to stack. Remaining amount: %d"), Amount);
+				return Amount; // Semua item telah ditambahkan ke stack
+			}
+			else
+			{
+				//UE_LOG(LogTemp, Log, TEXT("Remaining amount after adding to stack: %d"), Amount);
 			}
 		}
+		else
+		{
+			//UE_LOG(LogTemp, Log, TEXT("Item at slot %d is not stackable or does not match ID: %s"), LocInvSlot, *InvItem.ID.ToString());
+		}
 
-		LocInvSlot++;
+		LocInvSlot++; // Pindah ke slot berikutnya
 	}
+
+	// Kembalikan jumlah sisa yang tidak dapat ditambahkan ke stack
+	UE_LOG(LogTemp, Log, TEXT("No more stackable items found. Remaining amount: %d"), Amount);
 	return Amount;
 }
 
@@ -1586,26 +1635,37 @@ int32 UInventoryManagerComponent::AddItemToStack(UInventoryComponent* Inventory,
 		int32 LocItemAmount = ItemAmount(LocInvItem);
 		int32 LocMaxStackSize = ItemMaxStackSize(LocInvItem);
 		int32 LocRemainingAmount = AmountToAdd;
+
+		// Log informasi awal
+		UE_LOG(LogTemp, Log, TEXT("Adding %d items to slot %d."), AmountToAdd, InvSlot);
+		UE_LOG(LogTemp, Log, TEXT("Current amount: %d, Max stack size: %d"), LocItemAmount, LocInvItem.MaxStackSize);
+		UE_LOG(LogTemp, Log, TEXT("ID: %s"), *LocInvItem.ID.ToString());
+
+		// Cek apakah slot sudah ada item
 		if (LocItemAmount < LocMaxStackSize)
 		{
 			int32 FreeStackSpace = LocMaxStackSize - LocItemAmount;
+
+			// Jika jumlah yang ingin ditambahkan lebih kecil atau sama dengan ruang kosong
 			if (AmountToAdd <= FreeStackSpace)
 			{
 				LocRemainingAmount = 0;
 				AddItem(Inventory, InvSlot, AddToItemAmount(LocInvItem, AmountToAdd));
+				UE_LOG(LogTemp, Log, TEXT("Added %d items to slot %d. New amount: %d"), AmountToAdd, InvSlot, LocItemAmount + AmountToAdd);
 				return LocRemainingAmount;
 			}
 			else
 			{
 				LocRemainingAmount = AmountToAdd - FreeStackSpace;
 				AddItem(Inventory, InvSlot, AddToItemAmount(LocInvItem, FreeStackSpace));
+				UE_LOG(LogTemp, Log, TEXT("Added %d items to slot %d. New amount: %d. Remaining amount: %d"), FreeStackSpace, InvSlot, LocItemAmount + FreeStackSpace, LocRemainingAmount);
 				return LocRemainingAmount;
 			}
-			
 		}
 		else
 		{
-			return LocRemainingAmount;
+			UE_LOG(LogTemp, Log, TEXT("Slot %d is full. Cannot add more items."), InvSlot);
+			return LocRemainingAmount; // Slot sudah penuh, kembalikan jumlah yang tersisa
 		}
 	}
 	else
@@ -1614,6 +1674,7 @@ int32 UInventoryManagerComponent::AddItemToStack(UInventoryComponent* Inventory,
 		return int32();
 	}
 }
+
 
 FInventoryItem UInventoryManagerComponent::SetItemAmount(FInventoryItem Inventory, int32 AmountToAdd)
 {
@@ -1626,6 +1687,10 @@ FInventoryItem UInventoryManagerComponent::AddToItemAmount(FInventoryItem InvIte
 {
 	FInventoryItem LocInvItem = InvItem;
 	LocInvItem.Amount = LocInvItem.Amount + AmountToAdd;
+
+	// Log untuk melacak jumlah item yang ditambahkan
+	UE_LOG(LogTemp, Log, TEXT("Adding %d to item amount. New amount: %d"), AmountToAdd, LocInvItem.Amount);
+
 	return LocInvItem;
 }
 
@@ -1650,8 +1715,12 @@ void UInventoryManagerComponent::AddItem(UInventoryComponent* InvComp, int32 Inv
 {
 	if (InvComp)
 	{
+		// Log informasi sebelum menambahkan item
+		UE_LOG(LogTemp, Log, TEXT("Setting item at slot %d to %s with amount %d"), InvSlot, *InvItem.ID.ToString(), InvItem.Amount);
+
 		InvComp->SetInventoryItem(InvSlot, InvItem);
 		FItemInformation ItemInfo = ItemToItemInfo(InvItem);
+
 		if (PlayerInventory == InvComp)
 		{
 			// Update HUD Inventory Slot Info
@@ -1663,6 +1732,8 @@ void UInventoryManagerComponent::AddItem(UInventoryComponent* InvComp, int32 Inv
 		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
 	}
 }
+
+
 
 void UInventoryManagerComponent::RemoveItem(UInventoryComponent* InvComp, int32 InvSlot)
 {

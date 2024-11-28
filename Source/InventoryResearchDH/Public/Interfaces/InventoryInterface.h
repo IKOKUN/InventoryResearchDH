@@ -15,16 +15,16 @@ struct FContainerProperties
 
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-	FName ContainerName;
+	FName ContainerName = FName();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-	uint8 SlotsPerRow;
+	uint8 SlotsPerRow = uint8();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-	bool bIsStorageContainer;
+	bool bIsStorageContainer = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-	int32 InvetorySize;
+	int32 InvetorySize = 0;
 };
 
 // This class does not need to be modified.

@@ -15,17 +15,58 @@ AWorldActor::AWorldActor()
 
 bool AWorldActor::LoadItemFromList()
 {
-	FInventoryItem ItemInventory;
-	if (GetDataTableRowByName(DataTable,ID, ItemInventory))
-	{
-		Name = ItemInventory.Name;
-		if (ItemInventory.WorldMesh)
-		{
-			return true;
-		}
-	}
-	return false;
+    if (GetDataTableRowByName(DataTable, ID, InventoryItem))
+    {
+        // Log untuk memastikan item diambil dengan benar
+        UE_LOG(LogTemp, Log, TEXT("Successfully loaded item: %s"), *InventoryItem.Name.ToString());
+
+        // Set nama item
+        Name = InventoryItem.Name;
+
+        // Log semua atribut dari InventoryItem
+        /*UE_LOG(LogTemp, Log, TEXT("ID: %s"), *InventoryItem.ID.ToString());
+        UE_LOG(LogTemp, Log, TEXT("Icon: %s"), InventoryItem.Icon ? *InventoryItem.Icon->GetName() : TEXT("None"));
+        UE_LOG(LogTemp, Log, TEXT("Description: %s"), *InventoryItem.Description);
+        UE_LOG(LogTemp, Log, TEXT("Quality: %d"), (int32)InventoryItem.Quality);
+        UE_LOG(LogTemp, Log, TEXT("ItemType: %d"), (int32)InventoryItem.ItemType);
+        UE_LOG(LogTemp, Log, TEXT("Amount: %d"), InventoryItem.Amount);
+        UE_LOG(LogTemp, Log, TEXT("bIsStackable: %s"), InventoryItem.bIsStackable ? TEXT("true") : TEXT("false"));
+        UE_LOG(LogTemp, Log, TEXT("MaxStackSize: %d"), InventoryItem.MaxStackSize);
+        UE_LOG(LogTemp, Log, TEXT("bIsDroppable: %s"), InventoryItem.bIsDroppable ? TEXT("true") : TEXT("false"));
+        UE_LOG(LogTemp, Log, TEXT("Health: %f"), InventoryItem.Health);
+        UE_LOG(LogTemp, Log, TEXT("Duration: %f"), InventoryItem.Duration);*/
+        // Tambahkan log untuk atribut lainnya jika diperlukan
+
+        // Pastikan atribut lainnya diatur dengan benar
+        InventoryItem.bIsStackable = true; // Atur apakah item dapat di-stack
+        InventoryItem.MaxStackSize = 5; // Misalnya, atur batas maksimum stack
+
+        if (InventoryItem.WorldMesh)
+        {
+            return true; // Item berhasil diambil dan memiliki mesh dunia
+        }
+        else
+        {
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(
+                    -1,
+                    5.0f,
+                    FColor::Green,
+                    FString::Printf(TEXT("Item '%s' has no World Mesh"), *InventoryItem.Name.ToString())
+                );
+            }
+        }
+    }
+    else
+    {
+        // Log jika item tidak ditemukan di data table
+        UE_LOG(LogTemp, Error, TEXT("Failed to load item with ID: %s"), *ID.ToString());
+    }
+    return false; // Item tidak berhasil diambil
 }
+
+
 
 void AWorldActor::UpdateItemAmount()
 {
@@ -59,7 +100,10 @@ bool AWorldActor::OnActorUsed(APlayerController* PlayerController)
 		if (bSucces)
 		{
 			Destroy();
-            
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed Add Item To Inventory"));
 		}
 		Super::OnActorUsed(PlayerController);
 		return true;

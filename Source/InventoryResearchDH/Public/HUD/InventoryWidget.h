@@ -59,6 +59,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	void OnClicked_CloseButton();
 
+	UFUNCTION(BlueprintCallable, Category = "Bind Function")
+	ESlateVisibility GetInventoryVisibility() const;
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

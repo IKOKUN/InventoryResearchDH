@@ -116,6 +116,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Bind Function")
 	FText GetStrengthText() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Bind Function")
+	ESlateVisibility GetEquipmentVisibility() const;
 	/* End Bind Function */
 
 protected:

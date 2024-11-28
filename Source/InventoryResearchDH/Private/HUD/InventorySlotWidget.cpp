@@ -235,10 +235,18 @@ FText UInventorySlotWidget::GetAmountText() const
 {
 	if (InvSlotItemInformation.Icon)
 	{
-		InvSlotItemInformation.Amount <= 1 ? FText() : FText::AsNumber(InvSlotItemInformation.Amount);
+		// Log jumlah item
+		UE_LOG(LogTemp, Log, TEXT("Item Amount: %d"), InvSlotItemInformation.Amount);
+
+		// Jika jumlah item lebih dari 1, kembalikan teks jumlah, jika tidak, kembalikan teks kosong
+		return InvSlotItemInformation.Amount > 1 ? FText::AsNumber(InvSlotItemInformation.Amount) : FText::GetEmpty();
 	}
-	return FText();
+
+	// Log jika tidak ada ikon
+	UE_LOG(LogTemp, Log, TEXT("No icon found for the item in the slot."));
+	return FText::GetEmpty(); // Kembalikan teks kosong jika tidak ada ikon
 }
+
 
 FLinearColor UInventorySlotWidget::GetBorderColor() const
 {

@@ -27,17 +27,15 @@ struct FWorldItem
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World Item")
-	FName ID;
+	FName ID = NAME_None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World Item")
-	int32 Amount;
+	int32 Amount = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World Item")
-	FName Name;
+	FName Name = NAME_None;
 
 	FWorldItem() = default;
-	FWorldItem(const FWorldItem&) = default;
-	FWorldItem& operator=(const FWorldItem&) = default;
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -358,7 +356,7 @@ public:
 
 	// When Using The Hotbar, Finds the First Item Of Same Type In Inventory And Tells The Server To 'Use' it
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
-	void UseHotbarItem(int32 HotbarSlot);
+	void UseHotbarSlot(int32 HotbarSlot);
 	/* End Function user Interface */
 protected:
 	virtual void BeginPlay() override;
@@ -444,7 +442,10 @@ public:
 	FORCEINLINE UInventoryComponent* GetPlayerInventory() const { return PlayerInventory; }
 	FORCEINLINE UInventoryComponent* GetContainerInventory() const { return ContainerInventory; }
 	FORCEINLINE AContainerActor* GetCurrentContainer() const { return CurrentContainer; }
-		
+	FORCEINLINE bool GetIsInventoryOpen() const { return bIsInventoryOpen; }
+	FORCEINLINE bool GetIsContainerOpen() const { return bIsContainerOpen; }
+	FORCEINLINE bool GetIsEquipmentOpen() const { return bIsEquipmentOpen; }
+
 	/* Macros */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Macros")
 	FORCEINLINE bool ItemIsValid(FInventoryItem InvItem) const { return InvItem.Icon != nullptr; }

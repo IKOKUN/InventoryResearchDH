@@ -28,12 +28,30 @@ bool UInventoryComponent::InitInventory(int32 InventorySize)
 
 FInventoryItem UInventoryComponent::GetInventoryItem(int32 InvSlot)
 {
-	if (ItemIsValid(InventoryItems[InvSlot]))
+	if (InvSlot >= 0 && InvSlot < InventoryItems.Num()) // Pastikan slot valid
 	{
-		return InventoryItems[InvSlot];
+		UE_LOG(LogTemp, Log, TEXT("Getting item at slot %d: ID: %s"), InvSlot, *InventoryItems[InvSlot].ID.ToString());
+
+		if (ItemIsValid(InventoryItems[InvSlot]))
+		{
+			// Log jika item valid
+			UE_LOG(LogTemp, Log, TEXT("Item at slot %d is valid: ID: %s, Amount: %d"), InvSlot, *InventoryItems[InvSlot].ID.ToString(), InventoryItems[InvSlot].Amount);
+			return InventoryItems[InvSlot];
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("GetInventoryItem: Failed to get item at slot %d."), InvSlot);
+		}
 	}
-	return FInventoryItem();
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("GetInventoryItem: Invalid slot index %d."), InvSlot);
+	}
+
+	return FInventoryItem(); // Kembalikan item default jika tidak valid
 }
+
+
 
 bool UInventoryComponent::SetInventoryItem(int32 InvSlot, FInventoryItem Item)
 {
@@ -128,7 +146,7 @@ TArray<FInventoryItem> UInventoryComponent::GetInventoryItems()
 
 bool UInventoryComponent::ItemIsValid(FInventoryItem InvItem)
 {
-	return false;
+	return InvItem.Icon != nullptr;
 }
 
 bool UInventoryComponent::SetInventoryArrayElement(TArray<FInventoryItem>& TargetArray, int32 Index, const FInventoryItem& Item, bool bSizeToFit)

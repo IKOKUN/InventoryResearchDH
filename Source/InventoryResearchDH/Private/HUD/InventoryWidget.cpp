@@ -41,6 +41,11 @@ void UInventoryWidget::OnClicked_CloseButton()
 	}
 }
 
+ESlateVisibility UInventoryWidget::GetInventoryVisibility() const
+{
+	return InventoryVisibility;
+}
+
 FReply UInventoryWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	// Logika khusus Anda

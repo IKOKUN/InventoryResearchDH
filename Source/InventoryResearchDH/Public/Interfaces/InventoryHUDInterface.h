@@ -14,27 +14,28 @@ struct FPlayerStats
     GENERATED_BODY()
 
 public:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Gold;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Gold = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Damage;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Damage = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Armor;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Armor = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Strength;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Strength = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Dexterity;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Dexterity = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 Intelligence;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 Intelligence = 0; // Inisialisasi dengan 0
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
-    int32 InventorySize;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
+    int32 InventorySize = 0; // Inisialisasi dengan 0
 };
+
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)

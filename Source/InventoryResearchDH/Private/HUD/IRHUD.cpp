@@ -5,6 +5,7 @@
 
 #include "HUD/HUDLayoutWidget.h"
 #include "Blueprint/UserWidget.h"
+#include "Controller/IRPlayerController.h"
 #include "Engine/Canvas.h"
 #include "Engine/Font.h"
 #include "UObject/ConstructorHelpers.h"
@@ -33,6 +34,22 @@ void AIRHUD::BeginPlay()
         {
             // Menambahkan widget ke viewport
             MainHUDWidgetInstance->AddToViewport();
+        }
+
+        // Panggil InitializePlayer di sini jika Anda memiliki referensi ke player controller
+        AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetOwningPlayerController());
+        if (PlayerController)
+        {
+            PlayerController->InitializePlayer();
+        }
+
+        if (MainHUDWidgetInstance)
+        {
+            UE_LOG(LogTemp, Error, TEXT("MainHUDWidgetInstance is valid"));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("MainHUDWidgetInstance is not valid"));
         }
     }
 }

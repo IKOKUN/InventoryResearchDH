@@ -41,6 +41,11 @@ FText UContainerWidget::GetTitleText() const
 	return Textname;
 }
 
+ESlateVisibility UContainerWidget::GetContainerVisibility() const
+{
+	return ContainerVisibility;
+}
+
 FReply UContainerWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	// Logika khusus Anda

@@ -79,6 +79,11 @@ FText UEquipmentWidget::GetStrengthText() const
 	return FText();
 }
 
+ESlateVisibility UEquipmentWidget::GetEquipmentVisibility() const
+{
+	return EquipmentVisibility;
+}
+
 FReply UEquipmentWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	// Logika khusus Anda

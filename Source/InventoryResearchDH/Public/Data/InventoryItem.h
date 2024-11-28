@@ -23,27 +23,27 @@ struct FInventoryItem : public FTableRowBase
 public:
     // ID of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FName ID;
+    FName ID = FName("None");
 
     // Icon texture of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    UTexture2D* Icon;
+    UTexture2D* Icon = nullptr;
 
     // Name of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FName Name;
+    FName Name = FName("None");
 
     // Description of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    FString Description;
+    FString Description = FString(TEXT(""));
 
     // Quality of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    EItemQuality Quality;
+    EItemQuality Quality = EItemQuality::Common;
 
     // Type of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    EItemType ItemType;
+    EItemType ItemType = EItemType::Miscellaneous;
 
     // Amount of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -51,27 +51,27 @@ public:
 
     // Whether the item is stackable
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    bool bIsStackable;
+    bool bIsStackable = false;
 
     // Maximum stack size of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 MaxStackSize;
+    int32 MaxStackSize = 0;
 
     // Whether the item is droppable
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    bool bIsDroppable;
+    bool bIsDroppable = false;
 
     // Mesh for the item in the world
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    UStaticMesh* WorldMesh;
+    UStaticMesh* WorldMesh = nullptr;
 
     // Health provided by the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    float Health;
+    float Health = 0.0f;
 
     // Duration of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    float Duration;
+    float Duration = 0.0f;
 
     // Weapon actor class for the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
@@ -79,33 +79,60 @@ public:
 
     // Mesh for the item when equipped
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    USkeletalMesh* EquipmentMesh;
+    USkeletalMesh* EquipmentMesh = nullptr;
 
     // Equipment type of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    EEquipmentType EquipmentType;
+    EEquipmentType EquipmentType = EEquipmentType::Armor;
 
     // Slot where the item can be equipped
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    EEquipmentSlotsType EquipmentSlot;
+    EEquipmentSlotsType EquipmentSlot = EEquipmentSlotsType::Head;
 
     // Damage value of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Damage;
+    int32 Damage = 0;
 
     // Armor value of the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Armor;
+    int32 Armor = 0;
 
     // Strength value provided by the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Strength;
+    int32 Strength = 0;
 
     // Dexterity value provided by the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Dexterity;
+    int32 Dexterity = 0;
 
     // Intelligence value provided by the item
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-    int32 Intelligence;
+    int32 Intelligence = 0;
+
+    // Default constructor
+    FInventoryItem()
+        : ID(NAME_None),
+        Icon(nullptr),
+        Name(NAME_None),
+        Description(TEXT("")),
+        Quality(EItemQuality::Common), // Set default quality
+        ItemType(EItemType::Miscellaneous), // Set default item type
+        Amount(1),
+        bIsStackable(false),
+        MaxStackSize(0),
+        bIsDroppable(true),
+        WorldMesh(nullptr),
+        Health(0.0f),
+        Duration(0.0f),
+        WeaponActorClass(nullptr),
+        EquipmentMesh(nullptr),
+        EquipmentType(EEquipmentType::Armor), // Set default equipment type
+        EquipmentSlot(EEquipmentSlotsType::Head), // Set default equipment slot
+        Damage(0),
+        Armor(0),
+        Strength(0),
+        Dexterity(0),
+        Intelligence(0)
+    {
+    }
 };

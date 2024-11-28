@@ -67,6 +67,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bind Function")
 	FText GetTitleText() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Bind Function")
+	ESlateVisibility GetContainerVisibility() const;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Drag Widget")
 	TSubclassOf<UDragWidget> DragWidgetClass;
 protected:
