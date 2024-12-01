@@ -91,7 +91,7 @@ public:
 	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutNPCInvItemRow);
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Data Table")
-	TObjectPtr<UDataTable> NPCItemsDataTable;
+	TObjectPtr<UDataTable> ClassStartingEquipment;
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Data Table")
 	TObjectPtr<UDataTable> ItemListDataTable;
@@ -249,6 +249,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Properties | HUD")
 	TObjectPtr<UHUDLayoutWidget> HUDReference;
 
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UHUDLayoutWidget> MainHUDWidgetClass;
+
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	bool bIsThirdPersonView = false;
 
@@ -266,7 +269,7 @@ public:
 
 	// Fungsi untuk mengubah elemen dalam array dengan menyesuaikan ukuran array jika perlu
 	UFUNCTION(BlueprintCallable, Category = "Array Operations")
-	static bool SetInventoryArrayElement(TArray<FInventoryItem>& TargetArray, int32 Index, const FInventoryItem& Item, bool bSizeToFit)
+	bool SetInventoryArrayElement(TArray<FInventoryItem>& TargetArray, int32 Index, const FInventoryItem& Item, bool bSizeToFit)
 	{
 		// Menyesuaikan ukuran array jika diperlukan
 		if (bSizeToFit && Index >= TargetArray.Num())

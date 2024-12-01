@@ -70,6 +70,7 @@ bool UEquipmentInventoryComponent::LoadInventoryItems(int32 InventorySize, TArra
 
 void UEquipmentInventoryComponent::UpdateEquippedMeshes(int32 InvSlot)
 {
+	UE_LOG(LogTemp, Error, TEXT("UpdateEquippedMeshes Called"));
 	USkeletalMesh* LocalEquipmentMesh = nullptr;
 	TSubclassOf<AActor> LocalWeaponActorClass = nullptr;
 	if (PlayerCharacter)

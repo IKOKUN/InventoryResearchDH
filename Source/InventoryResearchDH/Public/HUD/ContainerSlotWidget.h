@@ -10,6 +10,7 @@
 class AIRPlayerController;
 class UTexture2D;
 class UBorder;
+class UToolTipWidget;
 
 /**
  * 
@@ -21,6 +22,8 @@ class INVENTORYRESEARCHDH_API UContainerSlotWidget : public UUserWidget
 	
 public:
 	UContainerSlotWidget(const FObjectInitializer& ObjectInitializer);
+
+	TObjectPtr<UToolTipWidget> SlotToolTipInfo;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Controller")
 	AIRPlayerController* PlayerController;
@@ -52,7 +55,7 @@ public:
 	FText GetNameText() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Function")
-	UUserWidget* GetToolTipWidget() const;
+	UToolTipWidget* GetToolTipWidget() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FSlateBrush GetIconBrush() const;

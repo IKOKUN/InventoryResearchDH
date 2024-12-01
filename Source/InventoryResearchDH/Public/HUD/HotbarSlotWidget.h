@@ -9,6 +9,7 @@
 
 class UTexture2D;
 class UDragItem;
+class UToolTipWidget;
 /**
  * 
  */
@@ -19,6 +20,8 @@ class INVENTORYRESEARCHDH_API UHotbarSlotWidget : public UUserWidget
 	
 public:
 	UHotbarSlotWidget(const FObjectInitializer& ObjectInitializer);
+
+	TObjectPtr<UToolTipWidget> SlotToolTipInfo;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Properties")
 	FItemInformation HotbarItemInformation;
@@ -36,7 +39,7 @@ public:
 	FText GetNumberText() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	UUserWidget* GetToolTipWidget() const;
+	UToolTipWidget* GetToolTipWidget() const;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Drag Widget")
 	TSubclassOf<UDragItem> DragItemClass;
@@ -51,6 +54,8 @@ public:
 	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 };

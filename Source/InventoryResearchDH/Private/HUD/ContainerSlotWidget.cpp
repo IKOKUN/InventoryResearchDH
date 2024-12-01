@@ -59,6 +59,24 @@ void UContainerSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 		bIsSlotHovered = true;
 	}
 
+	if (ItemInformation.Icon)
+	{
+		bIsSlotHovered = true;
+
+		// Menampilkan tooltip
+		if (PlayerController)
+		{
+			SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
+			if (SlotToolTipInfo)
+			{
+				// Menampilkan tooltip di posisi mouse dengan offset
+				FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
+				FVector2D TooltipOffset(5.0f, -120.0f); // Offset untuk menempatkan tooltip di sebelah kanan
+				SlotToolTipInfo->AddToViewport();
+				SlotToolTipInfo->SetPositionInViewport(MousePosition + TooltipOffset);
+			}
+		}
+	}
 }
 
 void UContainerSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
@@ -66,6 +84,13 @@ void UContainerSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	Super::NativeOnMouseLeave(InMouseEvent);
 
 	bIsSlotHovered = false;
+
+	// Sembunyikan tooltip
+	if (SlotToolTipInfo)
+	{
+		SlotToolTipInfo->RemoveFromParent(); // Menghapus tooltip dari parent
+		SlotToolTipInfo = nullptr; // Reset referensi
+	}
 }
 
 ESlateVisibility UContainerSlotWidget::GetBorderVisibility() const
@@ -145,7 +170,7 @@ FText UContainerSlotWidget::GetNameText() const
 	return FText::FromName(ItemName);
 }
 
-UUserWidget* UContainerSlotWidget::GetToolTipWidget() const
+UToolTipWidget* UContainerSlotWidget::GetToolTipWidget() const
 {
 	// Ambil informasi dari PlayerController
 	FToolTipInfo ToolTipInfoTemp;

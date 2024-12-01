@@ -14,6 +14,8 @@ class UTexture2D;
 class AIRPlayerController;
 class UDraggedItemWidget;
 class UDragItem;
+class UToolTipWidget;
+class UButton;
 
 /**
  * 
@@ -26,14 +28,17 @@ class INVENTORYRESEARCHDH_API UInventorySlotWidget : public UUserWidget
 public:
 	UInventorySlotWidget(const FObjectInitializer& ObjectInitializer);
 
+	TObjectPtr<UToolTipWidget> SlotToolTipInfo;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Background;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> ItemBorder;
 
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Properties")
-	int32 InventorySlot = 0;
+	int32 InventorySlotIndex = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Properties")
 	TObjectPtr<UTexture2D> BackgroundIcon;
@@ -73,7 +78,7 @@ public:
 	ESlateVisibility GetBackgroundVisibility() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	UUserWidget* GetToolTipWidget() const;
+	UToolTipWidget* GetToolTipWidget() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FSlateBrush GetIconBrush() const;
@@ -86,11 +91,11 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation);
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 
 public:
 

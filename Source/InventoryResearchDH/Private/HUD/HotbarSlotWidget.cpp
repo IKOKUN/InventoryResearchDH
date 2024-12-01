@@ -34,7 +34,7 @@ FText UHotbarSlotWidget::GetNumberText() const
 	return LocalText;
 }
 
-UUserWidget* UHotbarSlotWidget::GetToolTipWidget() const
+UToolTipWidget* UHotbarSlotWidget::GetToolTipWidget() const
 {
 	if (HotbarItemInformation.Icon)
 	{
@@ -98,6 +98,36 @@ FReply UHotbarSlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, c
 	}
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+void UHotbarSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
+
+	if (HotbarItemInformation.Icon)
+	{
+		SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
+		if (SlotToolTipInfo)
+		{
+			// Menampilkan tooltip di posisi mouse dengan offset
+			FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
+			FVector2D TooltipOffset(5.0f, -120.0f); // Offset untuk menempatkan tooltip di sebelah kanan
+			SlotToolTipInfo->AddToViewport();
+			SlotToolTipInfo->SetPositionInViewport(MousePosition + TooltipOffset);
+		}
+	}
+}
+
+void UHotbarSlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseLeave(InMouseEvent);
+
+	// Sembunyikan tooltip
+	if (SlotToolTipInfo)
+	{
+		SlotToolTipInfo->RemoveFromParent(); // Menghapus tooltip dari parent
+		SlotToolTipInfo = nullptr; // Reset referensi
+	}
 }
 
 bool UHotbarSlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)

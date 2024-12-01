@@ -160,14 +160,14 @@ void AIRPlayerController::OpenEquipmentAndInventory()
 			InventoryManagerComponent->CloseInventoryWindow();
 			InventoryManagerComponent->CloseEquipmentWindow();
 
-			UE_LOG(LogTemp, Error, TEXT("Close And Inventory"));
+			// UE_LOG(LogTemp, Error, TEXT("Close And Inventory"));
 		}
 		else
 		{
 			InventoryManagerComponent->OpenInventoryWindow();
 			InventoryManagerComponent->OpenEquipmentWindow();
 
-			UE_LOG(LogTemp, Error, TEXT("Open Equipment And Inventory"));
+			// UE_LOG(LogTemp, Error, TEXT("Open Equipment And Inventory"));
 		}
 	}
 	else
@@ -621,7 +621,6 @@ void AIRPlayerController::GetUsableActorFocus()
 	}
 }
 
-
 void AIRPlayerController::InitializePlayer()
 {
 	// Cast the controlled pawn to AIRCharacter
@@ -660,14 +659,23 @@ void AIRPlayerController::InitializePlayer()
 	if (!MainHUD)
 	{
 		UE_LOG(LogTemp, Error, TEXT("HUD not found or is invalid"));
-		return;
+		// return;
 	}
 
-	// Assign the MainHUD widget reference
-	HUDReference = MainHUD->MainHUDWidgetInstance;
+	// Initialize HUDReference
+	if (MainHUDWidgetClass)
+	{
+		HUDReference = CreateWidget<UHUDLayoutWidget>(GetWorld(), MainHUDWidgetClass);
+		if (HUDReference)
+		{
+			// Menambahkan widget ke viewport
+			HUDReference->AddToViewport();
+		}
+	}
+
 	if (!HUDReference)
 	{
-		UE_LOG(LogTemp, Error, TEXT("HUDReference (MainHUDWidgetInstance) is not valid"));
+		UE_LOG(LogTemp, Error, TEXT("HUDReference is not valid"));
 		return;
 	}
 
@@ -736,76 +744,132 @@ FName AIRPlayerController::EnumToFNameByValue(EClassesHero EnumValue)
 // Atau menggunakan FName berdasarkan nilai enum langsung
 FName AIRPlayerController::EnumToFName(EClassesHero EnumValue)
 {
-	UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, TEXT("EClassesHero"), true);
+	// Menggunakan StaticEnum untuk mendapatkan pointer ke enum
+	UEnum* EnumPtr = StaticEnum<EClassesHero>();
 	if (!EnumPtr) return FName("Invalid");
 
-	// Mengonversi enum ke FName berdasarkan index
-    return FName(*EnumPtr->GetNameStringByIndex((int32)EnumValue));
+	// Mengonversi enum ke FName berdasarkan nilai
+	return EnumPtr->GetNameByValue((int64)EnumValue);
 }
 
 void AIRPlayerController::LoadPlayerItems()
 {
 	TArray<FName> LocalItemIds;
 	TArray<FInventoryItem> LocalInventoryItems;
-	FName LocalTestID = FName("Tandy");
+	FName HeroCategory = FName("Warrior");
 	EClassesHero LocalHeroClass = EClassesHero::Warrior;
 	FNPCItems LocalNPCItems;
 
 	int32 RandomInteger = FMath::RandRange(0, 3 - 1);
 	LocalHeroClass = static_cast<EClassesHero>(RandomInteger);
 
-	if (GetDataTableRowByName(NPCItemsDataTable, EnumToFNameByValue(LocalHeroClass), LocalNPCItems))
-	{
-		LocalItemIds.Add(LocalNPCItems.Head);
-		LocalItemIds.Add(LocalNPCItems.Chest);
-		LocalItemIds.Add(LocalNPCItems.Legs);
-		LocalItemIds.Add(LocalNPCItems.Feet);
-		LocalItemIds.Add(LocalNPCItems.Accessory);
-		LocalItemIds.Add(LocalNPCItems.Back);
-		LocalItemIds.Add(LocalNPCItems.RightRing);
-		LocalItemIds.Add(LocalNPCItems.LeftRing);
-		LocalItemIds.Add(LocalNPCItems.Waist);
-		LocalItemIds.Add(LocalNPCItems.Trinket);
-		LocalItemIds.Add(LocalNPCItems.MainHand);
-		LocalItemIds.Add(LocalNPCItems.OffHand);
-		LocalItemIds.Add(LocalNPCItems.Shoulders);
-		LocalItemIds.Add(LocalNPCItems.Hands);
+	FName RowName = EnumToFNameByValue(LocalHeroClass);
+	//UE_LOG(LogTemp, Warning, TEXT("Trying to find row: %s"), *RowName.ToString());
 
+	if (GetDataTableRowByName(ClassStartingEquipment, HeroCategory, LocalNPCItems))
+	{
+		// Tambahkan item ke LocalItemIds
+		if (LocalNPCItems.Head != NAME_None) LocalItemIds.Add(LocalNPCItems.Head);
+		if (LocalNPCItems.Chest != NAME_None) LocalItemIds.Add(LocalNPCItems.Chest);
+		if (LocalNPCItems.Legs != NAME_None) LocalItemIds.Add(LocalNPCItems.Legs);
+		if (LocalNPCItems.Feet != NAME_None) LocalItemIds.Add(LocalNPCItems.Feet);
+		if (LocalNPCItems.Accessory != NAME_None) LocalItemIds.Add(LocalNPCItems.Accessory);
+		if (LocalNPCItems.Back != NAME_None) LocalItemIds.Add(LocalNPCItems.Back);
+		if (LocalNPCItems.RightRing != NAME_None) LocalItemIds.Add(LocalNPCItems.RightRing);
+		if (LocalNPCItems.LeftRing != NAME_None) LocalItemIds.Add(LocalNPCItems.LeftRing);
+		if (LocalNPCItems.Waist != NAME_None) LocalItemIds.Add(LocalNPCItems.Waist);
+		if (LocalNPCItems.Trinket != NAME_None) LocalItemIds.Add(LocalNPCItems.Trinket);
+		if (LocalNPCItems.MainHand != NAME_None) LocalItemIds.Add(LocalNPCItems.MainHand);
+		if (LocalNPCItems.OffHand != NAME_None) LocalItemIds.Add(LocalNPCItems.OffHand);
+		if (LocalNPCItems.Shoulders != NAME_None) LocalItemIds.Add(LocalNPCItems.Shoulders);
+		if (LocalNPCItems.Hands != NAME_None) LocalItemIds.Add(LocalNPCItems.Hands);
+
+		// Loop Pertama
 		FInventoryItem LocalInventoryItem1;
 		int32 LocalIndex = 0;
 		for (FName itmid : LocalItemIds)
 		{
-			if (GetDataTableRowByName(ItemListDataTable, itmid, LocalInventoryItem1))
+			if (itmid != NAME_None) // Pastikan itmid tidak None
 			{
-				SetInventoryArrayElement(LocalInventoryItems, LocalIndex, LocalInventoryItem1, true);
-			}
-			else
-			{
-				SetInventoryArrayElement(LocalInventoryItems, LocalIndex, FInventoryItem(), true);
-			}
-
-			LocalIndex++;
-		}
-		FInventoryItem LocalInventoryItem2;
-		for (FItem LocItem : LocalNPCItems.Inventory)
-		{
-			if (GetDataTableRowByName(ItemListDataTable, LocItem.ItemID, LocalInventoryItem2))
-			{
-				LocalInventoryItem2.Amount = LocItem.Amount;
-				if (LocalInventoryItem2.ItemType == EItemType::Currency)
+				// UE_LOG(LogTemp, Warning, TEXT("Trying to find item in loop 1: %s"), *itmid.ToString());
+				if (GetDataTableRowByName(ItemListDataTable, itmid, LocalInventoryItem1))
 				{
-					InventoryManagerComponent->TryToAddItemToInventory(PlayerInventoryComponent, LocalInventoryItem2);
+					if (SetInventoryArrayElement(LocalInventoryItems, LocalIndex, LocalInventoryItem1, true))
+					{
+						// UE_LOG(LogTemp, Warning, TEXT("Successfully added item: %s to LocalInventoryItems"), *LocalInventoryItem1.ID.ToString());
+					}
+					else
+					{
+						// UE_LOG(LogTemp, Warning, TEXT("Failed to add item: %s to LocalInventoryItems"), *LocalInventoryItem1.ID.ToString());
+					}
 				}
 				else
 				{
-					LocalInventoryItems.Add(LocalInventoryItem2);
+					UE_LOG(LogTemp, Warning, TEXT("Item not found in loop 1: %s"), *itmid.ToString());
+					SetInventoryArrayElement(LocalInventoryItems, LocalIndex, FInventoryItem(), true);
 				}
 			}
+			else
+			{
+				// UE_LOG(LogTemp, Warning, TEXT("Item ID is None in loop 1, skipping."));
+			}
+			LocalIndex++;
 		}
+
+		// Loop Kedua
+		FInventoryItem LocalInventoryItem2;
+		// Loop kedua
+		for (FItem LocItem : LocalNPCItems.Inventory)
+		{
+			if (LocItem.ItemID != NAME_None) // Pastikan ItemID tidak None
+			{
+				// UE_LOG(LogTemp, Warning, TEXT("Trying to find inventory item ID in loop 2: %s"), *LocItem.ItemID.ToString());
+				if (GetDataTableRowByName(ItemListDataTable, LocItem.ItemID, LocalInventoryItem2))
+				{
+					LocalInventoryItem2.Amount = LocItem.Amount;
+					if (LocalInventoryItem2.ItemType == EItemType::Currency)
+					{
+						InventoryManagerComponent->TryToAddItemToInventory(PlayerInventoryComponent, LocalInventoryItem2);
+						// Log untuk menunjukkan bahwa item currency berhasil ditambahkan
+						// UE_LOG(LogTemp, Warning, TEXT("Added currency item: %s with amount in loop 2: %d"), *LocalInventoryItem2.ID.ToString(), LocalInventoryItem2.Amount);
+					}
+					else
+					{
+						LocalInventoryItems.Add(LocalInventoryItem2);
+						// Log untuk menunjukkan bahwa item berhasil ditambahkan ke inventory
+						// UE_LOG(LogTemp, Warning, TEXT("Successfully added item in loop 2: %s to LocalInventoryItems"), *LocalInventoryItem2.ID.ToString());
+					}
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Inventory item in loop 2 not found: %s"), *LocItem.ItemID.ToString());
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Inventory item ID in loop 2 is None, skipping."));
+			}
+		}
+
 		PlayerInventoryComponent->LoadInventoryItems(LocalInventoryItems.Num(), LocalInventoryItems);
+
+		// Meng-equip item setelah memuat inventory
+		/*for (int32 i = 0; i < LocalInventoryItems.Num(); i++)
+		{
+			FInventoryItem& Item = LocalInventoryItems[i];
+			if (Item.ItemType == EItemType::Equipment)
+			{
+				int32 EquipmentSlotIndex = InventoryManagerComponent->GetEquipmentSlotByType(InventoryManagerComponent->ItemEquipSlot(Item));
+				if (EquipmentSlotIndex != INDEX_NONE)
+				{
+					InventoryManagerComponent->EquipFromInventory(i, EquipmentSlotIndex);
+				}
+			}
+		}*/
 	}
 	else
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Row not found: %s"), *HeroCategory.ToString());
 		InventoryManagerComponent->InitInventoryItems();
 	}
     
@@ -937,7 +1001,6 @@ void AIRPlayerController::UI_Move_Inventory_Item(int32 FromInvSlot, int32 ToInvS
 	{
 		InventoryManagerComponent->MoveInventoryItem(FromInvSlot, ToInvSlot);
 	}
-
 }
 
 void AIRPlayerController::UI_Split_Item_From_Inventory(int32 FromInventorySlot, int32 ToSlot, int32 Amount)
@@ -1047,7 +1110,10 @@ void AIRPlayerController::UI_UnEquip_To_Container(int32 FromInvSlot, int32 ToCon
 
 FInventoryItem AIRPlayerController::UI_Get_ToolTip_Info(FName ItemID)
 {
+
 	FInventoryItem LocToolTipItem;
 	GetDataTableRowByName(ItemListDataTable, ItemID, LocToolTipItem);
+
+	// UE_LOG(LogTemp, Warning, TEXT("UI Get Tool Tip Info Called"));
 	return LocToolTipItem;
 }

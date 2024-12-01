@@ -81,6 +81,7 @@ bool UInventoryWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDrop
 
 void UInventoryWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Drag Widget In InventoryWidget"));
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
 	if (DragWidgetClass)

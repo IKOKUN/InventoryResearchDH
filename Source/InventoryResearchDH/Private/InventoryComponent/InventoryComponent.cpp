@@ -35,12 +35,12 @@ FInventoryItem UInventoryComponent::GetInventoryItem(int32 InvSlot)
 		if (ItemIsValid(InventoryItems[InvSlot]))
 		{
 			// Log jika item valid
-			UE_LOG(LogTemp, Log, TEXT("Item at slot %d is valid: ID: %s, Amount: %d"), InvSlot, *InventoryItems[InvSlot].ID.ToString(), InventoryItems[InvSlot].Amount);
+			//UE_LOG(LogTemp, Log, TEXT("Item at slot %d is valid: ID: %s, Amount: %d"), InvSlot, *InventoryItems[InvSlot].ID.ToString(), InventoryItems[InvSlot].Amount);
 			return InventoryItems[InvSlot];
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("GetInventoryItem: Failed to get item at slot %d."), InvSlot);
+			//UE_LOG(LogTemp, Error, TEXT("GetInventoryItem: Failed to get item at slot %d."), InvSlot);
 		}
 	}
 	else

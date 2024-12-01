@@ -2,10 +2,10 @@
 
 
 #include "HUD/InventorySlotWidget.h"
-#include "Controller/IRPlayerController.h"
 #include "HUD/DragItem.h"
 #include "HUD/DraggedItemWidget.h"
 #include "HUD/ToolTipWidget.h"
+#include "Controller/IRPlayerController.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Data/ItemQuality.h"
 #include "Data/QualityColors.h"
@@ -35,7 +35,7 @@ void UInventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 
 			if (PlayerController)
 			{
-				PlayerController->UI_Use_Inventory_Item(InventorySlot);
+				PlayerController->UI_Use_Inventory_Item(InventorySlotIndex);
 			}
 		}
 	}
@@ -52,6 +52,27 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	if (InvSlotItemInformation.Icon)
 	{
 		bIsSlotHovered = true;
+
+		// Menampilkan tooltip
+		if (PlayerController)
+		{
+			SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
+			if (SlotToolTipInfo)
+			{
+				// Mendapatkan posisi dan ukuran widget
+				FGeometry WidgetGeometry = GetCachedGeometry();
+				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition();
+				FVector2D WidgetSize = WidgetGeometry.GetLocalSize();
+
+				// Menghitung posisi tooltip
+				// FVector2D TooltipPosition = WidgetPosition + FVector2D(WidgetSize.X + 5.0f, WidgetSize.Y / 2.0f - 60.0f); // Offset ke kanan dan sedikit ke atas
+				FVector2D TooltipPosition = WidgetPosition + FVector2D(-5.0f, -90.0f); // Offset ke kanan dan sedikit ke atas
+
+				// Menampilkan tooltip di posisi yang dihitung
+				SlotToolTipInfo->AddToViewport();
+				SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
+			}
+		}
 	}
 }
 
@@ -60,31 +81,47 @@ void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	Super::NativeOnMouseLeave(InMouseEvent);
 
 	bIsSlotHovered = false;
+
+	// Sembunyikan tooltip
+	if (SlotToolTipInfo)
+	{
+		SlotToolTipInfo->RemoveFromParent(); // Menghapus tooltip dari parent
+		SlotToolTipInfo = nullptr; // Reset referensi
+	}
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	// Memeriksa apakah tombol mouse kanan ditekan
-	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	/*if (GEngine)
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("NativeOnMouseButtonDown called"));
+	}*/
+
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Left mouse button down in InventorySlotWidget"));
+		FEventReply EventReply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
+
+		// Jika drag terdeteksi, kembalikan handled
+		if (EventReply.NativeReply.IsEventHandled())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Drag Mouse Succesffulfy Handled"));
+			// Pastikan NativeOnDragDetected dipanggil
+			return EventReply.NativeReply;
+		}
+	}
+	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Right mouse button down in InventorySlotWidget"));
 		bIsRightMouseButtonDown = true;
 		return FReply::Handled();
 	}
-
-	// Memeriksa apakah tombol mouse kiri ditekan
-	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
-	{
-		FEventReply EventReply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
-		return EventReply.NativeReply;
-	}
-
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
 FReply UInventorySlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	// Memeriksa apakah tombol mouse kanan ditekan
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
 		bIsRightMouseButtonDown = true;
@@ -96,9 +133,10 @@ FReply UInventorySlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, 
 
 FReply UInventorySlotWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	if (InvSlotItemInformation.Icon)
+	if (InGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()) && InvSlotItemInformation.Icon)
 	{
 		bIsSlotHovered = true;
+		// UE_LOG(LogTemp, Log, TEXT("Mouse is over the slot."));
 	}
 	else
 	{
@@ -110,34 +148,51 @@ FReply UInventorySlotWidget::NativeOnMouseMove(const FGeometry& InGeometry, cons
 
 void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
+	UE_LOG(LogTemp, Log, TEXT("For Drag InventorySlot: %d"), InventorySlotIndex);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Drag Mouse Called"));
+	}
+
 	if (InvSlotItemInformation.Icon)
 	{
+		// UE_LOG(LogTemp, Log, TEXT("Drag detected for item: %s"), *InvSlotItemInformation.Name.ToString());
 		if (DragItemClass && DraggedItemWidgetClass)
 		{
 			UDraggedItemWidget* DraggedItemWidgetOp = CreateWidget<UDraggedItemWidget>(GetWorld(), DraggedItemWidgetClass);
 			DraggedItemWidgetOp->DraggedItemInformation = InvSlotItemInformation;
 
-			// Membuat operasi drag - drop menggunakan DragClass
 			OutOperation = UWidgetBlueprintLibrary::CreateDragDropOperation(DragItemClass);
 			if (OutOperation)
 			{
-				// Coba casting OutOperation ke UDragWidget untuk mengisi WidgetToDrag
 				if (UDragItem* DragItemOp = Cast<UDragItem>(OutOperation))
 				{
 					DragItemOp->DefaultDragVisual = DraggedItemWidgetOp;
-					DragItemOp->DraggedItemInformation = InvSlotItemInformation;  // Set widget yang di-drag
-					DragItemOp->DraggedItemSlotIndex = InventorySlot;
-					DragItemOp->bIsDraggedFromInventory = false;
+					DragItemOp->DraggedItemInformation = InvSlotItemInformation;
+					DragItemOp->DraggedItemSlotIndex = InventorySlotIndex;
+					DragItemOp->bIsDraggedFromInventory = true;
 					DragItemOp->bIsDraggedFromContainer = false;
-					DragItemOp->bIsDraggedFromHotbar = true;
+					DragItemOp->bIsDraggedFromHotbar = false;
 					DragItemOp->Pivot = EDragPivot::CenterCenter;
-					DragItemOp->Offset = FVector2D(0.f, 0.f);
+
+					FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
+					FVector2D AbsolutePosition = InGeometry.GetAbsolutePosition();
+					FVector2D DragOffset = MousePosition - AbsolutePosition;
+
+					
+					// DragItemOp->Offset = DragOffset;
+
+					// Log untuk memeriksa nilai
+					/*if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, FString::Printf(TEXT("Mouse Position: %s, Absolute Position: %s, Drag Offset: %s"), *MousePosition.ToString(), *AbsolutePosition.ToString(), *DragOffset.ToString()));
+					}*/
 				}
 				else
 				{
 					UE_LOG(LogTemp, Warning, TEXT("OutOperation bukan merupakan instance dari UDragWidget"));
 				}
-
 			}
 		}
 		else
@@ -145,10 +200,125 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 			UE_LOG(LogTemp, Warning, TEXT("DragClass tidak diatur pada %s"), *GetName());
 		}
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Tidak ada item yang di-drag"));
+	}
 }
+
+
 
 bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
+	// UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop called in InventorySlotWidget"));
+
+	// Cek apakah operasi drag-drop valid
+	if (UDragItem* DraggedItem = Cast<UDragItem>(InOperation))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Item dropped in InventorySlotWidget"));
+
+		// Lakukan sesuatu dengan item yang dijatuhkan
+		int32 LocalDraggedSlotIndex = 0;
+		LocalDraggedSlotIndex = DraggedItem->DraggedItemSlotIndex;
+
+		// Cek PlayerController
+		if (!PlayerController)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
+			return false;
+		}
+
+		if (LocalDraggedSlotIndex != 0) // Pastikan untuk menggunakan perbandingan
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Local Dragged Slot: %d"), LocalDraggedSlotIndex));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Inventory Slot Index: %d"), InventorySlotIndex));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Local Dragged Slot is zero or invalid"));
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Number Of Equipment Slots : %d"), GetNumberOfEquipmentSlots());
+		// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Number Of Equipment Slots : %d"), GetNumberOfEquipmentSlots());
+
+		// Cek apakah item berasal dari inventory
+		if (DraggedItem->bIsDraggedFromInventory)
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("Item dragged from Inventory"));
+
+			if (LocalDraggedSlotIndex < GetNumberOfEquipmentSlots())
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("UnEquip Item From Inventory"));
+				PlayerController->UI_UnEquip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
+			}
+			else if (InventorySlotIndex < GetNumberOfEquipmentSlots())
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("Equip Item From Inventory"));
+				PlayerController->UI_Equip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
+			}
+			else if (PlayerController->UI_Get_IsShiftKeyDown())
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory (Split)"));
+				PlayerController->UI_Split_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex, 1);
+			}
+			else
+			{
+				//UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory"));
+				PlayerController->UI_Move_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
+			}
+
+			return true;
+		}
+
+		// Cek apakah item berasal dari container
+		if (DraggedItem->bIsDraggedFromContainer)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Item dragged from Container"));
+
+			if (InventorySlotIndex < GetNumberOfEquipmentSlots())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Equip Item From Container"));
+				PlayerController->UI_Equip_From_Container(LocalDraggedSlotIndex, InventorySlotIndex);
+			}
+			else if (PlayerController->UI_Get_IsShiftKeyDown())
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Take Item From Container (Split)"));
+				PlayerController->UI_Split_Item_From_Container(LocalDraggedSlotIndex, InventorySlotIndex, 1);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Take Item From Container"));
+				PlayerController->UI_Take_Container_Item(LocalDraggedSlotIndex, InventorySlotIndex);
+			}
+
+			return true;
+		}
+
+		// Jika item tidak berasal dari inventory atau container
+		UE_LOG(LogTemp, Warning, TEXT("Dragged Item is not from Inventory or Container"));
+		return false;
+	}
+
+	// Jika operasi drag-drop tidak valid
+	UE_LOG(LogTemp, Warning, TEXT("Invalid DragDropOperation"));
+	return false;
+}
+
+/*
+
+bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop called in InventorySlotWidget"));
+
+	if (UDragItem* DraggedItem = Cast<UDragItem>(InOperation))
+	{
+		// Logika untuk menangani item yang dijatuhkan
+		UE_LOG(LogTemp, Warning, TEXT("Item dropped in InventorySlotWidget"));
+		// Lakukan sesuatu dengan item yang dijatuhkan
+		return true; // Kembalikan true jika drop berhasil
+	}
+	//return false; // Kembalikan false jika drop tidak berhasil
+
 	int32 LocalDraggedSlotIndex = 0;
 	UDragItem* DragItemInvSlot = Cast<UDragItem>(InOperation);
 
@@ -218,7 +388,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	UE_LOG(LogTemp, Warning, TEXT("Dragged Item is not from Inventory"));
 	return false;
 }
-
+*/
 ESlateVisibility UInventorySlotWidget::GetBorderVisibility() const
 {
 	if (InvSlotItemInformation.Icon)
@@ -230,24 +400,21 @@ ESlateVisibility UInventorySlotWidget::GetBorderVisibility() const
 		return ESlateVisibility::Hidden;
 	}
 }
-
 FText UInventorySlotWidget::GetAmountText() const
 {
 	if (InvSlotItemInformation.Icon)
 	{
 		// Log jumlah item
-		UE_LOG(LogTemp, Log, TEXT("Item Amount: %d"), InvSlotItemInformation.Amount);
+		// UE_LOG(LogTemp, Log, TEXT("Item Amount: %d"), InvSlotItemInformation.Amount);
 
 		// Jika jumlah item lebih dari 1, kembalikan teks jumlah, jika tidak, kembalikan teks kosong
 		return InvSlotItemInformation.Amount > 1 ? FText::AsNumber(InvSlotItemInformation.Amount) : FText::GetEmpty();
 	}
 
 	// Log jika tidak ada ikon
-	UE_LOG(LogTemp, Log, TEXT("No icon found for the item in the slot."));
+	// UE_LOG(LogTemp, Log, TEXT("No icon found for the item in the slot."));
 	return FText::GetEmpty(); // Kembalikan teks kosong jika tidak ada ikon
 }
-
-
 FLinearColor UInventorySlotWidget::GetBorderColor() const
 {
 	FLinearColor LocalColor;
@@ -282,7 +449,7 @@ FLinearColor UInventorySlotWidget::GetBorderColor() const
 
 ESlateVisibility UInventorySlotWidget::GetBackgroundVisibility() const
 {
-	if (InventorySlot >= GetNumberOfEquipmentSlots())
+	if (InventorySlotIndex >= GetNumberOfEquipmentSlots())
 	{
 		return ESlateVisibility::SelfHitTestInvisible;
 	}
@@ -292,11 +459,13 @@ ESlateVisibility UInventorySlotWidget::GetBackgroundVisibility() const
 	}
 }
 
-UUserWidget* UInventorySlotWidget::GetToolTipWidget() const
+UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 {
 	// Ambil informasi dari PlayerController
 	FToolTipInfo ToolTipInfoTemp;
 	FInventoryItem ToolTipInfoPlayerController = PlayerController->UI_Get_ToolTip_Info(InvSlotItemInformation.ID);
+
+	//UE_LOG(LogTemp, Log, TEXT("Inv Slot ID: %s"), *InvSlotItemInformation.ID.ToString());
 
 	// Buat widget tooltip baru
 	UToolTipWidget* CurrentToolTipWidget = CreateWidget<UToolTipWidget>(PlayerController, ToolTipWidgetClass);
@@ -319,6 +488,10 @@ UUserWidget* UInventorySlotWidget::GetToolTipWidget() const
 		ToolTipInfoTemp.Strength = ToolTipInfoPlayerController.Strength;
 		ToolTipInfoTemp.Dexterity = ToolTipInfoPlayerController.Dexterity;
 		ToolTipInfoTemp.Intelligence = ToolTipInfoPlayerController.Intelligence;
+
+		// Logging untuk memeriksa setiap atribut
+		//UE_LOG(LogTemp, Log, TEXT("Tooltip Info:"));
+		//UE_LOG(LogTemp, Log, TEXT(" - Name: %s"), *CurrentToolTipWidget->ItemToolTipInfo.Name.ToString());
 
 		// Assign ToolTipInfoTemp ke CurrentToolTipWidget
 		CurrentToolTipWidget->ItemToolTipInfo = ToolTipInfoTemp;
@@ -347,7 +520,7 @@ FSlateBrush UInventorySlotWidget::GetIconBrush() const
 
 FEventReply UInventorySlotWidget::IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	UE_LOG(LogTemp, Log, TEXT("IconOnMouseButtonDown called via Blueprint Callable."));
+	//SUE_LOG(LogTemp, Log, TEXT("IconOnMouseButtonDown called via Blueprint Callable."));
 
 	// Panggil NativeOnMouseButtonDown, lalu ubah hasilnya menjadi FEventReply
 	FReply NativeReply = NativeOnMouseButtonDown(InGeometry, InMouseEvent);
@@ -355,6 +528,7 @@ FEventReply UInventorySlotWidget::IconOnMouseButtonDown(const FGeometry& InGeome
 	// Konversi FReply ke FEventReply
 	if (NativeReply.IsEventHandled())
 	{
+		UE_LOG(LogTemp, Log, TEXT("Drag detected in IconOnMouseButtonDown."));
 		return UWidgetBlueprintLibrary::Handled();
 	}
 	return UWidgetBlueprintLibrary::Unhandled();
