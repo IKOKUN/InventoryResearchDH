@@ -61,15 +61,16 @@ void UInventoryManagerComponent::EquipFromInventory(int32 FromInvSlot, int32 ToI
 	FInventoryItem LocInvItem = PlayerInventory->GetInventoryItem(FromInvSlot);
 	if (ItemIsValid(LocInvItem))
 	{
-		if (ToInvSlot < GetNumberOfEquipmentSlots())
-		{
-			EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
-		}
-		else
-		{
-			// Equip Item
-			EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
-		}
+		EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
+		//if (ToInvSlot < GetNumberOfEquipmentSlots())
+		//{
+		//	EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
+		//}
+		//else
+		//{
+		//	// Equip Item
+		//	EquipItem(PlayerInventory, FromInvSlot, PlayerInventory, ToInvSlot);
+		//}
 	}
 	else
 	{
@@ -237,16 +238,25 @@ void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FItemInform
 {
 	if (InventoryUI)
 	{
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.ID = InvItem.ID;
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Name = InvItem.Name;
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Amount = InvItem.Amount;
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Icon = InvItem.Icon;
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
-		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
-		if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex == 0)
+		if (InventoryUI->InventorySlotWidgets[InvSlot])
 		{
-			InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.ID = InvItem.ID;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Name = InvItem.Name;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Amount = InvItem.Amount;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Icon = InvItem.Icon;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
+			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
+
+			if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex == 0)
+			{
+				InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
+			}
 		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Slot Widget Not Set"));
+		}
+		
 		//UE_LOG(LogTemp, Error, TEXT("Inv Slot On InvSLotItem : %d"), InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex);
 	}
 	else
@@ -696,11 +706,22 @@ void UInventoryManagerComponent::AddContainerSlot(int32 Row, int32 Column, int32
 
 FItemInformation UInventoryManagerComponent::GetHotbarSlotItem(int32 HotbarSlot)
 {
-	if (InventoryUI)
+	if (InventoryUI && InventoryUI->HotbarWidgetComp)
 	{
-		if (InventoryUI->HotbarWidgetComp)
+		if (HotbarSlot >= 0 && HotbarSlot < InventoryUI->HotbarWidgetComp->HotbarSlots.Num())
 		{
-			return InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation;
+			if (InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot])
+			{
+				return InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("HotbarSlots %d Is Invalid"), HotbarSlot);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("HotbarSlot index %d is out of bounds"), HotbarSlot);
 		}
 	}
 	else
@@ -716,12 +737,21 @@ void UInventoryManagerComponent::SetHotbarSlotItem(int32 HotbarSlot, FItemInform
 	{
 		if (InventoryUI->HotbarWidgetComp)
 		{
-			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation = ItemInfo;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.ID = ItemInfo.ID;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.Name = ItemInfo.Name;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.Amount = ItemInfo.Amount;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.Icon = ItemInfo.Icon;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.Quality = ItemInfo.Quality;
+			InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.Type = ItemInfo.Type;
+
+			// UE_LOG(LogTemp, Error, TEXT("HotbarSlots %s Is Valid"), *InventoryUI->HotbarWidgetComp->HotbarSlots[HotbarSlot]->HotbarItemInformation.ID.ToString());
 		}
 		else
 		{
 			UE_LOG(LogTemp, Error, TEXT("Hotbar UI Not Set"));
 		}
+
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Is Valid"));
 	}
 	else
 	{
@@ -750,23 +780,37 @@ void UInventoryManagerComponent::ClearHotbarSlotItem(int32 HotbarSlot)
 
 void UInventoryManagerComponent::MoveHotbarSlotItem(int32 FromSlot, int32 ToHotBarSlot, bool bFromInventory, bool bFromHotbar)
 {
+	UE_LOG(LogTemp, Warning, TEXT("From Hotbar Number : %d"), FromSlot);
+	UE_LOG(LogTemp, Warning, TEXT("To Hotbar Number : %d"), ToHotBarSlot);
+	//UE_LOG(LogTemp, Warning, TEXT("From Inventory : %d"), bFromInventory);
 	if (bFromInventory)
 	{
 		FItemInformation ItemInfo = GetInventorySlotItem(FromSlot);
 		SetHotbarSlotItem(ToHotBarSlot, ItemInfo);
+
+		//UE_LOG(LogTemp, Error, TEXT("Move Hotbar From Inventory"));
 	}
 	else if (bFromHotbar)
 	{
-		FItemInformation FromItemInfo = GetInventorySlotItem(FromSlot);
-		FItemInformation SwapItemInfo = GetInventorySlotItem(ToHotBarSlot);
+		//UE_LOG(LogTemp, Error, TEXT("Move Hotbar From Hotbar"));
+
+		FItemInformation FromItemInfo = GetHotbarSlotItem(FromSlot);
+		FItemInformation SwapItemInfo = GetHotbarSlotItem(ToHotBarSlot);
+
+		UE_LOG(LogTemp, Error, TEXT("From Hotbar Item Infor : %s"), *FromItemInfo.ID.ToString());
+
 		// Is Swapping On Hotbar
 		if (SwapItemInfo.Icon)
 		{
 			SetHotbarSlotItem(ToHotBarSlot, FromItemInfo);
 			SetHotbarSlotItem(FromSlot, SwapItemInfo);
+
+			// UE_LOG(LogTemp, Error, TEXT("SwapItemInfo Is Valid"));
 		}
 		else
 		{
+			//UE_LOG(LogTemp, Error, TEXT("SwapItemInfo Invalid"));
+			//UE_LOG(LogTemp, Error, TEXT("HotbarSlots %s Is Valid"), *FromItemInfo.ID.ToString());
 			SetHotbarSlotItem(ToHotBarSlot, FromItemInfo);
 			ClearHotbarSlotItem(FromSlot);
 		}
@@ -776,26 +820,39 @@ void UInventoryManagerComponent::MoveHotbarSlotItem(int32 FromSlot, int32 ToHotB
 void UInventoryManagerComponent::UseHotbarSlot(int32 HotbarSlot)
 {
 	FItemInformation LocalItemInfo = GetHotbarSlotItem(HotbarSlot);
+	UE_LOG(LogTemp, Error, TEXT("Hotbar Slot %d with name :%s"), HotbarSlot, *LocalItemInfo.ID.ToString());
 	if (LocalItemInfo.Icon)
 	{
+		//UE_LOG(LogTemp, Error, TEXT("Hotbar Slot Item Valid"));
 		if (InventoryUI)
 		{
 			int32 LocalInventorySlotIndex = 0;
 			bool bLocalSucces = false;
 			for (int32 i = 0; i < InventoryUI->InventorySlotWidgets.Num() - 1; i++)
 			{
+				//UE_LOG(LogTemp, Error, TEXT("Inventory Slot %d with name :%s"), i, *InventoryUI->InventorySlotWidgets[i]->InvSlotItemInformation.ID.ToString());
 				if (InventoryUI->InventorySlotWidgets[i]->InvSlotItemInformation.ID == LocalItemInfo.ID)
 				{
+					//UE_LOG(LogTemp, Error, TEXT("Hotbar Slot Item Has Found In Inventory"));
 					LocalInventorySlotIndex = i;
 					bLocalSucces = true;
 					break;
 				}
+				else
+				{
+					//UE_LOG(LogTemp, Error, TEXT("Hotbar Slot Item Not Found In Inventory"));
+				}
 			}
 			if (bLocalSucces)
 			{
+				//UE_LOG(LogTemp, Error, TEXT("Use Inventory Item"));
 				UseInventoryItem(LocalInventorySlotIndex);
 			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Hotbar Slot Item Not Valid"));
 	}
 }
 
@@ -1006,7 +1063,7 @@ void UInventoryManagerComponent::UseContainerItem(int32 ContainerSlot)
 	}
 }
 
-void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot)
+void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot, int32 HotbarSlot)
 {
 	FInventoryItem LocalInvItem = PlayerInventory->GetInventoryItem(InvSlot);
 	if (CurrentContainer)
@@ -1048,22 +1105,23 @@ void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot)
 				break;
 			default:
 				break;
-			}		
-		}
-		else
-		{
-			// use item from inventory
-			switch (ItemType(LocalInvItem))
-			{
-			case EItemType::Equipment:
-				UseEquipmentItem(InvSlot, LocalInvItem, ContainerInventory);
-				break;
-			case EItemType::Consumable:
-				UseConsumableItem(InvSlot, LocalInvItem);
-				break;
-			default:
-				break;
 			}
+		}
+	}
+	else
+	{
+		// use item from inventory
+		switch (ItemType(LocalInvItem))
+		{
+		case EItemType::Equipment:
+			UseEquipmentItem(InvSlot, LocalInvItem, ContainerInventory);
+			break;
+		case EItemType::Consumable:
+			// UE_LOG(LogTemp, Error, TEXT("Use Consumable Item"));
+			UseConsumableItem(InvSlot, HotbarSlot, LocalInvItem);
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -1109,7 +1167,7 @@ void UInventoryManagerComponent::UseEquipmentItem(int32 InvSlot, FInventoryItem 
 	}
 }
 
-void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, FInventoryItem InvItem)
+void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, int32 HotbarSlot, FInventoryItem InvItem)
 {
 	AIRPlayerController* LocPlayerController = Cast< AIRPlayerController>(GetOwner());
 	if (LocPlayerController)
@@ -1120,10 +1178,13 @@ void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, FInventoryItem
 			bool bWasFullAmountRemoved = RemoveFromItemAmount(InvItem, LocAmount);
 			if (bWasFullAmountRemoved)
 			{
+				UE_LOG(LogTemp, Error, TEXT("fully removed"));
 				RemoveItem(PlayerInventory, InvSlot);
+				ClearHotbarSlotItem(HotbarSlot);
 			}
 			else
 			{
+				UE_LOG(LogTemp, Error, TEXT("not full removed"));
 				AddItem(PlayerInventory, InvSlot, InvItem);
 			}
 		}
@@ -1148,9 +1209,19 @@ void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, FInventoryItem
 
 void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
+	GEngine->AddOnScreenDebugMessage(
+		-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+		5.0f,                 // Durasi pesan dalam detik
+		FColor::Green,        // Warna pesan
+		FString::Printf(TEXT("Equip Item")) // Pesan
+	);
 	if (FromInv && ToInv)
 	{
-		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		if (FromInv == ToInv && FromInvSlot == ToInvSlot)
+		{
+			// Do Nothing
+		}
+		else
 		{
 			FInventoryItem LocInvItem = FromInv->GetInventoryItem(FromInvSlot);
 			EEquipmentSlotsType LocEquipmentSlotType = ItemEquipSlot(LocInvItem);
@@ -1158,13 +1229,23 @@ void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 F
 			{
 				if (GetEquipmentTypeBySlot(ToInvSlot) == LocEquipmentSlotType)
 				{
-					FInventoryItem LocSwapInvItem = FromInv->GetInventoryItem(FromInvSlot);
+					FInventoryItem LocSwapInvItem = ToInv->GetInventoryItem(ToInvSlot);
 					// Swap Item?
 					if (ItemIsValid(LocSwapInvItem))
 					{
 						// Can The Swap Destination Inventory Store Item
 						if (CanContainerStoreItem(FromInv))
 						{
+							if (GEngine)
+							{
+								GEngine->AddOnScreenDebugMessage(
+									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+									5.0f,                 // Durasi pesan dalam detik
+									FColor::Green,        // Warna pesan
+									FString::Printf(TEXT("Swap Item")) // Pesan
+								);
+							}
+
 							// Swap Items
 							AddItem(ToInv, ToInvSlot, LocInvItem);
 							AddItem(FromInv, FromInvSlot, LocSwapInvItem);
@@ -1184,6 +1265,16 @@ void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 F
 					}
 					else
 					{
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(
+								-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+								5.0f,                 // Durasi pesan dalam detik
+								FColor::Green,        // Warna pesan
+								FString::Printf(TEXT("Move Item")) // Pesan
+							);
+						}
+
 						// Move item
 						AddItem(ToInv, ToInvSlot, LocInvItem);
 						RemoveItem(FromInv, FromInvSlot);
@@ -1790,22 +1881,20 @@ int32 UInventoryManagerComponent::AddItemToStack(UInventoryComponent* Inventory,
 }
 
 
-FInventoryItem UInventoryManagerComponent::SetItemAmount(FInventoryItem Inventory, int32 AmountToAdd)
+FInventoryItem UInventoryManagerComponent::SetItemAmount(FInventoryItem& InvItem, int32 AmountToAdd)
 {
-	FInventoryItem LocInvItem = Inventory;
-	LocInvItem.Amount = AmountToAdd;
-	return LocInvItem;
+	InvItem.Amount = AmountToAdd;
+	return InvItem;
 }
 
-FInventoryItem UInventoryManagerComponent::AddToItemAmount(FInventoryItem InvItem, int32 AmountToAdd)
+FInventoryItem UInventoryManagerComponent::AddToItemAmount(FInventoryItem& InvItem, int32 AmountToAdd)
 {
-	FInventoryItem LocInvItem = InvItem;
-	LocInvItem.Amount = LocInvItem.Amount + AmountToAdd;
+	InvItem.Amount = InvItem.Amount + AmountToAdd;
 
 	// Log untuk melacak jumlah item yang ditambahkan
-	UE_LOG(LogTemp, Log, TEXT("Adding %d to item amount. New amount: %d"), AmountToAdd, LocInvItem.Amount);
+	//UE_LOG(LogTemp, Log, TEXT("Adding %d to item amount. New amount: %d"), AmountToAdd, LocInvItem.Amount);
 
-	return LocInvItem;
+	return InvItem;
 }
 
 bool UInventoryManagerComponent::RemoveFromItemAmount(FInventoryItem& OutInvItem, int32& AmountToRemove)
@@ -1815,10 +1904,12 @@ bool UInventoryManagerComponent::RemoveFromItemAmount(FInventoryItem& OutInvItem
 	{
 		LocAmountRemoved = ItemAmount(OutInvItem);
 		AmountToRemove = LocAmountRemoved;
+		// UE_LOG(LogTemp, Log, TEXT("Amount To Remove > Item Amount"));
 		return true;
 	}
 	else
 	{
+		// UE_LOG(LogTemp, Log, TEXT("Amount To Remove < Item Amount"));
 		LocAmountRemoved = AmountToRemove;
 		SetItemAmount(OutInvItem, ItemAmount(OutInvItem) - AmountToRemove);
 		return false;

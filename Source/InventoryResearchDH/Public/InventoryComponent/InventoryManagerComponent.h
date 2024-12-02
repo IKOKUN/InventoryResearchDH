@@ -152,11 +152,11 @@ public:
 
 	//Sets A New Item Amount(Amount Validation Should Be Done Before Calling Function)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
-	FInventoryItem SetItemAmount(FInventoryItem Inventory, int32 AmountToAdd);
+	FInventoryItem SetItemAmount(FInventoryItem& InvItem, int32 AmountToAdd);
 
 	// Adds Amount To Item Amount(Amount Validation Should Be Done Before Calling Function)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
-	FInventoryItem AddToItemAmount(FInventoryItem InvItem, int32 AmountToAdd);
+	FInventoryItem AddToItemAmount(FInventoryItem& InvItem, int32 AmountToAdd);
 
 	// Remove Amount From Item Amount
 	UFUNCTION(BlueprintCallable, Category = "Manager | Stacks")
@@ -222,7 +222,7 @@ public:
 
 	// Use Item In Inventory. Equips, Consumes Or Moves To A Container (If A Storage Container Is Open)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Items")
-	void UseInventoryItem(int32 InvSlot);
+	void UseInventoryItem(int32 InvSlot, int32 HotbarSlot = 0);
 
 	// Use Equippment Item.  Equips Or Unequips The Inventory Item When Used Or Moves To A Container (If A Storage Container Is Open)
 	UFUNCTION(BlueprintCallable, Category = "Manager | Items")
@@ -230,7 +230,7 @@ public:
 
 	// Use Consumbale Item. Consumes The Inventory Item When Used
 	UFUNCTION(BlueprintCallable, Category = "Manager | Items")
-	void UseConsumableItem(int32 InvSlot, FInventoryItem InvItem);
+	void UseConsumableItem(int32 InvSlot, int32 HotbarSlot, FInventoryItem InvItem);
 
 	// Tries To Equip An Item From Spesific Inventory
 	UFUNCTION(BlueprintCallable, Category = "Manager | Equipment")

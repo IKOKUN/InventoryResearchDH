@@ -66,7 +66,7 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 
 				// Menghitung posisi tooltip
 				// FVector2D TooltipPosition = WidgetPosition + FVector2D(WidgetSize.X + 5.0f, WidgetSize.Y / 2.0f - 60.0f); // Offset ke kanan dan sedikit ke atas
-				FVector2D TooltipPosition = WidgetPosition + FVector2D(-5.0f, -90.0f); // Offset ke kanan dan sedikit ke atas
+				FVector2D TooltipPosition = WidgetPosition + FVector2D(30.0f, -90.0f); // Offset ke kanan dan sedikit ke atas
 
 				// Menampilkan tooltip di posisi yang dihitung
 				SlotToolTipInfo->AddToViewport();
@@ -99,13 +99,13 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Left mouse button down in InventorySlotWidget"));
+		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Left mouse button down in InventorySlotWidget"));
 		FEventReply EventReply = UWidgetBlueprintLibrary::DetectDragIfPressed(InMouseEvent, this, EKeys::LeftMouseButton);
 
 		// Jika drag terdeteksi, kembalikan handled
 		if (EventReply.NativeReply.IsEventHandled())
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Drag Mouse Succesffulfy Handled"));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Drag Mouse Succesffulfy Handled"));
 			// Pastikan NativeOnDragDetected dipanggil
 			return EventReply.NativeReply;
 		}

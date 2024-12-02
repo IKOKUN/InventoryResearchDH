@@ -110,10 +110,13 @@ void UHotbarSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FP
 		if (SlotToolTipInfo)
 		{
 			// Menampilkan tooltip di posisi mouse dengan offset
-			FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
-			FVector2D TooltipOffset(5.0f, -120.0f); // Offset untuk menempatkan tooltip di sebelah kanan
+			// FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
+			FVector2D TooltipOffset(30.0f, -90.0f); // Offset untuk menempatkan tooltip di sebelah kanan
+			FGeometry WidgetGeometry = GetCachedGeometry();
+			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition();
+			FVector2D TooltipPosition = WidgetPosition + TooltipOffset; // Offset ke kanan dan sedikit ke atas
 			SlotToolTipInfo->AddToViewport();
-			SlotToolTipInfo->SetPositionInViewport(MousePosition + TooltipOffset);
+			SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
 		}
 	}
 }
@@ -152,6 +155,7 @@ void UHotbarSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const 
 {
 	Super::NativeOnDragDetected(InGeometry, InMouseEvent, OutOperation);
 
+	UE_LOG(LogTemp, Warning, TEXT("Hotbar Number : %d"), HotBarNumber);
 	if (HotbarItemInformation.Icon)
 	{
 		if (DragItemClass && DraggedItemWidgetClass)
@@ -169,6 +173,7 @@ void UHotbarSlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const 
 					DragItemOp->DefaultDragVisual = DraggedItemWidgetOp;
 					DragItemOp->DraggedItemInformation = HotbarItemInformation;  // Set widget yang di-drag
 					DragItemOp->DraggedItemSlotIndex = HotBarNumber;
+					UE_LOG(LogTemp, Warning, TEXT("Hotbar Number : %d"), HotBarNumber);
 					DragItemOp->bIsDraggedFromInventory = false;
 					DragItemOp->bIsDraggedFromContainer = false;
 					DragItemOp->bIsDraggedFromHotbar = true;

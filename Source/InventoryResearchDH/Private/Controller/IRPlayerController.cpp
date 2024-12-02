@@ -70,6 +70,9 @@ void AIRPlayerController::SetupInputComponent()
 		// Interacting
 		EnhancedInputComponent->BindAction(UseActorAction, ETriggerEvent::Started, this, &AIRPlayerController::OnActorUsed);
 
+		// Inspect Actor
+		EnhancedInputComponent->BindAction(InspectActorAction, ETriggerEvent::Started, this, &AIRPlayerController::InspectActor);
+
 		// Equipment and Inventory
 		EnhancedInputComponent->BindAction(OpenEquipmentAndInventoryAction, ETriggerEvent::Started, this, &AIRPlayerController::OpenEquipmentAndInventory);
 		UE_LOG(LogTemp, Log, TEXT("OpenEquipmentAndInventory action bound successfully."));
@@ -228,6 +231,7 @@ void AIRPlayerController::Hotbar1()
 	if (InventoryManagerComponent)
 	{
 		InventoryManagerComponent->UseHotbarSlot(0);
+		UE_LOG(LogTemp, Error, TEXT("Using Hotbar Slot 1"));
 	}
 	else
 	{
@@ -1072,7 +1076,8 @@ void AIRPlayerController::UI_Move_Hotbar_Item(int32 FromSlot, int32 ToSlot, bool
 {
 	if (InventoryManagerComponent)
 	{
-		InventoryManagerComponent->MoveHotbarSlotItem(FromSlot, ToSlot, bIsDraggedFromInventory, bIsDraggedFromHotbar);
+		InventoryManagerComponent->MoveHotbarSlotItem
+			(FromSlot, ToSlot, bIsDraggedFromInventory, bIsDraggedFromHotbar);
 	}
 }
 
