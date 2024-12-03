@@ -24,7 +24,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void UpdateEquipmentMesh();
+	void UpdateEquipmentMesh(bool bIsEquip);
 
 	// Component for Attachment Equipment
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")

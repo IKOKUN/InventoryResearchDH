@@ -988,6 +988,11 @@ void AIRPlayerController::UI_UnEquip_Inventory_Item(int32 FromInvSlot, int32 ToI
 	if (InventoryManagerComponent)
 	{
 		InventoryManagerComponent->UnEquipFromInventory(FromInvSlot, ToInvSlot);
+		UE_LOG(LogTemp, Warning, TEXT("UnEquip Item From Inventory In Player Controller"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InventoryManagerComponent is not valid"));
 	}
 }
 

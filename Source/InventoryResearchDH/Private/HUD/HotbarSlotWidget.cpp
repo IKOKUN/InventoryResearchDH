@@ -109,14 +109,38 @@ void UHotbarSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FP
 		SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
 		if (SlotToolTipInfo)
 		{
-			// Menampilkan tooltip di posisi mouse dengan offset
-			// FVector2D MousePosition = InMouseEvent.GetScreenSpacePosition();
-			FVector2D TooltipOffset(30.0f, -90.0f); // Offset untuk menempatkan tooltip di sebelah kanan
+			// Mendapatkan posisi kursor mouse
+			//FVector2D MousePosition;
+			//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
+
+
+			// Mendapatkan posisi dan ukuran widget slot
 			FGeometry WidgetGeometry = GetCachedGeometry();
-			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition();
-			FVector2D TooltipPosition = WidgetPosition + TooltipOffset; // Offset ke kanan dan sedikit ke atas
-			SlotToolTipInfo->AddToViewport();
+			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
+			FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
+
+			// Menghitung posisi tooltip berdasarkan posisi widget slot
+			FVector2D TooltipPosition = WidgetPosition - FVector2D(1898.f, 95.f); // Offset ke kanan
+
+			// Log untuk memeriksa posisi dan ukuran
+			//UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
+			//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
+
+			// Memastikan tooltip berada dalam batas layar
+			FVector2D ViewportSize;
+			if (GEngine && GEngine->GameViewport)
+			{
+				GEngine->GameViewport->GetViewportSize(ViewportSize);
+			}
+			//UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
+
+			//UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+			SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
 			SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tool Tip Invalid"));
 		}
 	}
 }

@@ -59,18 +59,38 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 			SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
 			if (SlotToolTipInfo)
 			{
-				// Mendapatkan posisi dan ukuran widget
+				// Mendapatkan posisi kursor mouse
+				//FVector2D MousePosition;
+				//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
+
+
+				// Mendapatkan posisi dan ukuran widget slot
 				FGeometry WidgetGeometry = GetCachedGeometry();
-				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition();
-				FVector2D WidgetSize = WidgetGeometry.GetLocalSize();
+				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
+				FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
 
-				// Menghitung posisi tooltip
-				// FVector2D TooltipPosition = WidgetPosition + FVector2D(WidgetSize.X + 5.0f, WidgetSize.Y / 2.0f - 60.0f); // Offset ke kanan dan sedikit ke atas
-				FVector2D TooltipPosition = WidgetPosition + FVector2D(30.0f, -90.0f); // Offset ke kanan dan sedikit ke atas
+				// Menghitung posisi tooltip berdasarkan posisi widget slot
+				FVector2D TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
 
-				// Menampilkan tooltip di posisi yang dihitung
-				SlotToolTipInfo->AddToViewport();
+				// Log untuk memeriksa posisi dan ukuran
+				//UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
+				//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
+
+				// Memastikan tooltip berada dalam batas layar
+				FVector2D ViewportSize;
+				if (GEngine && GEngine->GameViewport)
+				{
+					GEngine->GameViewport->GetViewportSize(ViewportSize);
+				}
+				//UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
+
+				//UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+				SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
 				SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tool Tip Invalid"));
 			}
 		}
 	}
@@ -247,26 +267,30 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 
 			if (LocalDraggedSlotIndex < GetNumberOfEquipmentSlots())
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("UnEquip Item From Inventory"));
+				UE_LOG(LogTemp, Warning, TEXT("UnEquip Item From Inventory"));
 				PlayerController->UI_UnEquip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
 			}
 			else if (InventorySlotIndex < GetNumberOfEquipmentSlots())
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Equip Item From Inventory"));
+				UE_LOG(LogTemp, Warning, TEXT("Equip Item From Inventory"));
 				PlayerController->UI_Equip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
 			}
 			else if (PlayerController->UI_Get_IsShiftKeyDown())
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory (Split)"));
+				UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory (Split)"));
 				PlayerController->UI_Split_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex, 1);
 			}
 			else
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory"));
+				UE_LOG(LogTemp, Warning, TEXT("Move Item in Inventory"));
 				PlayerController->UI_Move_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
 			}
 
 			return true;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Not From Inventory"));
 		}
 
 		// Cek apakah item berasal dari container
@@ -303,92 +327,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return false;
 }
 
-/*
 
-bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
-{
-
-	UE_LOG(LogTemp, Warning, TEXT("NativeOnDrop called in InventorySlotWidget"));
-
-	if (UDragItem* DraggedItem = Cast<UDragItem>(InOperation))
-	{
-		// Logika untuk menangani item yang dijatuhkan
-		UE_LOG(LogTemp, Warning, TEXT("Item dropped in InventorySlotWidget"));
-		// Lakukan sesuatu dengan item yang dijatuhkan
-		return true; // Kembalikan true jika drop berhasil
-	}
-	//return false; // Kembalikan false jika drop tidak berhasil
-
-	int32 LocalDraggedSlotIndex = 0;
-	UDragItem* DragItemInvSlot = Cast<UDragItem>(InOperation);
-
-	// Jika operasi drag-drop tidak valid, langsung return false
-	if (!DragItemInvSlot)
-		return false;
-
-	LocalDraggedSlotIndex = DragItemInvSlot->DraggedItemSlotIndex;
-
-	// Jika PlayerController tidak valid, log pesan dan langsung return false
-	if (!PlayerController)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerController is nullptr"));
-		return false;
-	}
-
-	// Jika item berasal dari inventory
-	if (DragItemInvSlot->bIsDraggedFromInventory)
-	{
-		if (LocalDraggedSlotIndex < GetNumberOfEquipmentSlots())
-		{
-			// UnEquip Item From Inventory
-			PlayerController->UI_UnEquip_Inventory_Item(LocalDraggedSlotIndex, InventorySlot);
-		}
-		else if (InventorySlot < GetNumberOfEquipmentSlots())
-		{
-			// Equip Item From Inventory
-			PlayerController->UI_Equip_Inventory_Item(LocalDraggedSlotIndex, InventorySlot);
-		}
-		else if (PlayerController->UI_Get_IsShiftKeyDown())
-		{
-			// Move Item in Inventory (Split)
-			PlayerController->UI_Split_Inventory_Item(LocalDraggedSlotIndex, InventorySlot, 1);
-		}
-		else
-		{
-			// Move Item in Inventory
-			PlayerController->UI_Move_Inventory_Item(LocalDraggedSlotIndex, InventorySlot);
-		}
-
-		return true;
-	}
-
-	// Jika item berasal dari container
-	if (DragItemInvSlot->bIsDraggedFromContainer)
-	{
-		if (InventorySlot < GetNumberOfEquipmentSlots())
-		{
-			// Equip Item From Container
-			PlayerController->UI_Equip_From_Container(LocalDraggedSlotIndex, InventorySlot);
-		}
-		else if (PlayerController->UI_Get_IsShiftKeyDown())
-		{
-			// Take Item From Container (Split)
-			PlayerController->UI_Split_Item_From_Container(LocalDraggedSlotIndex, InventorySlot, 1);
-		}
-		else
-		{
-			// Take Item From Container
-			PlayerController->UI_Take_Container_Item(LocalDraggedSlotIndex, InventorySlot);
-		}
-
-		return true;
-	}
-
-	// Jika item tidak berasal dari inventory atau container
-	UE_LOG(LogTemp, Warning, TEXT("Dragged Item is not from Inventory"));
-	return false;
-}
-*/
 ESlateVisibility UInventorySlotWidget::GetBorderVisibility() const
 {
 	if (InvSlotItemInformation.Icon)
@@ -462,7 +401,7 @@ ESlateVisibility UInventorySlotWidget::GetBackgroundVisibility() const
 UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 {
 	// Ambil informasi dari PlayerController
-	FToolTipInfo ToolTipInfoTemp;
+	//FToolTipInfo ToolTipInfoTemp;
 	FInventoryItem ToolTipInfoPlayerController = PlayerController->UI_Get_ToolTip_Info(InvSlotItemInformation.ID);
 
 	//UE_LOG(LogTemp, Log, TEXT("Inv Slot ID: %s"), *InvSlotItemInformation.ID.ToString());
@@ -473,31 +412,40 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 	if (CurrentToolTipWidget)
 	{
 		// Set data tooltip
-		ToolTipInfoTemp.Icon = InvSlotItemInformation.Icon;
-		ToolTipInfoTemp.Name = InvSlotItemInformation.Name;
-		ToolTipInfoTemp.Quality = InvSlotItemInformation.Quality;
-		ToolTipInfoTemp.ItemType = InvSlotItemInformation.Type;
-		ToolTipInfoTemp.bIsStackable = ToolTipInfoPlayerController.bIsStackable;
-		ToolTipInfoTemp.MaxStackSize = ToolTipInfoPlayerController.MaxStackSize;
-		ToolTipInfoTemp.Health = ToolTipInfoPlayerController.Health;
-		ToolTipInfoTemp.Duration = ToolTipInfoPlayerController.Duration;
-		ToolTipInfoTemp.EquipmentType = ToolTipInfoPlayerController.EquipmentType;
-		ToolTipInfoTemp.EquipmentSlot = ToolTipInfoPlayerController.EquipmentSlot;
-		ToolTipInfoTemp.Damage = ToolTipInfoPlayerController.Damage;
-		ToolTipInfoTemp.Armor = ToolTipInfoPlayerController.Armor;
-		ToolTipInfoTemp.Strength = ToolTipInfoPlayerController.Strength;
-		ToolTipInfoTemp.Dexterity = ToolTipInfoPlayerController.Dexterity;
-		ToolTipInfoTemp.Intelligence = ToolTipInfoPlayerController.Intelligence;
+		CurrentToolTipWidget->ItemToolTipInfo.Icon = InvSlotItemInformation.Icon;
+		CurrentToolTipWidget->ItemToolTipInfo.Name = InvSlotItemInformation.Name;
+		CurrentToolTipWidget->ItemToolTipInfo.Quality = InvSlotItemInformation.Quality;
+		CurrentToolTipWidget->ItemToolTipInfo.ItemType = InvSlotItemInformation.Type;
+		CurrentToolTipWidget->ItemToolTipInfo.bIsStackable = ToolTipInfoPlayerController.bIsStackable;
+		CurrentToolTipWidget->ItemToolTipInfo.MaxStackSize = ToolTipInfoPlayerController.MaxStackSize;
+		CurrentToolTipWidget->ItemToolTipInfo.Health = ToolTipInfoPlayerController.Health;
+		CurrentToolTipWidget->ItemToolTipInfo.Duration = ToolTipInfoPlayerController.Duration;
+		CurrentToolTipWidget->ItemToolTipInfo.EquipmentType = ToolTipInfoPlayerController.EquipmentType;
+		CurrentToolTipWidget->ItemToolTipInfo.EquipmentSlot = ToolTipInfoPlayerController.EquipmentSlot;
+		CurrentToolTipWidget->ItemToolTipInfo.Damage = ToolTipInfoPlayerController.Damage;
+		CurrentToolTipWidget->ItemToolTipInfo.Armor = ToolTipInfoPlayerController.Armor;
+		CurrentToolTipWidget->ItemToolTipInfo.Strength = ToolTipInfoPlayerController.Strength;
+		CurrentToolTipWidget->ItemToolTipInfo.Dexterity = ToolTipInfoPlayerController.Dexterity;
+		CurrentToolTipWidget->ItemToolTipInfo.Intelligence = ToolTipInfoPlayerController.Intelligence;
+		CurrentToolTipWidget->ItemToolTipInfo.Description = ToolTipInfoPlayerController.Description;
 
 		// Logging untuk memeriksa setiap atribut
-		//UE_LOG(LogTemp, Log, TEXT("Tooltip Info:"));
-		//UE_LOG(LogTemp, Log, TEXT(" - Name: %s"), *CurrentToolTipWidget->ItemToolTipInfo.Name.ToString());
+		UE_LOG(LogTemp, Log, TEXT("Tooltip Info:"));
+		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Name: %s"), *InvSlotItemInformation.Name.ToString());
+		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), CurrentToolTipWidget->ItemToolTipInfo.Health);
+		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), ToolTipInfoPlayerController.Health);
 
 		// Assign ToolTipInfoTemp ke CurrentToolTipWidget
-		CurrentToolTipWidget->ItemToolTipInfo = ToolTipInfoTemp;
+		// CurrentToolTipWidget->ItemToolTipInfo = CurrentToolTipInfo;
+		
+
 
 		// Return sebagai UUserWidget*
 		return CurrentToolTipWidget;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("CurrentToolTipWidget Invalid"));
 	}
 	return nullptr;
 }

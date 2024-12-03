@@ -92,84 +92,156 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 }
 
-void AIRCharacter::UpdateEquipmentMesh()
+void AIRCharacter::UpdateEquipmentMesh(bool bIsEquip)
 {
-	if (HeadMesh)
+	if (bIsEquip)
 	{
-		Head->SetSkeletalMesh(HeadMesh);
-		Head->LeaderPoseComponent = GetMesh();
-	}
-	
-	if (ChestMesh)
-	{
-		Chest->SetSkeletalMesh(ChestMesh);
-		Chest->LeaderPoseComponent = GetMesh();
-	}
+		if (HeadMesh)
+		{
+			Head->SetSkeletalMesh(HeadMesh);
+			Head->LeaderPoseComponent = GetMesh();
+		}
 
-	if (HandsMesh)
-	{
-		Hands->SetSkeletalMesh(HandsMesh);
-		Hands->LeaderPoseComponent = GetMesh();
-	}
+		if (ChestMesh)
+		{
+			Chest->SetSkeletalMesh(ChestMesh);
+			Chest->LeaderPoseComponent = GetMesh();
+		}
 
-	if (ShoulderMesh)
-	{
-		Shoulder->SetSkeletalMesh(ShoulderMesh);
-		Shoulder->LeaderPoseComponent = GetMesh();
-	}
+		if (HandsMesh)
+		{
+			Hands->SetSkeletalMesh(HandsMesh);
+			Hands->LeaderPoseComponent = GetMesh();
+		}
 
-	if (WaistMesh)
-	{
-		Waist->SetSkeletalMesh(WaistMesh);
-		Waist->LeaderPoseComponent = GetMesh();
-	}
+		if (ShoulderMesh)
+		{
+			Shoulder->SetSkeletalMesh(ShoulderMesh);
+			Shoulder->LeaderPoseComponent = GetMesh();
+		}
 
-	if (BackMesh)
-	{
-		Back->SetSkeletalMesh(BackMesh);
-		Back->LeaderPoseComponent = GetMesh();
-	}
+		if (WaistMesh)
+		{
+			Waist->SetSkeletalMesh(WaistMesh);
+			Waist->LeaderPoseComponent = GetMesh();
+		}
 
-	if (LegsMesh)
-	{
-		Legs->SetSkeletalMesh(LegsMesh);
-		Legs->LeaderPoseComponent = GetMesh();
-	}
+		if (BackMesh)
+		{
+			Back->SetSkeletalMesh(BackMesh);
+			Back->LeaderPoseComponent = GetMesh();
+		}
 
-	if (FeetMesh)
-	{
-		Feet->SetSkeletalMesh(FeetMesh);
-		Feet->LeaderPoseComponent = GetMesh();
-	}
+		if (LegsMesh)
+		{
+			Legs->SetSkeletalMesh(LegsMesh);
+			Legs->LeaderPoseComponent = GetMesh();
+		}
 
-	if (AccessoryMesh)
-	{
-		Accessory->SetSkeletalMesh(AccessoryMesh);
-		Accessory->LeaderPoseComponent = GetMesh();
-	}
+		if (FeetMesh)
+		{
+			Feet->SetSkeletalMesh(FeetMesh);
+			Feet->LeaderPoseComponent = GetMesh();
+		}
 
-	if (RightRingMesh)
-	{
-		RightRing->SetSkeletalMesh(RightRingMesh);
-		RightRing->LeaderPoseComponent = GetMesh();
-	}
+		if (AccessoryMesh)
+		{
+			Accessory->SetSkeletalMesh(AccessoryMesh);
+			Accessory->LeaderPoseComponent = GetMesh();
+		}
 
-	if (LeftRingMesh)
-	{
-		LeftRing->SetSkeletalMesh(LeftRingMesh);
-		LeftRing->LeaderPoseComponent = GetMesh();
-	}
+		if (RightRingMesh)
+		{
+			RightRing->SetSkeletalMesh(RightRingMesh);
+			RightRing->LeaderPoseComponent = GetMesh();
+		}
 
-	if (MainHandMesh)
-	{
-		MainHand->SetSkeletalMesh(MainHandMesh);
-		MainHand->LeaderPoseComponent = GetMesh();
+		if (LeftRingMesh)
+		{
+			LeftRing->SetSkeletalMesh(LeftRingMesh);
+			LeftRing->LeaderPoseComponent = GetMesh();
+		}
+
+		if (MainHandMesh)
+		{
+			MainHand->SetSkeletalMesh(MainHandMesh);
+			MainHand->LeaderPoseComponent = GetMesh();
+		}
+
+		if (OffHandMesh)
+		{
+			OffHand->SetSkeletalMesh(OffHandMesh);
+			OffHand->LeaderPoseComponent = GetMesh();
+		}
 	}
-	
-	if (OffHandMesh)
+	else
 	{
-		OffHand->SetSkeletalMesh(OffHandMesh);
-		OffHand->LeaderPoseComponent = GetMesh();
+		if (Head)
+		{
+			Head->SetSkeletalMesh(nullptr);
+		}
+		if (Chest)
+		{
+			Chest->SetSkeletalMesh(nullptr);
+		}
+		if (Hands)
+		{
+			Hands->SetSkeletalMesh(nullptr);
+		}
+		if (Shoulder)
+		{
+			Shoulder->SetSkeletalMesh(nullptr);
+		}
+		if (Waist)
+		{
+			Waist->SetSkeletalMesh(nullptr);
+		}
+		if (Back)
+		{
+			Back->SetSkeletalMesh(nullptr);
+		}
+		if (Legs)
+		{
+			Legs->SetSkeletalMesh(nullptr);
+		}
+		if (Feet)
+		{
+			Feet->SetSkeletalMesh(nullptr);
+		}
+		if (Accessory)
+		{
+			Accessory->SetSkeletalMesh(nullptr);
+		}
+		if (RightRing)
+		{
+			RightRing->SetSkeletalMesh(nullptr);
+		}
+		if (LeftRing)
+		{
+			LeftRing->SetSkeletalMesh(nullptr);
+		}
+		if (MainHand)
+		{
+			MainHand->SetSkeletalMesh(nullptr);
+		}
+		if (OffHand)
+		{
+			OffHand->SetSkeletalMesh(nullptr);
+		}
+
+		HeadMesh = nullptr;
+		ChestMesh = nullptr;
+		HandsMesh = nullptr;
+		ShoulderMesh = nullptr;
+		WaistMesh = nullptr;
+		BackMesh = nullptr;
+		LegsMesh = nullptr;
+		FeetMesh = nullptr;
+		AccessoryMesh = nullptr;
+		RightRingMesh = nullptr;
+		LeftRingMesh = nullptr;
+		MainHandMesh = nullptr;
+		OffHandMesh = nullptr;
 	}
 }
 

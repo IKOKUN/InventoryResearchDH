@@ -12,6 +12,9 @@
 class UStaticMeshComponent;
 class USoundBase;
 class UDataTable;
+class AIRPlayerController;
+class AIRCharacter;
+class APlayerCameraManager;
 
 UCLASS()
 class INVENTORYRESEARCHDH_API AUsableActorBase : public AActor, public IUsableActorInterface
@@ -55,6 +58,40 @@ public:
 	virtual bool GetIsActorUsable() override;
 	virtual FText GetUseActionText() override;
 	// end IUsableActorInterface
+
+	// Inspect Object
+	AIRPlayerController* InteractorPlayerController = nullptr;
+	AIRCharacter* InteractorPlayerCharacter = nullptr;
+	APlayerCameraManager* IRCameraManager = nullptr;
+
+	FTimerHandle TimerHandle_WaitForCamera;
+
+	FTransform CameraTransformCache;
+	FVector OriginRelativeLocation;
+	FVector ObjectOriginLocation;
+	FVector InspectionLocation;
+
+	FRotator ControlRotationOrigin;
+	FRotator TargetControlRotation;
+	FRotator ObjectOriginRotation;
+
+	float HoldFocusTime = 0;
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void InspectItem();
+
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void WaitForCamera();
+
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void StartInspection();
+
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void CameraFocus();
+
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void EndInspection();
+
+	// End Inspect Object
 
 protected:
 	virtual void BeginPlay() override;

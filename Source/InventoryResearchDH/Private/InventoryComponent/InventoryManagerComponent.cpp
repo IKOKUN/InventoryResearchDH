@@ -1314,92 +1314,18 @@ void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 F
 	}
 }
 
-
-//void UInventoryManagerComponent::EquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
-//{
-//	if (FromInv && ToInv)
-//	{
-//		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
-//		{
-//			FInventoryItem LocInvItem = FromInv->GetInventoryItem(FromInvSlot);
-//			EEquipmentSlotsType LocEquipmentSlotType = ItemEquipSlot(LocInvItem);
-//			if (ItemType(LocInvItem) == EItemType::Equipment)
-//			{
-//				if (GetEquipmentTypeBySlot(ToInvSlot) == LocEquipmentSlotType)
-//				{
-//					FInventoryItem LocSwapInvItem = FromInv->GetInventoryItem(FromInvSlot);
-//					// Swap Item?
-//					if (ItemIsValid(LocSwapInvItem))
-//					{
-//						// Can The Swap Destination Inventory Store Item
-//						if (CanContainerStoreItem(FromInv))
-//						{
-//							// Swap Items
-//							AddItem(ToInv, ToInvSlot, LocInvItem);
-//							AddItem(FromInv, FromInvSlot, LocSwapInvItem);
-//						}
-//						else
-//						{
-//							if (GEngine)
-//							{
-//								GEngine->AddOnScreenDebugMessage(
-//									-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-//									5.0f,                 // Durasi pesan dalam detik
-//									FColor::Green,        // Warna pesan
-//									FString::Printf(TEXT("CONTAINER CANNOT STORE ITEMS")) // Pesan
-//								);
-//							}
-//						}
-//					}
-//					else
-//					{
-//						// Move item
-//						AddItem(ToInv, ToInvSlot, LocInvItem);
-//						RemoveItem(FromInv, FromInvSlot);
-//					}
-//					UpdateEquippedStats();
-//				}
-//				else
-//				{
-//					if (GEngine)
-//					{
-//						GEngine->AddOnScreenDebugMessage(
-//							-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-//							5.0f,                 // Durasi pesan dalam detik
-//							FColor::Green,        // Warna pesan
-//							FString::Printf(TEXT("Item Can Not Be equippped In That Slot")) // Pesan
-//						);
-//					}
-//				}
-//			}
-//			else
-//			{
-//				if (GEngine)
-//				{
-//					GEngine->AddOnScreenDebugMessage(
-//						-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-//						5.0f,                 // Durasi pesan dalam detik
-//						FColor::Green,        // Warna pesan
-//						FString::Printf(TEXT("Item Is Not Equippable")) // Pesan
-//					);
-//				}
-//			}
-//		}
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
-//	}
-//}
-
 void UInventoryManagerComponent::UnEquipItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
 {
 	if (FromInv && ToInv)
 	{
-		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		if (FromInv == ToInv && FromInvSlot == ToInvSlot)
+		{
+			// Do Nothing
+		}
+		else
 		{
 			FInventoryItem LocInvItem = FromInv->GetInventoryItem(FromInvSlot);
-			FInventoryItem LocSwapInvItem = FromInv->GetInventoryItem(FromInvSlot);
+			FInventoryItem LocSwapInvItem = ToInv->GetInventoryItem(ToInvSlot);
 			EEquipmentSlotsType LocEquipmentSlotType = ItemEquipSlot(LocInvItem);
 
 			if (ItemIsValid(LocSwapInvItem))
@@ -1439,7 +1365,7 @@ void UInventoryManagerComponent::UnEquipItem(UInventoryComponent* FromInv, int32
 								FString::Printf(TEXT("Item Is Not Equippable")) // Pesan
 							);
 						}
-					}		
+					}
 				}
 				else
 				{
@@ -2045,80 +1971,6 @@ void UInventoryManagerComponent::MoveItem(UInventoryComponent* FromInv, int32 Fr
 	}
 }
 
-
-//void UInventoryManagerComponent::MoveItem(UInventoryComponent* FromInv, int32 FromInvSlot, UInventoryComponent* ToInv, int32 ToInvSlot)
-//{
-//	if (FromInv && ToInv)
-//	{
-//		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
-//		{
-//			if (CanContainerStoreItem(ToInv))
-//			{
-//				FInventoryItem LocalInvItem = FromInv->GetInventoryItem(FromInvSlot);
-//				if (ItemType(LocalInvItem) == EItemType::Currency)
-//				{
-//					AddGold(ItemAmount(LocalInvItem));
-//					RemoveItem(FromInv, FromInvSlot);
-//				}
-//				else
-//				{
-//					FInventoryItem LocalSwapInvItem = ToInv->GetInventoryItem(ToInvSlot);
-//					if (ItemIsValid(LocalSwapInvItem))
-//					{
-//						// Check if Items are Stackable
-//						if (ItemIsStackable(LocalSwapInvItem) && ItemFreeStackSpace(LocalSwapInvItem) > 0 && ItemIsSame(LocalInvItem, LocalSwapInvItem))
-//						{
-//							// Add To Stack
-//							int32 AmountRemaining = AddItemToStack(ToInv, ToInvSlot, ItemAmount(LocalInvItem));
-//							if (AmountRemaining > 0)
-//							{
-//								// Update The From Stack Amount
-//								SetItemAmount(LocalInvItem, AmountRemaining);
-//								AddItem(FromInv, FromInvSlot, LocalInvItem);
-//							}
-//							else
-//							{
-//								// Full Amoun Was Moved Clear Old Stack
-//								RemoveItem(FromInv, FromInvSlot);
-//							}
-//
-//						}
-//						else
-//						{
-//							// Swap Item
-//							// We are trying to swap, but can the from inventory store items?
-//							if (CanContainerStoreItem(FromInv))
-//							{
-//								AddItem(ToInv, ToInvSlot, LocalInvItem);
-//								AddItem(FromInv, FromInvSlot, LocalSwapInvItem);
-//							}
-//							else
-//							{
-//								if (GEngine)
-//								{
-//									GEngine->AddOnScreenDebugMessage(
-//										-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-//										5.0f,                 // Durasi pesan dalam detik
-//										FColor::Green,        // Warna pesan
-//										FString::Printf(TEXT("Container Can't Store Items")) // Pesan
-//									);
-//
-//								}
-//							}
-//						}
-//					}
-//					else
-//					{
-//						// Move Item
-//						AddItem(ToInv, ToInvSlot, LocalInvItem);
-//						RemoveItem(FromInv, FromInvSlot);
-//					}
-//				}
-//			}
-//		}
-//	}
-//}
-
 void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 InvSlot)
 {
 	if (InvComp)
@@ -2201,7 +2053,11 @@ void UInventoryManagerComponent::SplitItem(UInventoryComponent* FromInv, int32 F
 {
 	if (FromInv && ToInv)
 	{
-		if (FromInv != ToInv && FromInvSlot != ToInvSlot)
+		if (FromInv == ToInv && FromInvSlot == ToInvSlot)
+		{
+			UE_LOG(LogTemp, Log, TEXT("From Inv Same with To Inv And From SLot Index is same with To Slot Index"));		
+		}
+		else
 		{
 			// can the destination inventory store items?
 			if (CanContainerStoreItem(ToInv))
@@ -2269,6 +2125,18 @@ void UInventoryManagerComponent::SplitItem(UInventoryComponent* FromInv, int32 F
 							AddItem(FromInv, FromInvSlot, LocalFromInvItem);
 						}
 					}
+				}
+			}
+			else
+			{
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(
+						-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
+						5.0f,                 // Durasi pesan dalam detik
+						FColor::Green,        // Warna pesan
+						FString::Printf(TEXT("Can't store items in target inventory")) // Pesan
+					);
 				}
 			}
 		}
