@@ -101,22 +101,25 @@ void AIRPlayerController::SetupInputComponent()
 
 void AIRPlayerController::Move(const FInputActionValue& Value)
 {
-	const FVector2D InputAxisVector = Value.Get<FVector2D>();
-	const FRotator Rotation = GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	if (APawn* ControlledPawn = GetPawn<APawn>())
+	if (!bOnInspectObject)
 	{
-		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-		//UE_LOG(LogTemp, Log, TEXT("Move function called"));
-	}
-	else
-	{
-		//UE_LOG(LogTemp, Error, TEXT("No controlled pawn found."));
+		const FVector2D InputAxisVector = Value.Get<FVector2D>();
+		const FRotator Rotation = GetControlRotation();
+		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		if (APawn* ControlledPawn = GetPawn<APawn>())
+		{
+			ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+			ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+			//UE_LOG(LogTemp, Log, TEXT("Move function called"));
+		}
+		else
+		{
+			//UE_LOG(LogTemp, Error, TEXT("No controlled pawn found."));
+		}
 	}
 }
 
@@ -125,11 +128,22 @@ void AIRPlayerController::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (APawn* ControlledPawn = GetPawn<APawn>())
+	if (!bOnInspectObject)
 	{
-		// add yaw and pitch input to controller
-		ControlledPawn->AddControllerYawInput(LookAxisVector.X);
-		ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
+		if (APawn* ControlledPawn = GetPawn<APawn>())
+		{
+			// add yaw and pitch input to controller
+			ControlledPawn->AddControllerYawInput(LookAxisVector.X);
+			ControlledPawn->AddControllerPitchInput(LookAxisVector.Y);
+		}
+	}
+	else
+	{
+		if (LastUsableActor)
+		{
+			LastUsableActor->RotateObjectX(LookAxisVector.X);
+			LastUsableActor->RotateObjectY(LookAxisVector.Y);
+		}
 	}
 }
 
@@ -224,6 +238,15 @@ void AIRPlayerController::UseActor()
 
 void AIRPlayerController::InspectActor()
 {
+	if (LastUsableActor)
+	{
+		bOnInspectObject = bOnInspectObject ? false : true;
+		LastUsableActor->OnActorInspect(this);		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No UsableActor found"));
+	}
 }
 
 void AIRPlayerController::Hotbar1()
@@ -597,7 +620,7 @@ void AIRPlayerController::GetUsableActorFocus()
 	else
 	{
 		// Jika tidak ada aktor yang dapat digunakan, sembunyikan teks interaksi
-		if (LastUsableActor)
+		if (LastUsableActor && !bOnInspectObject)
 		{
 			LastUsableActor->EndOutlineFocus();
 			LastUsableActor = nullptr; // Reset LastUsableActor

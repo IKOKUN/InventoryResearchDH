@@ -243,6 +243,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Input")
 	bool bIsRightMouseButtonDown = false;
+
+	UPROPERTY(EditAnywhere, Category = "Properties | Input")
+	bool bOnInspectObject = false;
 	/* Input Properties */
 
 	/* HUD Properties */

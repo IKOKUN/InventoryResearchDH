@@ -49,10 +49,9 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
+	bIsSlotHovered = true;
 	if (InvSlotItemInformation.Icon)
 	{
-		bIsSlotHovered = true;
-
 		// Menampilkan tooltip
 		if (PlayerController)
 		{
@@ -60,20 +59,27 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 			if (SlotToolTipInfo)
 			{
 				// Mendapatkan posisi kursor mouse
-				//FVector2D MousePosition;
-				//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
+				FVector2D MousePosition;
+				PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
 
 
 				// Mendapatkan posisi dan ukuran widget slot
 				FGeometry WidgetGeometry = GetCachedGeometry();
 				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
 				FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
-
+				FVector2D TooltipPosition;
 				// Menghitung posisi tooltip berdasarkan posisi widget slot
-				FVector2D TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+				if (WidgetPosition.X > 2000.f)
+				{
+					TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+				}
+				else
+				{
+					TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+				}
 
 				// Log untuk memeriksa posisi dan ukuran
-				//UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
+				UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
 				//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
 
 				// Memastikan tooltip berada dalam batas layar
@@ -82,9 +88,10 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 				{
 					GEngine->GameViewport->GetViewportSize(ViewportSize);
 				}
-				//UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
+				UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
 
-				//UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+				UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+
 				SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
 				SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
 			}
@@ -101,7 +108,6 @@ void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	Super::NativeOnMouseLeave(InMouseEvent);
 
 	bIsSlotHovered = false;
-
 	// Sembunyikan tooltip
 	if (SlotToolTipInfo)
 	{

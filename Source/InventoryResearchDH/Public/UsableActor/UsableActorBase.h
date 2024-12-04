@@ -51,8 +51,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	bool bWasUsed = false;
 
+	// Get Inspect
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	bool bGettingInspect = false;
+
 	// IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
+	virtual bool OnActorInspect(APlayerController* PlayerController) override;
 	virtual bool BeginOutlineFocus() override;
 	virtual bool EndOutlineFocus() override;
 	virtual bool GetIsActorUsable() override;
@@ -74,8 +79,15 @@ public:
 	FRotator ControlRotationOrigin;
 	FRotator TargetControlRotation;
 	FRotator ObjectOriginRotation;
+	FRotator NewObjectRotation;
 
-	float HoldFocusTime = 0;
+	float InspectionDistance = 120.f;
+	float HoldFocusTime = -1.f;
+	float RotationFactorX;
+	float RotationFactorY;
+
+	int32 RotateYQuarter = 0;
+
 	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void InspectItem();
 
@@ -91,6 +103,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void EndInspection();
 
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void RotateObjectX(float AxisValue);
+
+	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	void RotateObjectY(float AxisValue);
 	// End Inspect Object
 
 protected:

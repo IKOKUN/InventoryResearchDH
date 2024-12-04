@@ -86,6 +86,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
 	/* End Binding Function*/
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;

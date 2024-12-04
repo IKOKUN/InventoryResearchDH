@@ -10,6 +10,11 @@ bool IUsableActorInterface::OnActorUsed(APlayerController* PlayerController)
 	return false;
 }
 
+bool IUsableActorInterface::OnActorInspect(APlayerController* PlayerController)
+{
+	return false;
+}
+
 bool IUsableActorInterface::BeginOutlineFocus()
 {
 	return false;

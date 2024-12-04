@@ -119,8 +119,16 @@ void UHotbarSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FP
 			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
 			FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
 
+			FVector2D TooltipPosition;
 			// Menghitung posisi tooltip berdasarkan posisi widget slot
-			FVector2D TooltipPosition = WidgetPosition - FVector2D(1898.f, 95.f); // Offset ke kanan
+			if (WidgetPosition.X > 2000.f)
+			{
+				TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+			}
+			else
+			{
+				TooltipPosition = WidgetPosition + FVector2D(55.f, -125.f); // Offset ke kiri
+			}
 
 			// Log untuk memeriksa posisi dan ukuran
 			//UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
