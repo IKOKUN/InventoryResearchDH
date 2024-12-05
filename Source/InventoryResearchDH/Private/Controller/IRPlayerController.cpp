@@ -68,7 +68,7 @@ void AIRPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRPlayerController::Look);
 
 		// Interacting
-		EnhancedInputComponent->BindAction(UseActorAction, ETriggerEvent::Started, this, &AIRPlayerController::OnActorUsed);
+		EnhancedInputComponent->BindAction(UseActorAction, ETriggerEvent::Started, this, &AIRPlayerController::UseActor);
 
 		// Inspect Actor
 		EnhancedInputComponent->BindAction(InspectActorAction, ETriggerEvent::Started, this, &AIRPlayerController::InspectActor);
@@ -573,9 +573,16 @@ AUsableActorBase* AIRPlayerController::GetUsableActor()
 
 void AIRPlayerController::OnActorUsed()
 {
+
 	if (GetUsableActor())
 	{
 		GetUsableActor()->OnActorUsed(this);
+	}
+	else if (LastUsableActor && bOnInspectObject)
+	{
+		bOnInspectObject = false;
+		LastUsableActor->OnActorInspect(this);
+		LastUsableActor->OnActorUsed(this);
 	}
 	else
 	{

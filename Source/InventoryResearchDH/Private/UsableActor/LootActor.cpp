@@ -34,8 +34,17 @@ void ALootActor::BeginPlay()
 
 bool ALootActor::InitInventory()
 {
+	Super::InitInventory();
+
 	TArray<FInventoryItem> RandomInventoryItemArray;
 	RandomInventoryItemArray = GetRandomLootItems();
+
+	//UE_LOG(LogTemp, Warning, TEXT("Anjay Mabar"));
+	/*for (FInventoryItem InvItem : RandomInventoryItemArray)
+	{
+		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems In Container Actor: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
+	}*/
+
 	return LoadInventoryItems(RandomInventoryItemArray.Num(), RandomInventoryItemArray);
 }
 
@@ -61,15 +70,23 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 	FInventoryItem InventoryItemTemp;
 	TArray<FLootList> LootListArray;
 	TArray<FInventoryItem> InventoryItemArray;
-	int32 LocalLootAmount = 0;
+	int32 LocalLootAmount = UKismetMathLibrary::RandomIntegerInRange(MinLootItems, MaxLootItems);
 	int32 LocalLootCount = 0;
 	int32 LocalItemIndex = 0;
 	TArray<int32> LocalItemArray;
 	int32 LocalItemAmount = 0;
 	
 	LootListArray = GetLootList();
+
+	/*for (FLootList CurrentLootList : LootListArray)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Loot List ID: %s"), *CurrentLootList.ID.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Loot List Drop Chance: %f"), CurrentLootList.DropChance);
+	}*/
+
 	while (LocalLootCount < LocalLootAmount)
 	{
+		//UE_LOG(LogTemp, Warning, TEXT("Local Loot Count < Local Loot Amount"));
 		LocalItemIndex = UKismetMathLibrary::RandomIntegerInRange(0, LootListArray.Num() - 1);
 		if (LocalItemArray.Find(LocalItemIndex) == -1)
 		{
@@ -79,6 +96,7 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 				LocalItemArray.AddUnique(LocalItemIndex);
 				if (GetDataTableRowByName(DataTable, LootListTemp.ID, InventoryItemTemp))
 				{
+					// UE_LOG(LogTemp, Warning, TEXT("Successfully retrieved InventoryItemTemp for ID: %s"), *LootListTemp.ID.ToString());
 					LocalItemAmount = UKismetMathLibrary::RandomIntegerInRange(LootListTemp.MinAmount, LootListTemp.MaxAmount);
 					if (LocalItemAmount > GetItemMaxStackSize(InventoryItemTemp))
 					{
@@ -88,19 +106,24 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 						}
 					}
 					InventoryItemArray.Add(SetItemAmount(InventoryItemTemp, LocalItemAmount));
+					//UE_LOG(LogTemp, Warning, TEXT("Added item to InventoryItemArray: %s, Amount: %d"), *InventoryItemTemp.ID.ToString(), LocalItemAmount);
 					LocalLootCount = LocalLootCount + 1;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Failed to retrieve InventoryItemTemp for ID: %s"), *LootListTemp.ID.ToString());
 				}
 			}
 		}
 	}
+
 	return InventoryItemArray;
 }
 
-FInventoryItem ALootActor::SetItemAmount(FInventoryItem InvItem, int32 Amount)
+FInventoryItem ALootActor::SetItemAmount(FInventoryItem& InvItem, int32 Amount)
 {
-	FInventoryItem InvItemTemp;
-	InvItemTemp.Amount = InvItem.Amount;
-	return InvItemTemp;
+	InvItem.Amount = Amount;
+	return InvItem;
 }
 
 int32 ALootActor::GetItemMaxStackSize(FInventoryItem InventoryItem)

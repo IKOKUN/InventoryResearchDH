@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "HUD/InspectWidget.h"
 #include "GameFramework/PawnMovementComponent.h"
 
 AUsableActorBase::AUsableActorBase()
@@ -163,10 +164,27 @@ void AUsableActorBase::StartInspection()
 		StaticMeshComponent->GetLocalBounds(LocalMin, LocalMax);
 		StaticMeshComponent->SetRelativeLocation(FVector(0.f, 0.f, LocalMax.Z / 2.f));*/
 
+		if (InspectWidgetClass)
+		{
+			CurrentInspectWidget = CreateWidget<UInspectWidget>(InteractorPlayerController, InspectWidgetClass);
+			if (CurrentInspectWidget)
+			{
+				CurrentInspectWidget->InvSlotItemInformation.ID = Name;
+				CurrentInspectWidget->AddToViewport();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Inspect Widget not found!"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Inspect Widget Class not found!"));
+		}
 		
 
-		UE_LOG(LogTemp, Log, TEXT("Restoring Object to Location: %s, Rotation: %s"),
-			*ObjectOriginLocation.ToString(), *ObjectOriginRotation.ToString());
+		/*UE_LOG(LogTemp, Log, TEXT("Restoring Object to Location: %s, Rotation: %s"),
+			*ObjectOriginLocation.ToString(), *ObjectOriginRotation.ToString());*/
 
 		if (IRCameraManager)
 		{
@@ -215,6 +233,13 @@ void AUsableActorBase::CameraFocus()
 void AUsableActorBase::EndInspection()
 {
 	check(InteractorPlayerCharacter && InteractorPlayerController && IRCameraManager);
+
+	if (CurrentInspectWidget)
+	{
+		CurrentInspectWidget->RemoveFromParent();
+		CurrentInspectWidget = nullptr;
+	}
+	
 
 	// Set Origin Location (Relative) to Origin
 	StaticMeshComponent->SetRelativeLocation(OriginRelativeLocation);

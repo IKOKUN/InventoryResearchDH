@@ -15,6 +15,7 @@ class UDataTable;
 class AIRPlayerController;
 class AIRCharacter;
 class APlayerCameraManager;
+class UInspectWidget;
 
 UCLASS()
 class INVENTORYRESEARCHDH_API AUsableActorBase : public AActor, public IUsableActorInterface
@@ -109,6 +110,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void RotateObjectY(float AxisValue);
 	// End Inspect Object
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
+	TSubclassOf<UUserWidget> InspectWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "Widget")
+	TObjectPtr<UInspectWidget> CurrentInspectWidget;
 
 protected:
 	virtual void BeginPlay() override;

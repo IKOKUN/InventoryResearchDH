@@ -615,19 +615,33 @@ void UInventoryManagerComponent::SetContainerSlotItem(int32 ContainerSlot, FItem
 	{
 		if (InventoryUI->ContainerWidgetComp)
 		{
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.ID = ItemInfo.ID;
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Name = ItemInfo.Name;
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Amount = ItemInfo.Amount;
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon = ItemInfo.Icon;
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Quality = ItemInfo.Quality;
-			InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Type = ItemInfo.Type;
-
-			if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
+			if (InventoryUI->ContainerWidgetComp->ContainerSlots.IsValidIndex(ContainerSlot))
 			{
-				if (!InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon)
+				// Mengatur informasi item
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.ID = ItemInfo.ID;
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Name = ItemInfo.Name;
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Amount = ItemInfo.Amount;
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon = ItemInfo.Icon;
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Quality = ItemInfo.Quality;
+				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Type = ItemInfo.Type;
+
+				// Menangani visibilitas jika bukan container penyimpanan
+				if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
 				{
-					InventoryUI->ContainerWidgetComp->ContainerGridPanel->GetChildAt(ContainerSlot)->SetVisibility(ESlateVisibility::Collapsed);
+					if (!InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon)
+					{
+						InventoryUI->ContainerWidgetComp->ContainerGridPanel->GetChildAt(ContainerSlot)->SetVisibility(ESlateVisibility::Collapsed);
+					}
 				}
+
+				// Tambahkan log jika berhasil
+				UE_LOG(LogTemp, Warning, TEXT("Successfully set container slot %d with Item ID: %s"),
+					ContainerSlot, *ItemInfo.ID.ToString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Invalid ContainerSlot index: %d. Array size: %d"),
+					ContainerSlot, InventoryUI->ContainerWidgetComp->ContainerSlots.Num());
 			}
 		}
 		else
@@ -640,6 +654,7 @@ void UInventoryManagerComponent::SetContainerSlotItem(int32 ContainerSlot, FItem
 		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
 	}
 }
+
 
 void UInventoryManagerComponent::ClearContainerSlotItem(int32 ContainerSlot)
 {
@@ -1021,6 +1036,9 @@ void UInventoryManagerComponent::OpenContainer(AContainerActor* ContainerActor)
 		{
             for (FInventoryItem LocInvItem : ContainerInventory->GetInventoryItems())
 			{
+				UE_LOG(LogTemp, Warning, TEXT("Loot Object ID: %s"), *LocInvItem.ID.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Loot Object Amount: %d"), LocInvItem.Amount);
+
 				LocItemInformation.Add(ItemToItemInfo(LocInvItem));
 			}
 			FContainerInfo ConInfo;

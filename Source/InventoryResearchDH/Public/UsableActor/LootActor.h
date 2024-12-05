@@ -37,7 +37,7 @@ protected:
 	TArray<FInventoryItem> GetRandomLootItems();
 
 	// Set Total Item Amount From This Actor
-	FInventoryItem SetItemAmount(FInventoryItem InvItem, int32 Amount);
+	FInventoryItem SetItemAmount(FInventoryItem& InvItem, int32 Amount);
 
 	// Minimal amount of Loot Items
 	UPROPERTY(EditDefaultsOnly, Category = "Properties")

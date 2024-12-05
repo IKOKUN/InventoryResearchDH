@@ -46,7 +46,7 @@ bool AContainerActor::OnActorUsed(APlayerController* PlayerController)
 
 bool AContainerActor::InitInventory()
 {
-	InventoryComponent->InitInventory(SlotsPerRow);
+	InventoryComponent->InitInventory(InventorySize);
 	return true;
 }
 
@@ -56,6 +56,11 @@ bool AContainerActor::LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> I
 	if (InventoryComponent)
 	{
 		bool bSucces = InventoryComponent->LoadInventoryItems(InventorySize, InvItems);
+
+		for (FInventoryItem InvItem : InvItems)
+		{
+			UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems On Container Actor: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
+		}
 		return bSucces;
 	}
 	return false;

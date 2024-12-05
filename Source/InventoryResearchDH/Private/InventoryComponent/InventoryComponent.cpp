@@ -134,8 +134,14 @@ bool UInventoryComponent::LoadInventoryItems(int32 InventorySize, TArray<FInvent
 	}
 	for (int32 j = 0; j < InvItems.Num() - 1; j++)
 	{
+		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems: Item ID: %s, Amount: %d"), *InvItems[j].ID.ToString(), InvItems[j].Amount);
 		SetInventoryItem(j, InventoryItems[j]);
 	}
+
+	/*for (FInventoryItem InvItem : InventoryItems)
+	{
+		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
+	}*/
 	return true;
 }
 
