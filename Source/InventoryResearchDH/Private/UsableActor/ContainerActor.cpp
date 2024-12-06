@@ -57,10 +57,10 @@ bool AContainerActor::LoadInventoryItems(int32 InvSize, TArray<FInventoryItem> I
 	{
 		bool bSucces = InventoryComponent->LoadInventoryItems(InventorySize, InvItems);
 
-		for (FInventoryItem InvItem : InvItems)
+		/*for (FInventoryItem InvItem : InvItems)
 		{
 			UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems On Container Actor: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
-		}
+		}*/
 		return bSucces;
 	}
 	return false;

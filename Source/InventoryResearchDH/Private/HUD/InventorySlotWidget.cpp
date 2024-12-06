@@ -5,6 +5,7 @@
 #include "HUD/DragItem.h"
 #include "HUD/DraggedItemWidget.h"
 #include "HUD/ToolTipWidget.h"
+#include "HUD/InteractSlotWidget.h"
 #include "Controller/IRPlayerController.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Data/ItemQuality.h"
@@ -26,7 +27,7 @@ void UInventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (bIsSlotHovered)
+	/*if (bIsSlotHovered)
 	{
 		if (bIsRightMouseButtonDown)
 		{
@@ -42,7 +43,7 @@ void UInventorySlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 	else
 	{
 		bIsRightMouseButtonDown = false;
-	}
+	}*/
 }
 
 void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -50,55 +51,66 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
 	bIsSlotHovered = true;
-	if (InvSlotItemInformation.Icon)
+	if (!bIsRightMouseButtonDown)
 	{
-		// Menampilkan tooltip
-		if (PlayerController)
+		if (InvSlotItemInformation.Icon)
 		{
-			SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
-			if (SlotToolTipInfo)
+			// Menampilkan tooltip
+			if (PlayerController)
 			{
-				// Mendapatkan posisi kursor mouse
-				FVector2D MousePosition;
-				PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
-
-
-				// Mendapatkan posisi dan ukuran widget slot
-				FGeometry WidgetGeometry = GetCachedGeometry();
-				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
-				FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
-				FVector2D TooltipPosition;
-				// Menghitung posisi tooltip berdasarkan posisi widget slot
-				if (WidgetPosition.X > 2000.f)
+				SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
+				if (SlotToolTipInfo)
 				{
-					TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+					// Mendapatkan posisi kursor mouse
+					// FVector2D MousePosition;
+					// PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
+
+
+					// Mendapatkan posisi dan ukuran widget slot
+					FGeometry WidgetGeometry = GetCachedGeometry();
+					FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
+					FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
+					FVector2D TooltipPosition;
+					// Menghitung posisi tooltip berdasarkan posisi widget slot
+					if (WidgetPosition.X > 2000.f)
+					{
+						TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+					}
+					else
+					{
+						TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+					}
+
+					// Log untuk memeriksa posisi dan ukuran
+					// UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
+					//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
+
+					// Memastikan tooltip berada dalam batas layar
+					FVector2D ViewportSize;
+					if (GEngine && GEngine->GameViewport)
+					{
+						GEngine->GameViewport->GetViewportSize(ViewportSize);
+					}
+					// UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
+
+					// UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+
+					SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
+					SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
 				}
 				else
 				{
-					TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tool Tip Invalid"));
 				}
-
-				// Log untuk memeriksa posisi dan ukuran
-				UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
-				//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
-
-				// Memastikan tooltip berada dalam batas layar
-				FVector2D ViewportSize;
-				if (GEngine && GEngine->GameViewport)
-				{
-					GEngine->GameViewport->GetViewportSize(ViewportSize);
-				}
-				UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
-
-				UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
-
-				SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
-				SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
 			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tool Tip Invalid"));
-			}
+		}
+	}
+	else
+	{
+		if (SlotToolTipInfo)
+		{
+			SlotToolTipInfo->RemoveFromParent();
+			SlotToolTipInfo = nullptr;
 		}
 	}
 }
@@ -138,8 +150,26 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 	}
 	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
+		if (bIsRightMouseButtonDown)
+		{
+			if (WidgetSlotInteract)
+			{
+				WidgetSlotInteract->RemoveFromParent();
+				WidgetSlotInteract = nullptr;
+			}
+		}
+		else
+		{
+			SetInteractSlotWidget();
+			if (WidgetSlotInteract)
+			{
+				WidgetSlotInteract->AddToViewport();
+				WidgetSlotInteract->SetPositionInViewport(InMouseEvent.GetScreenSpacePosition());
+			}
+		}
+		
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Right mouse button down in InventorySlotWidget"));
-		bIsRightMouseButtonDown = true;
+		bIsRightMouseButtonDown = bIsRightMouseButtonDown ? false : true;
 		return FReply::Handled();
 	}
 
@@ -174,7 +204,7 @@ FReply UInventorySlotWidget::NativeOnMouseMove(const FGeometry& InGeometry, cons
 
 void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation)
 {
-	UE_LOG(LogTemp, Log, TEXT("For Drag InventorySlot: %d"), InventorySlotIndex);
+	// UE_LOG(LogTemp, Log, TEXT("For Drag InventorySlot: %d"), InventorySlotIndex);
 
 	if (GEngine)
 	{
@@ -404,10 +434,25 @@ ESlateVisibility UInventorySlotWidget::GetBackgroundVisibility() const
 	}
 }
 
+FSlateBrush UInventorySlotWidget::GetIconBrush() const
+{
+	FSlateBrush LocalBrush;
+	if (InvSlotItemInformation.Icon)
+	{
+		LocalBrush.SetResourceObject(InvSlotItemInformation.Icon);
+		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+	}
+	else
+	{
+		LocalBrush.SetResourceObject(BackgroundIcon);
+		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+	}
+	return LocalBrush;
+}
+
 UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 {
 	// Ambil informasi dari PlayerController
-	//FToolTipInfo ToolTipInfoTemp;
 	FInventoryItem ToolTipInfoPlayerController = PlayerController->UI_Get_ToolTip_Info(InvSlotItemInformation.ID);
 
 	//UE_LOG(LogTemp, Log, TEXT("Inv Slot ID: %s"), *InvSlotItemInformation.ID.ToString());
@@ -441,10 +486,6 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), CurrentToolTipWidget->ItemToolTipInfo.Health);
 		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), ToolTipInfoPlayerController.Health);
 
-		// Assign ToolTipInfoTemp ke CurrentToolTipWidget
-		// CurrentToolTipWidget->ItemToolTipInfo = CurrentToolTipInfo;
-		
-
 
 		// Return sebagai UUserWidget*
 		return CurrentToolTipWidget;
@@ -456,34 +497,53 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 	return nullptr;
 }
 
-FSlateBrush UInventorySlotWidget::GetIconBrush() const
+void UInventorySlotWidget::SetInteractSlotWidget()
 {
-	FSlateBrush LocalBrush;
-	if (InvSlotItemInformation.Icon)
+	if (!WidgetSlotInteract)
 	{
-		LocalBrush.SetResourceObject(InvSlotItemInformation.Icon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
-	}
-	else
-	{
-		LocalBrush.SetResourceObject(BackgroundIcon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
-	}
-	return LocalBrush;
-}
+		if (InteractSlotWidgetClass)
+		{
+			// Buat Interact Widget baru
+			WidgetSlotInteract = CreateWidget<UInteractSlotWidget>(PlayerController, InteractSlotWidgetClass);
+		}
+	
+		if (WidgetSlotInteract)
+		{
+			// Set data tooltip
+			WidgetSlotInteract->InteractSlotItemInformation = InvSlotItemInformation;
+			WidgetSlotInteract->InteractSlotIndex = InventorySlotIndex;
 
-FEventReply UInventorySlotWidget::IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-	//SUE_LOG(LogTemp, Log, TEXT("IconOnMouseButtonDown called via Blueprint Callable."));
+			// Mendapatkan posisi dan ukuran widget slot
+			FGeometry WidgetGeometry = GetCachedGeometry();
+			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
+			FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
+			FVector2D TooltipPosition;
+			// Menghitung posisi tooltip berdasarkan posisi widget slot
+			if (WidgetPosition.X > 2000.f)
+			{
+				TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
+			}
+			else
+			{
+				TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+			}
 
-	// Panggil NativeOnMouseButtonDown, lalu ubah hasilnya menjadi FEventReply
-	FReply NativeReply = NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+			// Memastikan tooltip berada dalam batas layar
+			FVector2D ViewportSize;
+			if (GEngine && GEngine->GameViewport)
+			{
+				GEngine->GameViewport->GetViewportSize(ViewportSize);
+			}
+			// UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
 
-	// Konversi FReply ke FEventReply
-	if (NativeReply.IsEventHandled())
-	{
-		UE_LOG(LogTemp, Log, TEXT("Drag detected in IconOnMouseButtonDown."));
-		return UWidgetBlueprintLibrary::Handled();
+			// UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+
+			WidgetSlotInteract->AddToViewport(); // Menambahkan ke viewport
+			WidgetSlotInteract->SetPositionInViewport(TooltipPosition);
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("CurrentInteractSlotWidget Invalid"));
+		}
 	}
-	return UWidgetBlueprintLibrary::Unhandled();
 }

@@ -338,6 +338,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
 	void AddContainerSlot(int32 Row, int32 Column, int32 Slot, bool bIsStorage);
 
+	UFUNCTION(BlueprintCallable, Category = "User Interface | Container")
+	void ClearViewersContainerSlots(int32 ContainerSlot);
+
 	// Get Hotbar UI Slot Info
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
 	FItemInformation GetHotbarSlotItem(int32 HotbarSlot);
@@ -418,7 +421,7 @@ protected:
 
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
-	TSubclassOf<AWorldActor> RandomDropClassActor;
+	TMap<FName, TSubclassOf<AWorldActor>> RandomDropClassActor;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Properties")
 	TSubclassOf<UInventorySlotWidget> InventorySlotWidgetClass;

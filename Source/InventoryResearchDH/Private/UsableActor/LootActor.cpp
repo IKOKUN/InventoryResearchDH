@@ -74,14 +74,15 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 	int32 LocalLootCount = 0;
 	int32 LocalItemIndex = 0;
 	TArray<int32> LocalItemArray;
-	int32 LocalItemAmount = 0;
+	int32 LocalItemAmount = 1;
 	
 	LootListArray = GetLootList();
 
 	/*for (FLootList CurrentLootList : LootListArray)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Loot List ID: %s"), *CurrentLootList.ID.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("Loot List Drop Chance: %f"), CurrentLootList.DropChance);
+		UE_LOG(LogTemp, Warning, TEXT("Loot List Min Amount: %d"), CurrentLootList.MinAmount);
+		UE_LOG(LogTemp, Warning, TEXT("Loot List Max Amount: %d"), CurrentLootList.MaxAmount);
 	}*/
 
 	while (LocalLootCount < LocalLootAmount)
@@ -96,18 +97,20 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 				LocalItemArray.AddUnique(LocalItemIndex);
 				if (GetDataTableRowByName(DataTable, LootListTemp.ID, InventoryItemTemp))
 				{
-					// UE_LOG(LogTemp, Warning, TEXT("Successfully retrieved InventoryItemTemp for ID: %s"), *LootListTemp.ID.ToString());
+					/*UE_LOG(LogTemp, Warning, TEXT("Successfully retrieved InventoryItemTemp for ID: %s"), *InventoryItemTemp.ID.ToString());
+					UE_LOG(LogTemp, Warning, TEXT("Successfully retrieved InventoryItemTemp for MaxStackSize: %d"), InventoryItemTemp.MaxStackSize);*/
 					LocalItemAmount = UKismetMathLibrary::RandomIntegerInRange(LootListTemp.MinAmount, LootListTemp.MaxAmount);
 					if (LocalItemAmount > GetItemMaxStackSize(InventoryItemTemp))
 					{
 						if (!GetItemIsCurrency(InventoryItemTemp))
-						{
-							LocalItemAmount = GetItemMaxStackSize(InventoryItemTemp);
+						{						
+							//LocalItemAmount = GetItemMaxStackSize(InventoryItemTemp);
+							LocalItemAmount = 1;
 						}
 					}
 					InventoryItemArray.Add(SetItemAmount(InventoryItemTemp, LocalItemAmount));
 					//UE_LOG(LogTemp, Warning, TEXT("Added item to InventoryItemArray: %s, Amount: %d"), *InventoryItemTemp.ID.ToString(), LocalItemAmount);
-					LocalLootCount = LocalLootCount + 1;
+					LocalLootCount++;
 				}
 				else
 				{
@@ -116,7 +119,6 @@ TArray<FInventoryItem> ALootActor::GetRandomLootItems()
 			}
 		}
 	}
-
 	return InventoryItemArray;
 }
 

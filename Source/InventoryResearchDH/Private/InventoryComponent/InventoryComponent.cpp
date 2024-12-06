@@ -55,6 +55,9 @@ FInventoryItem UInventoryComponent::GetInventoryItem(int32 InvSlot)
 
 bool UInventoryComponent::SetInventoryItem(int32 InvSlot, FInventoryItem Item)
 {
+    //UE_LOG(LogTemp, Log, TEXT("SetInventoryItem In InvComp: Item ID: %s, Amount: %d"), *Item.ID.ToString(), Item.Amount);
+	
+
 	if (SetInventoryArrayElement(InventoryItems, InvSlot, Item, true))
 	{
 		return true;
@@ -134,13 +137,13 @@ bool UInventoryComponent::LoadInventoryItems(int32 InventorySize, TArray<FInvent
 	}
 	for (int32 j = 0; j < InvItems.Num() - 1; j++)
 	{
-		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems: Item ID: %s, Amount: %d"), *InvItems[j].ID.ToString(), InvItems[j].Amount);
-		SetInventoryItem(j, InventoryItems[j]);
+		// UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems: Item ID: %s, Amount: %d"), *InvItems[j].ID.ToString(), InvItems[j].Amount);
+		SetInventoryItem(j, InvItems[j]);
 	}
 
 	/*for (FInventoryItem InvItem : InventoryItems)
 	{
-		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
+		UE_LOG(LogTemp, Log, TEXT("LoadInventoryItems In InvComp: Item ID: %s, Amount: %d"), *InvItem.ID.ToString(), InvItem.Amount);
 	}*/
 	return true;
 }

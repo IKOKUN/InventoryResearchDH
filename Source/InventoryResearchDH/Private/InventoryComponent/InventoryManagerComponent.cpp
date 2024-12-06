@@ -247,7 +247,7 @@ void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FItemInform
 			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
 			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
 
-			if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex == 0)
+			if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex <= 0)
 			{
 				InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
 			}
@@ -493,11 +493,11 @@ void UInventoryManagerComponent::RefreshInventorySlots()
 		LocalIndex++;
 	}
 
-	for (UInventorySlotWidget* SlotWidget : InventoryUI->InventorySlotWidgets)
+	/*for (UInventorySlotWidget* SlotWidget : InventoryUI->InventorySlotWidgets)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Load Inventory Name : %s"), *SlotWidget->InvSlotItemInformation.ID.ToString());
 		UE_LOG(LogTemp, Error, TEXT("Load Inventory Slot : %d"), SlotWidget->InventorySlotIndex);
-	}
+	}*/
 	UpdateEquippedStats();
 }
 
@@ -522,6 +522,13 @@ void UInventoryManagerComponent::LoadContainerSlots(FContainerInfo ContainerProe
 	{
 		if (InventoryUI->ContainerWidgetComp)
 		{
+			UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Set"));
+			/*for (FItemInformation CurrentItemInfo : ItemInfo)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("LoadContainerSlots ID: %s"), *CurrentItemInfo.ID.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("LoadContainerSlots Amount : %d"), CurrentItemInfo.Amount);
+			}*/
+
 			InventoryUI->ContainerWidgetComp->ContainerName = ContainerProeperties.Name;
 			InventoryUI->ContainerWidgetComp->bIsStorageContainer = ContainerProeperties.bIsStorageContainer;
 			if (InventoryUI->ContainerWidgetComp->bIsStorageContainer)
@@ -552,41 +559,44 @@ void UInventoryManagerComponent::LoadContainerSlots(FContainerInfo ContainerProe
 void UInventoryManagerComponent::CreateContainerSlots(int32 ContainerSize, uint8 SlotsPerRow)
 {
 	ClearContainerSlots();
+
 	if (ContainerSize > 0)
 	{
-		if (InventoryUI)
+		if (InventoryUI && InventoryUI->ContainerWidgetComp)
 		{
-			if (InventoryUI->ContainerWidgetComp)
+			bool bLocalIsStorage = InventoryUI->ContainerWidgetComp->bIsStorageContainer;
+			uint8 LocalMaxRowSize = SlotsPerRow > 0 ? SlotsPerRow : 1; // Ensure no division by 0
+			int32 LocalLoopCount = 0;
+
+            int32 TotalRows = FMath::CeilToInt((float)ContainerSize / LocalMaxRowSize);
+
+			/*UE_LOG(LogTemp, Warning, TEXT("ContainerSize: %d, SlotsPerRow: %d"), ContainerSize, SlotsPerRow);
+			UE_LOG(LogTemp, Warning, TEXT("TotalRows: %d"), TotalRows);
+			UE_LOG(LogTemp, Warning, TEXT("LocalMaxRowSize: %d"), LocalMaxRowSize);*/
+			
+
+			for (int32 i = 0; i < TotalRows; i++)
 			{
-				bool bLocalIsStorage = InventoryUI->ContainerWidgetComp->bIsStorageContainer;
-				uint8 LocalMaxRowSize = SlotsPerRow;
-				int32 LocalLoopCount = 0;
-				// Is A Float To Handle Creating Partial Rows
-				// Round Rows Up!
-				// Always Make Atleast One Row
-				int32 LastIndex = UKismetMathLibrary::Max(UKismetMathLibrary::FCeil(ContainerSize / UKismetMathLibrary::Conv_ByteToDouble(LocalMaxRowSize)) - 1, 0);
-				for (int32 i = 0; i < LastIndex; i++)
+				for (int32 j = 0; j < LocalMaxRowSize; j++)
 				{
-					for (int32 j = 0; j < UKismetMathLibrary::Conv_ByteToInt(LocalMaxRowSize) - 1; j++)
+					if (LocalLoopCount >= ContainerSize)
 					{
-						AddContainerSlot(i, j, LocalLoopCount, bLocalIsStorage);
-						LocalLoopCount++;
-						if (LocalLoopCount == ContainerSize)
-						{
-							break;
-						}
+						break;
 					}
+
+					AddContainerSlot(i, j, LocalLoopCount, bLocalIsStorage);
+					LocalLoopCount++;
 				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Container Widget Comp Not Set"));
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+			UE_LOG(LogTemp, Error, TEXT("Inventory UI or Container Widget Comp Not Set"));
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid Container Size"));
 	}
 }
 
@@ -597,6 +607,7 @@ void UInventoryManagerComponent::ClearContainerSlots()
 		if (InventoryUI->ContainerWidgetComp)
 		{
 			InventoryUI->ContainerWidgetComp->ContainerSlots.Empty();
+			InventoryUI->ContainerWidgetComp->ContainerGridPanel->ClearChildren();
 		}
 		else
 		{
@@ -624,6 +635,11 @@ void UInventoryManagerComponent::SetContainerSlotItem(int32 ContainerSlot, FItem
 				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Icon = ItemInfo.Icon;
 				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Quality = ItemInfo.Quality;
 				InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ItemInformation.Type = ItemInfo.Type;
+				
+				if (InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ContainerSlot <= 0)
+				{
+					InventoryUI->ContainerWidgetComp->ContainerSlots[ContainerSlot]->ContainerSlot = ContainerSlot;
+				}
 
 				// Menangani visibilitas jika bukan container penyimpanan
 				if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
@@ -635,8 +651,8 @@ void UInventoryManagerComponent::SetContainerSlotItem(int32 ContainerSlot, FItem
 				}
 
 				// Tambahkan log jika berhasil
-				UE_LOG(LogTemp, Warning, TEXT("Successfully set container slot %d with Item ID: %s"),
-					ContainerSlot, *ItemInfo.ID.ToString());
+				/*UE_LOG(LogTemp, Warning, TEXT("Successfully set container slot %d with Item ID: %s"),
+					ContainerSlot, *ItemInfo.ID.ToString());*/
 			}
 			else
 			{
@@ -667,6 +683,11 @@ void UInventoryManagerComponent::ClearContainerSlotItem(int32 ContainerSlot)
 			if (!InventoryUI->ContainerWidgetComp->bIsStorageContainer)
 			{
 				InventoryUI->ContainerWidgetComp->ContainerGridPanel->GetChildAt(ContainerSlot)->SetVisibility(ESlateVisibility::Collapsed);
+				UE_LOG(LogTemp, Error, TEXT("Is Storage Container Is False"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Is Storage Container Is True"));
 			}
 		}
 		else
@@ -687,6 +708,7 @@ void UInventoryManagerComponent::AddContainerSlot(int32 Row, int32 Column, int32
 		if (InventoryUI->ContainerWidgetComp)
 		{
 			UContainerSlotWidget* NewSlot = CreateWidget<UContainerSlotWidget>(GetWorld(), ContainerSlotWidgetClass);
+			// UE_LOG(LogTemp, Log, TEXT("Add Container Slot"));
 			if (NewSlot)
 			{
 				UPanelSlot* LocalSlotChild = InventoryUI->ContainerWidgetComp->ContainerGridPanel->AddChild(NewSlot);
@@ -716,6 +738,30 @@ void UInventoryManagerComponent::AddContainerSlot(int32 Row, int32 Column, int32
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
+}
+
+void UInventoryManagerComponent::ClearViewersContainerSlots(int32 ContainerSlot)
+{
+	AIRPlayerController* LocPlayerController = Cast< AIRPlayerController>(GetOwner());
+	if (LocPlayerController)
+	{
+		LocPlayerController->GetInventoryManagerComponent()->ClearContainerSlotItem(ContainerSlot);
+	}
+
+	if (CurrentContainer)
+	{
+		if (!CurrentContainer->GetCanStoreItems())
+		{
+			if (CurrentContainer->GetContainerInvetory()->GetInventoryItemCount() < 1)
+			{
+				CurrentContainer->ContainerLooted();
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Current Container Not Set"));
 	}
 }
 
@@ -1888,11 +1934,17 @@ void UInventoryManagerComponent::RemoveItem(UInventoryComponent* InvComp, int32 
 {
 	if (InvComp)
 	{
+		UE_LOG(LogTemp, Error, TEXT("Remove Item From : %s, And Slot : %d"), *InvComp->GetName(), InvSlot);
 		InvComp->ClearInventoryItem(InvSlot);
+		
 		if (PlayerInventory == InvComp)
 		{
 			// Update HUD Inventory Slot Info
 			ClearInventorySlotItem(InvSlot);
+		}
+		else
+		{
+			ClearViewersContainerSlots(InvSlot);
 		}
 	}
 }
@@ -2011,9 +2063,13 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			// Spawn the actor
-			AWorldActor* DroppedRandomActor = GetWorld()->SpawnActor<AWorldActor>(RandomDropClassActor, RandomTransform, SpawnParams);
+			AWorldActor* DroppedRandomActor = GetWorld()->SpawnActor<AWorldActor>(RandomDropClassActor[LocalInvItem.ID], RandomTransform, SpawnParams);
 			if (DroppedRandomActor)
 			{
+
+				DroppedRandomActor->SetID(LocalInvItem.ID);
+				DroppedRandomActor->SetAmount(LocalInvItem.Amount);
+
 				// Generate random torque values
 				int32 TorqueX = FMath::RandRange(-512, 512);
 				int32 TorqueY = FMath::RandRange(-96, 96);
@@ -2021,25 +2077,58 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 				// Create a torque vector
 				FVector Torque(TorqueX, TorqueY, TorqueZ);
 
-
+				DroppedRandomActor->GetStaticMeshComponent()->SetSimulatePhysics(true);
 				DroppedRandomActor->GetStaticMeshComponent()->AddTorqueInRadians(Torque, NAME_None, true);
 
 				UE_LOG(LogTemp, Log, TEXT("Torque applied: %s"), *Torque.ToString());
+
+				RemoveItem(InvComp, InvSlot);
+				if (InvSlot < GetNumberOfEquipmentSlots())
+				{
+					UpdateEquippedStats();
+				}
+
+				// Add a timer to disable physics after a delay
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(
+					TimerHandle,
+					[=]()
+					{
+						if (DroppedRandomActor && DroppedRandomActor->GetStaticMeshComponent())
+						{
+							DroppedRandomActor->GetStaticMeshComponent()->SetSimulatePhysics(false);
+							UE_LOG(LogTemp, Log, TEXT("Physics simulation disabled for actor: %s"), *DroppedRandomActor->GetName());
+						}
+					},
+					3.0f, // Delay in seconds
+					false // Not looping
+				);
 			}
 			else
 			{
 				if (GEngine)
 				{
 					GEngine->AddOnScreenDebugMessage(
-						-1,                   // Kunci pesan (-1 untuk pesan baru setiap kali)
-						5.0f,                 // Durasi pesan dalam detik
-						FColor::Green,        // Warna pesan
-						FString::Printf(TEXT("Failed To Spawn Actor")) // Pesan
+						-1,
+						5.0f,
+						FColor::Green,
+						FString::Printf(TEXT("Failed To Spawn Actor"))
 					);
-
 				}
 			}
-
+		}
+		else
+		{
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,
+					5.0f,
+					FColor::Green,
+					FString::Printf(TEXT("Destroyed Item"))
+				);
+			}
+			RemoveItem(InvComp, InvSlot);
 		}
 	}
 }

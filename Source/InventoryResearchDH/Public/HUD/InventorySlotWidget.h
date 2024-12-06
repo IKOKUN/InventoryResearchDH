@@ -16,7 +16,7 @@ class UDraggedItemWidget;
 class UDragItem;
 class UToolTipWidget;
 class UButton;
-
+class UInteractSlotWidget;
 /**
  * 
  */
@@ -29,13 +29,13 @@ public:
 	UInventorySlotWidget(const FObjectInitializer& ObjectInitializer);
 
 	TObjectPtr<UToolTipWidget> SlotToolTipInfo;
+	TObjectPtr<UInteractSlotWidget> WidgetSlotInteract;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Background;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> ItemBorder;
-
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Properties")
 	int32 InventorySlotIndex = 0;
@@ -64,6 +64,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
 	TSubclassOf<UUserWidget> ToolTipWidgetClass;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
+	TSubclassOf<UUserWidget> InteractSlotWidgetClass;
+
 	/* Binding Function */
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetBorderVisibility() const;
@@ -78,13 +81,13 @@ public:
 	ESlateVisibility GetBackgroundVisibility() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	UToolTipWidget* GetToolTipWidget() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FSlateBrush GetIconBrush() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	FEventReply  IconOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	UToolTipWidget* GetToolTipWidget() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	void SetInteractSlotWidget();
 	/* End Binding Function*/
 
 protected:
@@ -99,7 +102,6 @@ protected:
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 
 public:
-
 	// Fungsi untuk mendapatkan jumlah entri dalam EEquipmentSlots
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Helper")
 	FORCEINLINE int32 GetNumberOfEquipmentSlots() const {
