@@ -360,6 +360,11 @@ public:
 	// When Using The Hotbar, Finds the First Item Of Same Type In Inventory And Tells The Server To 'Use' it
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
 	void UseHotbarSlot(int32 HotbarSlot);
+
+	// Finds Hotbar With Valid Icon and Inventory Have ID of the Hotbar And Returns The Slot Index
+	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
+	int32 FindValidHotbarSlot();
+
 	/* End Function user Interface */
 protected:
 	virtual void BeginPlay() override;

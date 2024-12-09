@@ -127,7 +127,7 @@ void UHotbarSlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FP
 			}
 			else
 			{
-				TooltipPosition = WidgetPosition + FVector2D(55.f, -125.f); // Offset ke kiri
+				TooltipPosition = WidgetPosition + FVector2D(35.f, -125.f); // Offset ke kiri
 			}
 
 			// Log untuk memeriksa posisi dan ukuran

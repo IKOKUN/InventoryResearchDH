@@ -7,7 +7,6 @@
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "Components/TextBlock.h"
 
-
 UInteractTextWidget::UInteractTextWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {

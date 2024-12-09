@@ -50,6 +50,17 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
+	if (PlayerController)
+	{
+		if (PlayerController->ActiveInteractSlotWidget 
+			&& PlayerController->ActiveInteractSlotWidget != WidgetSlotInteract
+			&& InvSlotItemInformation.Icon)
+		{
+			PlayerController->ActiveInteractSlotWidget->CloseActiveInteractSlotWidget();
+			PlayerController->ActiveInteractSlotWidget = nullptr;
+		}
+	}
+
 	bIsSlotHovered = true;
 	if (!bIsRightMouseButtonDown)
 	{
@@ -78,7 +89,7 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 					}
 					else
 					{
-						TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+						TooltipPosition = WidgetPosition + FVector2D(35.f, -115.f); // Offset ke kiri
 					}
 
 					// Log untuk memeriksa posisi dan ukuran
@@ -135,6 +146,18 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("NativeOnMouseButtonDown called"));
 	}*/
 
+	if (PlayerController)
+	{
+		if (PlayerController->ActiveInteractSlotWidget && 
+			PlayerController->ActiveInteractSlotWidget != WidgetSlotInteract
+			)
+		{
+			PlayerController->ActiveInteractSlotWidget->CloseActiveInteractSlotWidget();
+			PlayerController->ActiveInteractSlotWidget = nullptr;
+			bIsRightMouseButtonDown = false;
+		}
+	}
+
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Left mouse button down in InventorySlotWidget"));
@@ -150,26 +173,47 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 	}
 	else if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
-		if (bIsRightMouseButtonDown)
+		if (InvSlotItemInformation.Icon)
 		{
 			if (WidgetSlotInteract)
 			{
 				WidgetSlotInteract->RemoveFromParent();
 				WidgetSlotInteract = nullptr;
+				bIsRightMouseButtonDown = false;
 			}
-		}
-		else
-		{
-			SetInteractSlotWidget();
-			if (WidgetSlotInteract)
+			else
 			{
-				WidgetSlotInteract->AddToViewport();
-				WidgetSlotInteract->SetPositionInViewport(InMouseEvent.GetScreenSpacePosition());
+				OpenInteractSlotWidget();
+				PlayerController->ActiveInteractSlotWidget = WidgetSlotInteract;
+				if (WidgetSlotInteract)
+				{
+					bIsRightMouseButtonDown = true;
+				}
 			}
+			/*if (bIsRightMouseButtonDown)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Interact Widget Hidden"));
+				if (WidgetSlotInteract)
+				{
+					WidgetSlotInteract->RemoveFromParent();
+					WidgetSlotInteract = nullptr;
+				}
+				bIsRightMouseButtonDown = false;
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Interact Widget Visible"));
+				OpenInteractSlotWidget();
+				PlayerController->ActiveInteractSlotWidget = WidgetSlotInteract;
+				if (WidgetSlotInteract)
+				{
+					bIsRightMouseButtonDown = true;
+				}
+			}*/
 		}
-		
+
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Right mouse button down in InventorySlotWidget"));
-		bIsRightMouseButtonDown = bIsRightMouseButtonDown ? false : true;
+		// bIsRightMouseButtonDown = bIsRightMouseButtonDown ? false : true;
 		return FReply::Handled();
 	}
 
@@ -180,7 +224,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, 
 {
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
-		bIsRightMouseButtonDown = true;
+		// bIsRightMouseButtonDown = true;
 		return FReply::Unhandled();
 	}
 
@@ -192,6 +236,15 @@ FReply UInventorySlotWidget::NativeOnMouseMove(const FGeometry& InGeometry, cons
 	if (InGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()) && InvSlotItemInformation.Icon)
 	{
 		bIsSlotHovered = true;
+		if (bIsRightMouseButtonDown)
+		{
+			// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Remove Tool Tip Info"));
+			if (SlotToolTipInfo)
+			{
+				SlotToolTipInfo->RemoveFromParent();
+				SlotToolTipInfo = nullptr;
+			}
+		}
 		// UE_LOG(LogTemp, Log, TEXT("Mouse is over the slot."));
 	}
 	else
@@ -261,8 +314,6 @@ void UInventorySlotWidget::NativeOnDragDetected(const FGeometry& InGeometry, con
 		UE_LOG(LogTemp, Warning, TEXT("Tidak ada item yang di-drag"));
 	}
 }
-
-
 
 bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
@@ -363,7 +414,6 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 	return false;
 }
 
-
 ESlateVisibility UInventorySlotWidget::GetBorderVisibility() const
 {
 	if (InvSlotItemInformation.Icon)
@@ -375,6 +425,7 @@ ESlateVisibility UInventorySlotWidget::GetBorderVisibility() const
 		return ESlateVisibility::Hidden;
 	}
 }
+
 FText UInventorySlotWidget::GetAmountText() const
 {
 	if (InvSlotItemInformation.Icon)
@@ -390,6 +441,7 @@ FText UInventorySlotWidget::GetAmountText() const
 	// UE_LOG(LogTemp, Log, TEXT("No icon found for the item in the slot."));
 	return FText::GetEmpty(); // Kembalikan teks kosong jika tidak ada ikon
 }
+
 FLinearColor UInventorySlotWidget::GetBorderColor() const
 {
 	FLinearColor LocalColor;
@@ -481,10 +533,10 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 		CurrentToolTipWidget->ItemToolTipInfo.Description = ToolTipInfoPlayerController.Description;
 
 		// Logging untuk memeriksa setiap atribut
-		UE_LOG(LogTemp, Log, TEXT("Tooltip Info:"));
+		/*UE_LOG(LogTemp, Log, TEXT("Tooltip Info:"));
 		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Name: %s"), *InvSlotItemInformation.Name.ToString());
 		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), CurrentToolTipWidget->ItemToolTipInfo.Health);
-		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), ToolTipInfoPlayerController.Health);
+		UE_LOG(LogTemp, Log, TEXT(" Tool Tip Health: %f"), ToolTipInfoPlayerController.Health);*/
 
 
 		// Return sebagai UUserWidget*
@@ -497,7 +549,7 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 	return nullptr;
 }
 
-void UInventorySlotWidget::SetInteractSlotWidget()
+void UInventorySlotWidget::OpenInteractSlotWidget()
 {
 	if (!WidgetSlotInteract)
 	{
@@ -525,7 +577,7 @@ void UInventorySlotWidget::SetInteractSlotWidget()
 			}
 			else
 			{
-				TooltipPosition = WidgetPosition + FVector2D(55.f, -115.f); // Offset ke kiri
+				TooltipPosition = WidgetPosition + FVector2D(30.f, -105.f); // Offset ke kiri
 			}
 
 			// Memastikan tooltip berada dalam batas layar
@@ -535,9 +587,14 @@ void UInventorySlotWidget::SetInteractSlotWidget()
 				GEngine->GameViewport->GetViewportSize(ViewportSize);
 			}
 			// UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
-
 			// UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
 
+			// Set Interact Slot Action Text
+			WidgetSlotInteract->SetInteractSlotActionText(InvSlotItemInformation.Type);
+
+			// Set Drop Button Visibility
+			WidgetSlotInteract->SetDropButtonVisibility(InventorySlotIndex > GetNumberOfEquipmentSlots() - 1);
+			WidgetSlotInteract->ParentSlotWidget = this;
 			WidgetSlotInteract->AddToViewport(); // Menambahkan ke viewport
 			WidgetSlotInteract->SetPositionInViewport(TooltipPosition);
 		}
@@ -545,5 +602,14 @@ void UInventorySlotWidget::SetInteractSlotWidget()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("CurrentInteractSlotWidget Invalid"));
 		}
+	}
+}
+
+void UInventorySlotWidget::CloseInteractSlotWidget()
+{
+	if (WidgetSlotInteract)
+	{
+		WidgetSlotInteract->RemoveFromParent();
+		WidgetSlotInteract = nullptr;
 	}
 }

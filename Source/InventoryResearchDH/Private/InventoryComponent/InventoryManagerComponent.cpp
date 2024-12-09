@@ -917,6 +917,22 @@ void UInventoryManagerComponent::UseHotbarSlot(int32 HotbarSlot)
 	}
 }
 
+int32 UInventoryManagerComponent::FindValidHotbarSlot()
+{
+	if (InventoryUI && InventoryUI->HotbarWidgetComp)
+	{
+		for (int32 i = 0; i < InventoryUI->HotbarWidgetComp->HotbarSlots.Num(); i++)
+		{
+			if (InventoryUI->HotbarWidgetComp->HotbarSlots[i]->HotbarItemInformation.Icon)
+			{
+				return i;
+			}
+		}
+
+	}
+	return int32();
+}
+
 void UInventoryManagerComponent::InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget)
 {
 	InventoryUI = InventoryWidget;
@@ -1178,10 +1194,11 @@ void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot, int32 HotbarSlo
 		switch (ItemType(LocalInvItem))
 		{
 		case EItemType::Equipment:
-			UseEquipmentItem(InvSlot, LocalInvItem, ContainerInventory);
+			UE_LOG(LogTemp, Log, TEXT("Use Equipment Item"));
+			UseEquipmentItem(InvSlot, LocalInvItem, PlayerInventory);
 			break;
 		case EItemType::Consumable:
-			// UE_LOG(LogTemp, Error, TEXT("Use Consumable Item"));
+			UE_LOG(LogTemp, Log, TEXT("Use Consumable Item"));
 			UseConsumableItem(InvSlot, HotbarSlot, LocalInvItem);
 			break;
 		default:
@@ -1242,13 +1259,13 @@ void UInventoryManagerComponent::UseConsumableItem(int32 InvSlot, int32 HotbarSl
 			bool bWasFullAmountRemoved = RemoveFromItemAmount(InvItem, LocAmount);
 			if (bWasFullAmountRemoved)
 			{
-				UE_LOG(LogTemp, Error, TEXT("fully removed"));
+				UE_LOG(LogTemp, Warning, TEXT("fully removed"));
 				RemoveItem(PlayerInventory, InvSlot);
 				ClearHotbarSlotItem(HotbarSlot);
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("not full removed"));
+				UE_LOG(LogTemp, Warning, TEXT("not full removed"));
 				AddItem(PlayerInventory, InvSlot, InvItem);
 			}
 		}
@@ -1934,7 +1951,7 @@ void UInventoryManagerComponent::RemoveItem(UInventoryComponent* InvComp, int32 
 {
 	if (InvComp)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Remove Item From : %s, And Slot : %d"), *InvComp->GetName(), InvSlot);
+		UE_LOG(LogTemp, Log, TEXT("Remove Item From : %s, And Slot : %d"), *InvComp->GetName(), InvSlot);
 		InvComp->ClearInventoryItem(InvSlot);
 		
 		if (PlayerInventory == InvComp)
@@ -1946,6 +1963,10 @@ void UInventoryManagerComponent::RemoveItem(UInventoryComponent* InvComp, int32 
 		{
 			ClearViewersContainerSlots(InvSlot);
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Not Set"));
 	}
 }
 
@@ -2130,6 +2151,10 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 			}
 			RemoveItem(InvComp, InvSlot);
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory Component Invalid"));
 	}
 }
 

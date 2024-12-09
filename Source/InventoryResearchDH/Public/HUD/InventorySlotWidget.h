@@ -87,7 +87,10 @@ public:
 	UToolTipWidget* GetToolTipWidget() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	void SetInteractSlotWidget();
+	void OpenInteractSlotWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	void CloseInteractSlotWidget();
 	/* End Binding Function*/
 
 protected:

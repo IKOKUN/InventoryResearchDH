@@ -15,6 +15,7 @@ class UHUDLayoutWidget;
 class AUsableActorBase;
 class AIRCharacter;
 class AIRHUD;
+class UInteractSlotWidget;
 struct FInputActionValue;
 
 UENUM(BlueprintType)
@@ -98,6 +99,9 @@ public:
 
 	FName EnumToFName(EClassesHero EnumValue);
 	FName EnumToFNameByValue(EClassesHero EnumValue);
+
+	// Interact Slot Widget
+	TObjectPtr<UInteractSlotWidget> ActiveInteractSlotWidget;
 protected:
 	virtual void BeginPlay() override;
 	virtual void PlayerTick(float DeltaTime) override;
