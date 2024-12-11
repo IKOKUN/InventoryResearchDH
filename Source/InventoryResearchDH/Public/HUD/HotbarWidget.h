@@ -26,9 +26,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Hotbar")
 	bool bIsHotbarLocked = true;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Drag Widget")
-    TSubclassOf<UDragWidget> DragWidgetClass;
-
     // Bind setiap slot widget ke kode C++
     UPROPERTY(meta = (BindWidget))
     UHotbarSlotWidget* HotbarSlot_0;
@@ -55,7 +52,7 @@ public:
     UHotbarSlotWidget* HotbarSlot_7;
 protected:
 	virtual void NativeConstruct() override;
-    virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-    virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
-    virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+    //virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+    //virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+    //virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 };

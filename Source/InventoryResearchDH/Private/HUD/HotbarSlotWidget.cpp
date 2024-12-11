@@ -4,7 +4,10 @@
 #include "HUD/HotbarSlotWidget.h"
 
 #include "Controller/IRPlayerController.h"
+#include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
+#include "HUD/InventorySlotWidget.h"
+#include "HUD/InteractSlotWidget.h"
 #include "HUD/DraggedItemWidget.h"
 #include "HUD/DragItem.h"
 #include "HUD/ToolTipWidget.h"

@@ -12,6 +12,8 @@ class UContainerWidget;
 class UEquipmentWidget;
 class UInventoryWidget;
 class UHotbarWidget;
+class UBackgroundBlur;
+class AIRPlayerController;
 
 /**
  * 
@@ -45,6 +47,10 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHotbarWidget> HotbarWidgetComp;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UBackgroundBlur> InventoryLayoutBackground;
+	
 	/* End Bind Widget */
 
 	TObjectPtr<AIRPlayerController> PlayerController;

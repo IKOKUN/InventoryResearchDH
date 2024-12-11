@@ -5,8 +5,6 @@
 
 #include "HUD/InventorySlotWidget.h"
 #include "Controller/IRPlayerController.h"
-#include "InventoryComponent/EquipmentInventoryComponent.h"
-#include "InventoryComponent/InventoryManagerComponent.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 
@@ -64,7 +62,6 @@ void UInteractSlotWidget::OnDropButtonClicked()
         {
             PlayerController->UI_Use_Inventory_Item(InteractSlotIndex);
         }
-        
     }
 
 	CloseActiveInteractSlotWidget();
@@ -72,14 +69,7 @@ void UInteractSlotWidget::OnDropButtonClicked()
 
 void UInteractSlotWidget::SetInteractSlotActionText(EItemType Type)
 {
-    // Fix for Problem 1: Remove the invalid assignment
-    // EquipButtonActionText = FText::FromString("Equip");
-
-    // Fix for Problem 2: Correct the missing closing quote and invalid variable name
-    // EquipButtonActionTextEquip = FText::FromString("Un Equ
     EquipButtonActionText = FText::FromString("Equip");
-
-    // Fix for Problem 3: Correct the switch statement syntax
     switch (Type)
     {
     case EItemType::Consumable:

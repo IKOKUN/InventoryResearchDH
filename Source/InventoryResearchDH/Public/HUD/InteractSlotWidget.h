@@ -51,6 +51,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Properties")
 	ESlateVisibility DropButtonVisibility = ESlateVisibility::Visible;
 
+	
 
 	UPROPERTY(BlueprintReadOnly, Category = "Controller")
 	TObjectPtr<UInventorySlotWidget> ParentSlotWidget;

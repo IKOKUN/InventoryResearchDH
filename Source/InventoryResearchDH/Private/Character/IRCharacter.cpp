@@ -3,6 +3,7 @@
 
 #include "Character/IRCharacter.h"
 
+#include "Character/IREquipmentCharacter.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -78,6 +79,16 @@ void AIRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Pastikan RecordCharacter valid
+	//if (!RecordCharacter)
+	//{
+	//	RecordCharacter = GetWorld()->SpawnActor<AIREquipmentCharacter>();
+	//	if (RecordCharacter)
+	//	{
+	//		RecordCharacter->GetMesh()->SetVisibility(false); // Hanya sembunyikan mesh
+	//		RecordCharacter->SetActorHiddenInGame(false);    // Tetap render di Scene Capture
+	//	}
+	//}
 }
 
 void AIRCharacter::Tick(float DeltaTime)
@@ -94,84 +105,111 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AIRCharacter::UpdateEquipmentMesh(bool bIsEquip)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Record Character : %s"), *RecordCharacter->GetName());
 	if (bIsEquip)
 	{
 		if (HeadMesh)
 		{
 			Head->SetSkeletalMesh(HeadMesh);
 			Head->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->HeadMesh = HeadMesh;
 		}
 
 		if (ChestMesh)
 		{
 			Chest->SetSkeletalMesh(ChestMesh);
 			Chest->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->ChestMesh = ChestMesh;
 		}
 
 		if (HandsMesh)
 		{
 			Hands->SetSkeletalMesh(HandsMesh);
 			Hands->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->HandsMesh = HandsMesh;
 		}
 
 		if (ShoulderMesh)
 		{
 			Shoulder->SetSkeletalMesh(ShoulderMesh);
 			Shoulder->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->ShoulderMesh = ShoulderMesh;
 		}
 
 		if (WaistMesh)
 		{
 			Waist->SetSkeletalMesh(WaistMesh);
 			Waist->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->WaistMesh = WaistMesh;
 		}
 
 		if (BackMesh)
 		{
 			Back->SetSkeletalMesh(BackMesh);
 			Back->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->BackMesh = BackMesh;
 		}
 
 		if (LegsMesh)
 		{
 			Legs->SetSkeletalMesh(LegsMesh);
 			Legs->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->LegsMesh = LegsMesh;
 		}
 
 		if (FeetMesh)
 		{
 			Feet->SetSkeletalMesh(FeetMesh);
 			Feet->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->FeetMesh = FeetMesh;
 		}
 
 		if (AccessoryMesh)
 		{
 			Accessory->SetSkeletalMesh(AccessoryMesh);
 			Accessory->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->AccessoryMesh = AccessoryMesh;
 		}
 
 		if (RightRingMesh)
 		{
 			RightRing->SetSkeletalMesh(RightRingMesh);
 			RightRing->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->RightRingMesh = RightRingMesh;
 		}
 
 		if (LeftRingMesh)
 		{
 			LeftRing->SetSkeletalMesh(LeftRingMesh);
 			LeftRing->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->LeftRingMesh = LeftRingMesh;
 		}
 
 		if (MainHandMesh)
 		{
 			MainHand->SetSkeletalMesh(MainHandMesh);
 			MainHand->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->MainHandMesh = MainHandMesh;
 		}
 
 		if (OffHandMesh)
 		{
 			OffHand->SetSkeletalMesh(OffHandMesh);
 			OffHand->LeaderPoseComponent = GetMesh();
+
+			RecordCharacter->OffHandMesh = OffHandMesh;
 		}
 	}
 	else
@@ -242,6 +280,11 @@ void AIRCharacter::UpdateEquipmentMesh(bool bIsEquip)
 		LeftRingMesh = nullptr;
 		MainHandMesh = nullptr;
 		OffHandMesh = nullptr;
+	}
+
+	if (RecordCharacter)
+	{
+		RecordCharacter->UpdateEquipmentMesh(bIsEquip);
 	}
 }
 

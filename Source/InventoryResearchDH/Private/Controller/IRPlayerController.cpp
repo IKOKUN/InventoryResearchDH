@@ -10,6 +10,7 @@
 #include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "UsableActor/UsableActorBase.h"
+#include "UsableActor/ContainerActor.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Character.h"
@@ -101,7 +102,7 @@ void AIRPlayerController::SetupInputComponent()
 
 void AIRPlayerController::Move(const FInputActionValue& Value)
 {
-	if (!bOnInspectObject)
+	if (!bOnInspectObject || InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		const FVector2D InputAxisVector = Value.Get<FVector2D>();
 		const FRotator Rotation = GetControlRotation();
@@ -128,7 +129,7 @@ void AIRPlayerController::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (!bOnInspectObject)
+	if (!bOnInspectObject || InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		if (APawn* ControlledPawn = GetPawn<APawn>())
 		{
@@ -177,6 +178,9 @@ void AIRPlayerController::OpenEquipmentAndInventory()
 			InventoryManagerComponent->CloseInventoryWindow();
 			InventoryManagerComponent->CloseEquipmentWindow();
 
+			FInputModeUIOnly InputModeData;
+			SetInputMode(InputModeData);
+			bShowMouseCursor = false;
 			// UE_LOG(LogTemp, Error, TEXT("Close And Inventory"));
 		}
 		else
@@ -184,6 +188,22 @@ void AIRPlayerController::OpenEquipmentAndInventory()
 			InventoryManagerComponent->OpenInventoryWindow();
 			InventoryManagerComponent->OpenEquipmentWindow();
 
+			FInputModeGameAndUI InputModeData;
+			bShowMouseCursor = true;
+			if (HUDReference->IsValidLowLevel())
+			{
+				TSharedPtr<SWidget> HUDRefTakeWidget = HUDReference->TakeWidget();
+				InputModeData.SetWidgetToFocus(HUDRefTakeWidget);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("HUDReference is invalid for setting WidgetToFocus"));
+				return;
+			}
+			SetInputMode(InputModeData);
+
+			bShowMouseCursor = true;
+			
 			// UE_LOG(LogTemp, Error, TEXT("Open Equipment And Inventory"));
 		}
 	}
@@ -720,24 +740,10 @@ void AIRPlayerController::InitializePlayer()
 	}
 
 	// Configure input mode and mouse cursor
-	bShowMouseCursor = true;
+	bShowMouseCursor = false;
 	DefaultMouseCursor = EMouseCursor::GrabHand;
 
-	FInputModeGameAndUI InputModeData;
-	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputModeData.SetHideCursorDuringCapture(false);
-
-	if (HUDReference->IsValidLowLevel())
-	{
-		TSharedPtr<SWidget> HUDRefTakeWidget = HUDReference->TakeWidget();
-		InputModeData.SetWidgetToFocus(HUDRefTakeWidget);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("HUDReference is invalid for setting WidgetToFocus"));
-		return;
-	}
-
+	FInputModeGameOnly InputModeData;
 	SetInputMode(InputModeData);
 
 	// Log the controlled pawn

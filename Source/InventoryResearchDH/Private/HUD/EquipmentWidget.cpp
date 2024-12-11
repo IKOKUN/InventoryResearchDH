@@ -19,19 +19,6 @@ void UEquipmentWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	PlayerController = Cast<AIRPlayerController>(GetOwningPlayer());
-
-	if (CloseButton)
-	{
-		CloseButton->OnClicked.AddDynamic(this, &UEquipmentWidget::OnClicked_CloseButton); // Fix for Problem 4
-	}
-}
-
-void UEquipmentWidget::OnClicked_CloseButton()
-{
-	if (PlayerController)
-	{
-		PlayerController->UI_Close_Equipment();
-	}
 }
 
 FText UEquipmentWidget::GetDamageText() const

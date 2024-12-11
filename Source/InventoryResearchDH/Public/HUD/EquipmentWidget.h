@@ -8,6 +8,7 @@
 
 class AIRPlayerController;
 class UInventorySlotWidget;
+class UDragWidget;
 class UButton;
 class UTextBlock;
 /**
@@ -36,9 +37,6 @@ public:
 	/* Bind Widget */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ArmorText;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> CloseButton;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> DamageText;
@@ -99,8 +97,6 @@ public:
 	TSubclassOf<UDragWidget> DragWidgetClass;
 
 	/* Bind Function */
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	void OnClicked_CloseButton();
 
 	UFUNCTION(BlueprintCallable, Category = "Bind Function")
 	FText GetDamageText() const;

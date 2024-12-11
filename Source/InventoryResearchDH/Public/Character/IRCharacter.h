@@ -8,6 +8,8 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class AIREquipmentCharacter;
+
 
 UCLASS()
 class INVENTORYRESEARCHDH_API AIRCharacter : public ACharacter
@@ -24,7 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void UpdateEquipmentMesh(bool bIsEquip);
+	virtual void UpdateEquipmentMesh(bool bIsEquip);
 
 	// Component for Attachment Equipment
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Equipment")
@@ -110,6 +112,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	TObjectPtr<AActor> MainHandWeaponRef;
 
+	// Ref Of Record Character Equipment
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ref")
+	TObjectPtr<AIREquipmentCharacter> RecordCharacter;
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;

@@ -10,6 +10,9 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Data/ItemQuality.h"
 #include "Data/QualityColors.h"
+#include "Engine/GameViewportClient.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 
 UInventorySlotWidget::UInventorySlotWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -89,7 +92,7 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 					}
 					else
 					{
-						TooltipPosition = WidgetPosition + FVector2D(35.f, -115.f); // Offset ke kiri
+						TooltipPosition = WidgetPosition + FVector2D(105.f, -40.f); // Offset ke kiri
 					}
 
 					// Log untuk memeriksa posisi dan ukuran
@@ -190,26 +193,6 @@ FReply UInventorySlotWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry
 					bIsRightMouseButtonDown = true;
 				}
 			}
-			/*if (bIsRightMouseButtonDown)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Interact Widget Hidden"));
-				if (WidgetSlotInteract)
-				{
-					WidgetSlotInteract->RemoveFromParent();
-					WidgetSlotInteract = nullptr;
-				}
-				bIsRightMouseButtonDown = false;
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Interact Widget Visible"));
-				OpenInteractSlotWidget();
-				PlayerController->ActiveInteractSlotWidget = WidgetSlotInteract;
-				if (WidgetSlotInteract)
-				{
-					bIsRightMouseButtonDown = true;
-				}
-			}*/
 		}
 
 		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Right mouse button down in InventorySlotWidget"));
@@ -233,6 +216,7 @@ FReply UInventorySlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, 
 
 FReply UInventorySlotWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("NativeOnMouseMove"));
 	if (InGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()) && InvSlotItemInformation.Icon)
 	{
 		bIsSlotHovered = true;
@@ -360,7 +344,7 @@ bool UInventorySlotWidget::NativeOnDrop(const FGeometry& InGeometry, const FDrag
 			else if (InventorySlotIndex < GetNumberOfEquipmentSlots())
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Equip Item From Inventory"));
-				PlayerController->UI_Equip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex);
+				PlayerController->UI_Equip_Inventory_Item(LocalDraggedSlotIndex, InventorySlotIndex); 
 			}
 			else if (PlayerController->UI_Get_IsShiftKeyDown())
 			{
@@ -492,12 +476,12 @@ FSlateBrush UInventorySlotWidget::GetIconBrush() const
 	if (InvSlotItemInformation.Icon)
 	{
 		LocalBrush.SetResourceObject(InvSlotItemInformation.Icon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+		LocalBrush.SetImageSize(FVector2D(120.0f, 120.0f));
 	}
 	else
 	{
 		LocalBrush.SetResourceObject(BackgroundIcon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+		LocalBrush.SetImageSize(FVector2D(120.0f, 120.0f));
 	}
 	return LocalBrush;
 }
@@ -549,6 +533,10 @@ UToolTipWidget* UInventorySlotWidget::GetToolTipWidget() const
 	return nullptr;
 }
 
+#include "Components/CanvasPanelSlot.h"
+
+// ...
+
 void UInventorySlotWidget::OpenInteractSlotWidget()
 {
 	if (!WidgetSlotInteract)
@@ -558,36 +546,54 @@ void UInventorySlotWidget::OpenInteractSlotWidget()
 			// Buat Interact Widget baru
 			WidgetSlotInteract = CreateWidget<UInteractSlotWidget>(PlayerController, InteractSlotWidgetClass);
 		}
-	
+
 		if (WidgetSlotInteract)
 		{
 			// Set data tooltip
 			WidgetSlotInteract->InteractSlotItemInformation = InvSlotItemInformation;
 			WidgetSlotInteract->InteractSlotIndex = InventorySlotIndex;
 
-			// Mendapatkan posisi dan ukuran widget slot
-			FGeometry WidgetGeometry = GetCachedGeometry();
-			FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
-			FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
-			FVector2D TooltipPosition;
-			// Menghitung posisi tooltip berdasarkan posisi widget slot
-			if (WidgetPosition.X > 2000.f)
-			{
-				TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
-			}
-			else
-			{
-				TooltipPosition = WidgetPosition + FVector2D(30.f, -105.f); // Offset ke kiri
-			}
+			// Default ukuran viewport jika gagal mendapatkan ukuran
+			FVector2D ViewportSize(1920.f, 1080.f);
+			FVector2D DPIAdjustedPosition;
+			FVector2D AdditivePosition;
 
-			// Memastikan tooltip berada dalam batas layar
-			FVector2D ViewportSize;
+			// Target posisi untuk layar penuh (1920x1080)
+			const FVector2D TargetPosition(912.230529f, 108.238290f);
+			const FVector2D ReferenceResolution(1920.f, 1080.f); // Resolusi referensi (standar)
+
 			if (GEngine && GEngine->GameViewport)
 			{
+				// Mendapatkan ukuran viewport yang tepat (termasuk full-screen atau windowed)
 				GEngine->GameViewport->GetViewportSize(ViewportSize);
+
+				// Mendapatkan posisi absolut widget dalam layar
+				const FGeometry& Geometry = GetCachedGeometry();
+				const FVector2D AbsolutePosition = Geometry.GetAbsolutePosition();
+
+				// Mendapatkan skala DPI
+				const FVector2D ScreenSpacePosition = AbsolutePosition / Geometry.Scale;
+
+				// Menghitung posisi tooltip yang disesuaikan berdasarkan ViewportSize dan resolusi referensi
+				DPIAdjustedPosition.X = (ScreenSpacePosition.X / ViewportSize.X) * ReferenceResolution.X;
+				DPIAdjustedPosition.Y = (ScreenSpacePosition.Y / ViewportSize.Y) * ReferenceResolution.Y;
+
+				// Menyesuaikan posisi tooltip untuk menjaga posisi konsisten
+				AdditivePosition.X = DPIAdjustedPosition.X + (TargetPosition.X - DPIAdjustedPosition.X);
+				AdditivePosition.Y = DPIAdjustedPosition.Y + (TargetPosition.Y - DPIAdjustedPosition.Y);
+
+				// Debug log untuk membantu memverifikasi nilai
+				UE_LOG(LogTemp, Log, TEXT("Absolute Position: X=%f, Y=%f"), AbsolutePosition.X, AbsolutePosition.Y);
+				UE_LOG(LogTemp, Log, TEXT("Viewport Size: X=%f, Y=%f"), ViewportSize.X, ViewportSize.Y);
+				UE_LOG(LogTemp, Log, TEXT("Tooltip Position (Adjusted): X=%f, Y=%f"), AdditivePosition.X, AdditivePosition.Y);
 			}
-			// UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
-			// UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
+
+			// Menentukan posisi tooltip dengan sedikit offset agar tooltip tidak menutupi objek
+			FVector2D TooltipPosition = AdditivePosition + FVector2D(40.f, -20.f); // Offset kanan atas
+
+			// Memastikan tooltip tetap berada dalam batas layar
+			TooltipPosition.X = FMath::Clamp(TooltipPosition.X, 0.f, ViewportSize.X - 200.f); // Sesuaikan ukuran tooltip
+			TooltipPosition.Y = FMath::Clamp(TooltipPosition.Y, 0.f, ViewportSize.Y - 50.f);  // Sesuaikan ukuran tooltip
 
 			// Set Interact Slot Action Text
 			WidgetSlotInteract->SetInteractSlotActionText(InvSlotItemInformation.Type);
@@ -604,6 +610,7 @@ void UInventorySlotWidget::OpenInteractSlotWidget()
 		}
 	}
 }
+
 
 void UInventorySlotWidget::CloseInteractSlotWidget()
 {

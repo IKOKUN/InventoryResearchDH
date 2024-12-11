@@ -22,6 +22,7 @@
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "Components/Widget.h"
+#include "Components/BackgroundBlur.h"
 #include "Kismet/KismetMathLibrary.h"
 
 // Sets default values for this component's properties
@@ -238,26 +239,31 @@ void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FItemInform
 {
 	if (InventoryUI)
 	{
-		if (InventoryUI->InventorySlotWidgets[InvSlot])
+		if (InventoryUI && InventoryUI->InventorySlotWidgets.IsValidIndex(InvSlot))
 		{
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.ID = InvItem.ID;
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Name = InvItem.Name;
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Amount = InvItem.Amount;
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Icon = InvItem.Icon;
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
-			InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
-
-			if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex <= 0)
+			if (InventoryUI->InventorySlotWidgets[InvSlot])
 			{
-				InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.ID = InvItem.ID;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Name = InvItem.Name;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Amount = InvItem.Amount;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Icon = InvItem.Icon;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Quality = InvItem.Quality;
+				InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation.Type = InvItem.Type;
+
+				if (InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex <= 0)
+				{
+					InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Inventory Slot Widget Not Set for slot: %d"), InvSlot);
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("Inventory Slot Widget Not Set"));
+			UE_LOG(LogTemp, Error, TEXT("Invalid InvSlot: %d or Inventory UI not initialized properly"), InvSlot);
 		}
-		
-		//UE_LOG(LogTemp, Error, TEXT("Inv Slot On InvSLotItem : %d"), InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex);
 	}
 	else
 	{
@@ -917,20 +923,18 @@ void UInventoryManagerComponent::UseHotbarSlot(int32 HotbarSlot)
 	}
 }
 
-int32 UInventoryManagerComponent::FindValidHotbarSlot()
+void UInventoryManagerComponent::ClearHotbarSlotWhenDrop(FName DroppedItemID)
 {
 	if (InventoryUI && InventoryUI->HotbarWidgetComp)
 	{
 		for (int32 i = 0; i < InventoryUI->HotbarWidgetComp->HotbarSlots.Num(); i++)
 		{
-			if (InventoryUI->HotbarWidgetComp->HotbarSlots[i]->HotbarItemInformation.Icon)
+			if (InventoryUI->HotbarWidgetComp->HotbarSlots[i]->HotbarItemInformation.ID == DroppedItemID)
 			{
-				return i;
+				ClearHotbarSlotItem(i);
 			}
 		}
-
 	}
-	return int32();
 }
 
 void UInventoryManagerComponent::InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget)
@@ -1543,6 +1547,7 @@ void UInventoryManagerComponent::OpenInventoryWindow()
 		if (InventoryUI->InventoryWidgetComp)
 		{
 			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Visible;
+			InventoryUI->InventoryLayoutBackground->BlurStrength = 4.f;
 			bIsInventoryOpen = true;
 
 			// UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Visible"));
@@ -1565,6 +1570,7 @@ void UInventoryManagerComponent::CloseInventoryWindow()
 		if (InventoryUI->InventoryWidgetComp)
 		{
 			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Hidden;
+			InventoryUI->InventoryLayoutBackground->BlurStrength = 0.f;
 			bIsInventoryOpen = false;
 			int32 StartIndex = GetNumberOfEquipmentSlots();
 			int32 EndIndex = InventoryUI->InventorySlotWidgets.Num() - 1;
@@ -2067,6 +2073,8 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 	if (InvComp)
 	{
 		FInventoryItem LocalInvItem = InvComp->GetInventoryItem(InvSlot);
+
+		ClearHotbarSlotWhenDrop(LocalInvItem.ID);
 		if (ItemIsDroppable(LocalInvItem))
 		{
 			if (GEngine)

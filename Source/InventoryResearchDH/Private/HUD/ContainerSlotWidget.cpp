@@ -463,12 +463,12 @@ FSlateBrush UContainerSlotWidget::GetIconBrush() const
 	if (ItemInformation.Icon)
 	{
 		LocalBrush.SetResourceObject(ItemInformation.Icon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+		//LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
 	}
 	else
 	{
 		LocalBrush.SetResourceObject(BackgroundIcon);
-		LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
+		//LocalBrush.SetImageSize(FVector2D(64.0f, 64.0f));
 	}
 	return LocalBrush;
 }

@@ -6,6 +6,7 @@
 #include "HUD/DragWidget.h"
 #include "HUD/DragItem.h"
 #include "HUD/InventorySlotWidget.h"
+#include "Components/BackgroundBlur.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Controller/IRPlayerController.h"

@@ -361,9 +361,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
 	void UseHotbarSlot(int32 HotbarSlot);
 
-	// Finds Hotbar With Valid Icon and Inventory Have ID of the Hotbar And Returns The Slot Index
+	// Clear Hotbar Slot When Drop Any Item
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
-	int32 FindValidHotbarSlot();
+	void ClearHotbarSlotWhenDrop(FName DroppedItemID);
 
 	/* End Function user Interface */
 protected:
