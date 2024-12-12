@@ -69,23 +69,40 @@ void UInteractSlotWidget::OnDropButtonClicked()
 
 void UInteractSlotWidget::SetInteractSlotActionText(EItemType Type)
 {
+	SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+    // Log tipe item yang diterima
+    UE_LOG(LogTemp, Log, TEXT("SetInteractSlotActionText called with EItemType: %d"), static_cast<int32>(Type));
+
     EquipButtonActionText = FText::FromString("Equip");
+    UE_LOG(LogTemp, Log, TEXT("Default EquipButtonActionText set to: %s"), *EquipButtonActionText.ToString());
+
     switch (Type)
     {
     case EItemType::Consumable:
         EquipButtonActionText = FText::FromString("Use");
+        UE_LOG(LogTemp, Log, TEXT("EItemType is Consumable. EquipButtonActionText set to: %s"), *EquipButtonActionText.ToString());
         break;
+
     case EItemType::Equipment:
+        UE_LOG(LogTemp, Log, TEXT("EItemType is Equipment. Checking InteractSlotIndex and equipment slots."));
+
+        // Log kondisi untuk Equipment
+        UE_LOG(LogTemp, Log, TEXT("InteractSlotIndex: %d, Number of Equipment Slots: %d"), InteractSlotIndex, GetNumberOfEquipmentSlots());
+
         if (InteractSlotIndex > GetNumberOfEquipmentSlots() - 1)
         {
             EquipButtonActionText = FText::FromString("Equip");
+            UE_LOG(LogTemp, Log, TEXT("InteractSlotIndex is greater than available slots. EquipButtonActionText set to: %s"), *EquipButtonActionText.ToString());
         }
         else
         {
             EquipButtonActionText = FText::FromString("Un Equip");
+            UE_LOG(LogTemp, Log, TEXT("InteractSlotIndex is within available slots. EquipButtonActionText set to: %s"), *EquipButtonActionText.ToString());
         }
         break;
+
     default:
+        UE_LOG(LogTemp, Warning, TEXT("Unhandled EItemType in SetInteractSlotActionText. No action taken."));
         break;
     }
 }
@@ -100,13 +117,12 @@ void UInteractSlotWidget::CloseActiveInteractSlotWidget()
     if (ParentSlotWidget)
     {
         ParentSlotWidget->bIsRightMouseButtonDown = false;
-        ParentSlotWidget->WidgetSlotInteract = nullptr;
+        ParentSlotWidget->WBP_InteractSlot->SetVisibility(ESlateVisibility::Hidden);
     }
     else
     {
         UE_LOG(LogTemp, Error, TEXT("CloseActiveInteractSlotWidget: Failed to cast to UInventorySlotWidget"));
     }
 
-    RemoveFromParent();
-    Destruct();
+	SetVisibility(ESlateVisibility::Hidden);
 }

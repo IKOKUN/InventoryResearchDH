@@ -178,7 +178,7 @@ void AIRPlayerController::OpenEquipmentAndInventory()
 			InventoryManagerComponent->CloseInventoryWindow();
 			InventoryManagerComponent->CloseEquipmentWindow();
 
-			FInputModeUIOnly InputModeData;
+			FInputModeGameOnly InputModeData;
 			SetInputMode(InputModeData);
 			bShowMouseCursor = false;
 			// UE_LOG(LogTemp, Error, TEXT("Close And Inventory"));

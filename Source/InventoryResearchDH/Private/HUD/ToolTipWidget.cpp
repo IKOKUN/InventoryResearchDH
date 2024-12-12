@@ -14,17 +14,6 @@ UToolTipWidget::UToolTipWidget(const FObjectInitializer& ObjectInitializer)
 {
 }
 
-ESlateVisibility UToolTipWidget::GetBorderVisibility() const
-{
-	if (ItemToolTipInfo.Icon)
-	{
-		////UE_LOG(LogTemp, Log, TEXT("GetBorderVisibility: Icon is valid."));
-		return ESlateVisibility::SelfHitTestInvisible;
-	}
-	////UE_LOG(LogTemp, Log, TEXT("GetBorderVisibility: Icon is nullptr."));
-	return ESlateVisibility::Hidden;
-}
-
 FLinearColor UToolTipWidget::GetBorderColor() const
 {
 	FLinearColor LocalColor;
@@ -58,23 +47,6 @@ FLinearColor UToolTipWidget::GetBorderColor() const
 	return LocalColor;
 }
 
-ESlateVisibility UToolTipWidget::GetToolTipVisibility() const
-{
-	if (ItemToolTipInfo.Icon)
-	{
-		//UE_LOG(LogTemp, Log, TEXT("GetToolTipVisibility: Icon is valid."));
-		return ESlateVisibility::SelfHitTestInvisible;
-	}
-	//UE_LOG(LogTemp, Log, TEXT("GetToolTipVisibility: Icon is nullptr."));
-	return ESlateVisibility::Hidden;
-}
-
-FText UToolTipWidget::GetNameText() const
-{
-	//UE_LOG(LogTemp, Log, TEXT("GetNameText: Name is %s."), *ItemToolTipInfo.Name.ToString());
-	return FText::FromName(ItemToolTipInfo.Name);
-}
-
 FText UToolTipWidget::GetTypeText() const
 {
 	FString TypeString;
@@ -95,7 +67,7 @@ FText UToolTipWidget::GetTypeText() const
 			TypeString = FString::Printf(TEXT("Miscellaneous"));
 			return FText::FromString(TypeString);
 		default:
-			////UE_LOG(LogTemp, Warning, TEXT("GetTypeText: Unknown EquipmentType."));
+			//UE_LOG(LogTemp, Warning, TEXT("GetTypeText: Unknown EquipmentType."));
 			break;
 		}
 	}
@@ -111,6 +83,55 @@ FText UToolTipWidget::GetTypeText() const
 		return FText::FromString(TypeString);
 	}
 	return FText();
+}
+
+FText UToolTipWidget::GetUseText() const
+{
+	if (ItemToolTipInfo.ItemType == EItemType::Consumable)
+	{
+		if (ItemToolTipInfo.Duration < 1.f)
+		{
+			FString UseString = FString::Printf(TEXT("Use: Restores %.2f Health"), ItemToolTipInfo.Health);
+			//UE_LOG(LogTemp, Log, TEXT("GetUseText: Restores %.2f Health."), ItemToolTipInfo.Health);
+			return FText::FromString(UseString);
+		}
+		else
+		{
+			FString UseString = FString::Printf(TEXT("Use: Restores %.2f health over %.2f sec."), ItemToolTipInfo.Health, ItemToolTipInfo.Duration);
+			//UE_LOG(LogTemp, Log, TEXT("GetUseText: Restores %.2f health over %.2f sec."), ItemToolTipInfo.Health, ItemToolTipInfo.Duration);
+			return FText::FromString(UseString);
+		}
+	}
+	//UE_LOG(LogTemp, Log, TEXT("GetUseText: Item is not consumable."));
+	return FText();
+}
+
+//ESlateVisibility UToolTipWidget::GetBorderVisibility() const
+//{
+//	if (ItemToolTipInfo.Icon)
+//	{
+//		//UE_LOG(LogTemp, Log, TEXT("GetBorderVisibility: Icon is valid."));
+//		return ESlateVisibility::SelfHitTestInvisible;
+//	}
+//	//UE_LOG(LogTemp, Log, TEXT("GetBorderVisibility: Icon is nullptr."));
+//	return ESlateVisibility::Hidden;
+//}
+
+//ESlateVisibility UToolTipWidget::GetToolTipVisibility() const
+//{
+//	if (ItemToolTipInfo.Icon)
+//	{
+//		//UE_LOG(LogTemp, Log, TEXT("GetToolTipVisibility: Icon is valid."));
+//		return ESlateVisibility::SelfHitTestInvisible;
+//	}
+//	//UE_LOG(LogTemp, Log, TEXT("GetToolTipVisibility: Icon is nullptr."));
+//	return ESlateVisibility::Hidden;
+//}
+
+FText UToolTipWidget::GetNameText() const
+{
+	//UE_LOG(LogTemp, Log, TEXT("GetNameText: Name is %s."), *ItemToolTipInfo.Name.ToString());
+	return FText::FromName(ItemToolTipInfo.Name);
 }
 
 FText UToolTipWidget::GetDamageText() const
@@ -185,27 +206,6 @@ FText UToolTipWidget::GetIntelligenceText() const
 	return FText();
 }
 
-FText UToolTipWidget::GetUseText() const
-{
-	if (ItemToolTipInfo.ItemType == EItemType::Consumable)
-	{
-		if (ItemToolTipInfo.Duration < 1.f)
-		{
-			FString UseString = FString::Printf(TEXT("Use: Restores %.2f Health"), ItemToolTipInfo.Health);
-			//UE_LOG(LogTemp, Log, TEXT("GetUseText: Restores %.2f Health."), ItemToolTipInfo.Health);
-			return FText::FromString(UseString);
-		}
-		else
-		{
-			FString UseString = FString::Printf(TEXT("Use: Restores %.2f health over %.2f sec."), ItemToolTipInfo.Health, ItemToolTipInfo.Duration);
-			//UE_LOG(LogTemp, Log, TEXT("GetUseText: Restores %.2f health over %.2f sec."), ItemToolTipInfo.Health, ItemToolTipInfo.Duration);
-			return FText::FromString(UseString);
-		}
-	}
-	//UE_LOG(LogTemp, Log, TEXT("GetUseText: Item is not consumable."));
-	return FText();
-}
-
 FText UToolTipWidget::GetDescriptionText() const
 {
 	if (!ItemToolTipInfo.Description.IsEmpty())
@@ -216,6 +216,11 @@ FText UToolTipWidget::GetDescriptionText() const
 	}
 	//UE_LOG(LogTemp, Log, TEXT("GetDescriptionText: Description is empty."));
 	return FText();
+}
+
+ESlateVisibility UToolTipWidget::GetBorderVisibility() const
+{
+	return ESlateVisibility();
 }
 
 ESlateVisibility UToolTipWidget::GetDamageVisibility() const
@@ -306,6 +311,71 @@ ESlateVisibility UToolTipWidget::GetDescriptionVisibility() const
 	return ESlateVisibility::Collapsed;
 }
 
+void UToolTipWidget::SetToolTipWidget() const
+{
+	if (NameText)
+	{
+		NameText->SetText(FText::FromName(ItemToolTipInfo.Name));
+		NameText->SetColorAndOpacity(GetBorderColor());
+	}
+
+	if (TypeText)
+	{
+		// Type->SetText(GetTypeText());
+		TypeText->SetText(GetTypeText());
+		TypeText->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+
+	if (DamageText)
+	{
+		DamageText->SetText(GetNameText());
+		DamageText->SetVisibility(GetDamageVisibility());
+	}
+
+	if (ArmorText)
+	{
+		ArmorText->SetText(GetArmorText());
+		ArmorText->SetVisibility(GetArmorVisibility());
+	}
+
+	if (StackSizeText)
+	{
+		StackSizeText->SetText(GetStackSizeText());
+		StackSizeText->SetVisibility(GetStackSizeVisibility());
+	}
+
+	if (StrengthText)
+	{
+		StrengthText->SetText(GetStrengthText());
+		StrengthText->SetVisibility(GetStrengthVisibility());
+	}
+
+	if (DexterityText)
+	{
+		DexterityText->SetText(GetDexterityText());
+		DexterityText->SetVisibility(GetDexterityVisibility());
+	}
+
+	if (IntelligenceText)
+	{
+		IntelligenceText->SetText(GetIntelligenceText());
+		IntelligenceText->SetVisibility(GetIntelligenceVisibility());
+	}
+
+	if (UseText)
+	{
+		UseText->SetText(GetUseText());
+		UseText->SetVisibility(GetUseVisibility());
+	}
+
+	if (DescriptionText)
+	{
+		DescriptionText->SetText(GetDescriptionText());
+		DescriptionText->SetVisibility(GetDescriptionVisibility());
+	}
+}
+
+/*
 FReply UToolTipWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	// Memeriksa apakah tombol mouse kiri ditekan
@@ -354,3 +424,4 @@ void UToolTipWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPo
 		//UE_LOG(LogTemp, Warning, TEXT("DragClass tidak diatur pada %s"), *GetName());
 	}
 }
+*/

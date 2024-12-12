@@ -21,108 +21,72 @@ class INVENTORYRESEARCHDH_API UToolTipWidget : public UUserWidget
 public:
 	UToolTipWidget(const FObjectInitializer& ObjectInitializer);
 
+	// Binding Widget
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> NameText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> TypeText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> DamageText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ArmorText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> StackSizeText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> StrengthText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> DexterityText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> IntelligenceText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> UseText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> DescriptionText;
+	// End Binding Widget
+
 	UPROPERTY(BlueprintReadOnly, Category = "Properties")
 	FToolTipInfo ItemToolTipInfo;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> ArmorText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> DamageText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> DescriptionText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> DexterityText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> IntelligenceText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> NameText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> StackSizeText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> StrengthText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> TypeText;
-
-	UPROPERTY(BlueprintReadOnly, Category = "Properties")
-	TObjectPtr<UTextBlock> UseText;
-
 	/*Binding Function*/
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	ESlateVisibility GetBorderVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FLinearColor GetBorderColor() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	ESlateVisibility GetToolTipVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetNameText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetTypeText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetDamageText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetArmorText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetStackSizeText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetStrengthText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetDexterityText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetIntelligenceText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetUseText() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	FText GetDescriptionText() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	ESlateVisibility GetBorderVisibility() const;
 	ESlateVisibility GetDamageVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetArmorVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetStackSizeVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetStrengthVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetDexterityVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetIntelligenceVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetUseVisibility() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetDescriptionVisibility() const;
+
+	void SetToolTipWidget() const;
 	/*End Binding Function*/
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Drag Widget")
 	TSubclassOf<UDragWidget> DragWidgetClass;
 
 protected:
-	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	//virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	//virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
 };

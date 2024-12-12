@@ -1547,7 +1547,7 @@ void UInventoryManagerComponent::OpenInventoryWindow()
 		if (InventoryUI->InventoryWidgetComp)
 		{
 			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Visible;
-			InventoryUI->InventoryLayoutBackground->BlurStrength = 4.f;
+			InventoryUI->InventoryLayoutBackground->SetBlurStrength(4.f);
 			bIsInventoryOpen = true;
 
 			// UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Visible"));
@@ -1570,7 +1570,7 @@ void UInventoryManagerComponent::CloseInventoryWindow()
 		if (InventoryUI->InventoryWidgetComp)
 		{
 			InventoryUI->InventoryWidgetComp->InventoryVisibility = ESlateVisibility::Hidden;
-			InventoryUI->InventoryLayoutBackground->BlurStrength = 0.f;
+			InventoryUI->InventoryLayoutBackground->SetBlurStrength(0.f);
 			bIsInventoryOpen = false;
 			int32 StartIndex = GetNumberOfEquipmentSlots();
 			int32 EndIndex = InventoryUI->InventorySlotWidgets.Num() - 1;
@@ -1603,6 +1603,17 @@ void UInventoryManagerComponent::OpenContainerWindow()
 	{
 		if (InventoryUI->ContainerWidgetComp)
 		{
+			APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+			if (PlayerController)
+			{
+				FInputModeGameAndUI InputMode;
+				InputMode.SetWidgetToFocus(InventoryUI->ContainerWidgetComp->TakeWidget());
+				InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+				PlayerController->SetInputMode(InputMode);
+
+				PlayerController->bShowMouseCursor = true;
+			}
+			
 			InventoryUI->ContainerWidgetComp->ContainerVisibility = ESlateVisibility::Visible;
 			bIsContainerOpen = true;
 		}
@@ -1623,6 +1634,14 @@ void UInventoryManagerComponent::CloseContainerWindow()
 	{
 		if (InventoryUI->ContainerWidgetComp)
 		{
+			APlayerController* PlayerController = Cast<APlayerController>(GetOwner());
+			if (PlayerController)
+			{
+				FInputModeGameOnly InputMode;
+				PlayerController->SetInputMode(InputMode);
+				PlayerController->bShowMouseCursor = false;
+			}
+
 			InventoryUI->ContainerWidgetComp->ContainerVisibility = ESlateVisibility::Hidden;
 			bIsContainerOpen = false;
 			for (UContainerSlotWidget* ContSlotWidget : InventoryUI->ContainerWidgetComp->ContainerSlots)
@@ -2074,7 +2093,7 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 	{
 		FInventoryItem LocalInvItem = InvComp->GetInventoryItem(InvSlot);
 
-		ClearHotbarSlotWhenDrop(LocalInvItem.ID);
+		// SetItemAmount(LocalInvItem, -1);
 		if (ItemIsDroppable(LocalInvItem))
 		{
 			if (GEngine)
@@ -2111,7 +2130,30 @@ void UInventoryManagerComponent::DropItem(UInventoryComponent* InvComp, int32 In
 
 				UE_LOG(LogTemp, Log, TEXT("Torque applied: %s"), *Torque.ToString());
 
-				RemoveItem(InvComp, InvSlot);
+				/*if (LocalInvItem.Amount <= 0)
+				{
+					ClearHotbarSlotWhenDrop(LocalInvItem.ID);
+					RemoveItem(InvComp, InvSlot);
+				}
+				else
+				{
+					SetInventorySlotItem(InvSlot, ItemToItemInfo(LocalInvItem));
+				}*/
+
+				int32 LocAmount = 1;
+				bool bWasFullAmountRemoved = RemoveFromItemAmount(LocalInvItem, LocAmount);
+				if (bWasFullAmountRemoved)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("fully removed"));
+					ClearHotbarSlotWhenDrop(LocalInvItem.ID);
+					RemoveItem(InvComp, InvSlot);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("not full removed"));
+					AddItem(PlayerInventory, InvSlot, LocalInvItem);
+				}
+				
 				if (InvSlot < GetNumberOfEquipmentSlots())
 				{
 					UpdateEquippedStats();

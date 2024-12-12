@@ -28,8 +28,11 @@ class INVENTORYRESEARCHDH_API UInventorySlotWidget : public UUserWidget
 public:
 	UInventorySlotWidget(const FObjectInitializer& ObjectInitializer);
 
-	TObjectPtr<UToolTipWidget> SlotToolTipInfo;
-	TObjectPtr<UInteractSlotWidget> WidgetSlotInteract;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UToolTipWidget> WBP_ToolTip;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UInteractSlotWidget> WBP_InteractSlot;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> Background;
@@ -61,12 +64,6 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
 	TSubclassOf<UDraggedItemWidget> DraggedItemWidgetClass;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
-	TSubclassOf<UUserWidget> ToolTipWidgetClass;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Widget")
-	TSubclassOf<UUserWidget> InteractSlotWidgetClass;
-
 	/* Binding Function */
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
 	ESlateVisibility GetBorderVisibility() const;
@@ -84,13 +81,13 @@ public:
 	FSlateBrush GetIconBrush() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	UToolTipWidget* GetToolTipWidget() const;
+	void SetToolTipWidgetValue() const;
 
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	void OpenInteractSlotWidget();
+	//UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	//void OpenInteractSlotWidget();
 
-	UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
-	void CloseInteractSlotWidget();
+	//UFUNCTION(BlueprintCallable, Category = "Binding Funtion")
+	//void CloseInteractSlotWidget();
 	/* End Binding Function*/
 
 protected:
