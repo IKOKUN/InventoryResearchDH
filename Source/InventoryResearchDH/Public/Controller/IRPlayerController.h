@@ -70,10 +70,11 @@ public:
 	void RegenHealth();
 	void StartRegenHealth();
 	void StopRegenHealth();
+	
 	/* Regen Health */
 
 	/* Interaction */
-	void SetInteractText(FText InputText);
+	void SetInteractText(FText InputText, bool bCanInspect = true);
 	FText GetActorActionText(AUsableActorBase* UsableActor);
 	void ShowInteractText();
 	void HideInteractText();

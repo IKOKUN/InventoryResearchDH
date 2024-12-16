@@ -115,6 +115,9 @@ public:
 	// Ref Of Record Character Equipment
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ref")
 	TObjectPtr<AIREquipmentCharacter> RecordCharacter;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ref")
+	TSubclassOf<AIREquipmentCharacter> RecordCharacterClass;
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;

@@ -9,6 +9,7 @@
 #include "Data/LootList.h"
 #include "UsableActorBase.generated.h"
 
+class USceneComponent;
 class UStaticMeshComponent;
 class USoundBase;
 class UDataTable;
@@ -29,32 +30,36 @@ public:
 	bool OnWasUsed();
 
 	// Static Mesh Component
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Usable Actor")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Usable Actor")
 	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Usable Actor")
+	TObjectPtr<USceneComponent> SceneComponent;
+
 	// Name of the Actor
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	FName Name = FName(TEXT("Null"));
 
 	// Action of the Actor, Example : Use, Open, Pickup
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	FText ActionText = FText::FromString("Use");
 
 	// Sound when Actor is used
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	UPROPERTY(EditAnywhere, Category = "Properties")
 	TObjectPtr<USoundBase> UsedSound;
 
-	// Is Actor Usable
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
+	// Can Interact with Actor
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Properties")
+	bool bCanInspect = true;
+
+	// Interact 3D Or 2D
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Properties")
+	bool bInteract3D = true;
+
 	bool bIsUsable = true;
-
-	// Was Actor Used
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	bool bWasUsed = false;
-
-	// Get Inspect
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties")
 	bool bGettingInspect = false;
+
 
 	// IUsableActorInterface
 	virtual bool OnActorUsed(APlayerController* PlayerController) override;
@@ -89,25 +94,13 @@ public:
 
 	int32 RotateYQuarter = 0;
 
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
+	// Inspect Object Function
 	void InspectItem();
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void WaitForCamera();
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void StartInspection();
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void CameraFocus();
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void EndInspection();
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void RotateObjectX(float AxisValue);
-
-	UFUNCTION(BlueprintCallable, Category = "Inspect")
 	void RotateObjectY(float AxisValue);
 	// End Inspect Object
 

@@ -39,6 +39,7 @@ void UContainerSlotWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 			if (PlayerController)
 			{
 				PlayerController->UI_Use_Container_Item(ContainerSlot);
+				UE_LOG(LogTemp, Error, TEXT("Use Container Slot"));
 			}
 			else
 			{
@@ -86,7 +87,7 @@ FReply UContainerSlotWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, 
 {
 	if (InMouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
 	{
-		bIsRightMouseButtonDown = true;
+		// bIsRightMouseButtonDown = true;
 		return FReply::Unhandled();
 	}
 

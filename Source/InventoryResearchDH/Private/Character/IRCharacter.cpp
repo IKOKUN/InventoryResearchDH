@@ -80,15 +80,25 @@ void AIRCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	// Pastikan RecordCharacter valid
-	//if (!RecordCharacter)
-	//{
-	//	RecordCharacter = GetWorld()->SpawnActor<AIREquipmentCharacter>();
-	//	if (RecordCharacter)
-	//	{
-	//		RecordCharacter->GetMesh()->SetVisibility(false); // Hanya sembunyikan mesh
-	//		RecordCharacter->SetActorHiddenInGame(false);    // Tetap render di Scene Capture
-	//	}
-	//}
+	if (!RecordCharacter && RecordCharacterClass)
+	{
+		// Lokasi spawn RecordCharacter Bisa Dicustom Sesuai kebutuhan agar tidak jatuh
+		FVector SpawnRecordCharacterLocation = FVector(47.f, 745.f,519.f);
+			RecordCharacter = GetWorld()->SpawnActor<AIREquipmentCharacter>(RecordCharacterClass, 
+				SpawnRecordCharacterLocation, 
+				GetActorRotation());
+
+		if (RecordCharacter)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Succesfully, spawned Record Character : %s"), *RecordCharacter->GetName());
+			RecordCharacter->SetOwner(this);
+			RecordCharacter->SetPlayerCharacter(this);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn Record Character"));
+		}
+	}
 }
 
 void AIRCharacter::Tick(float DeltaTime)

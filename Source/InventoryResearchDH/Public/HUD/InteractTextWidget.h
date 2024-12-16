@@ -9,6 +9,7 @@
 class UInventoryManagerComponent;
 class AIRPlayerController;
 class UTextBlock;
+class UHorizontalBox;
 
 /**
  * 
@@ -37,9 +38,14 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> InteractText;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UHorizontalBox> InspectHorizontalBox;
+
+
 	UFUNCTION(BlueprintCallable, Category = "Binding Function")
 	ESlateVisibility GetInteractVisibility() const;
 
+	void SetInspectVisibility(bool bVisible) const;
 protected:
 	virtual void NativeConstruct() override;
 };

@@ -6,6 +6,7 @@
 #include "Controller/IRPlayerController.h"
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "Components/TextBlock.h"
+#include "Components/HorizontalBox.h"
 
 UInteractTextWidget::UInteractTextWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -44,5 +45,20 @@ ESlateVisibility UInteractTextWidget::GetInteractVisibility() const
 	{
 		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is nullptr"));
 		return ESlateVisibility::Hidden;
+	}
+}
+
+void UInteractTextWidget::SetInspectVisibility(bool bVisible) const
+{
+	if (InspectHorizontalBox)
+	{
+		if (bVisible)
+		{
+			InspectHorizontalBox->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
+		else
+		{
+			InspectHorizontalBox->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 }

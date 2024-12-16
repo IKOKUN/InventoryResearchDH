@@ -17,15 +17,18 @@ class INVENTORYRESEARCHDH_API AIREquipmentCharacter : public AIRCharacter
 	
 public:
 	AIREquipmentCharacter();
-	virtual void Tick(float DeltaTime) override;
+	
 
-	virtual void UpdateEquipmentMesh(bool bIsEquip) override;
+	
+	// Scene Capture Component 2D
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent;
 protected:
 	virtual void BeginPlay() override;
 
 	TObjectPtr<AIRCharacter> PlayerCharacter;
 public:
-	// Scene Capture Component 2D
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USceneCaptureComponent2D> SceneCaptureComponent;
+	virtual void Tick(float DeltaTime) override;
+	virtual void UpdateEquipmentMesh(bool bIsEquip) override;
+	FORCEINLINE void SetPlayerCharacter(AIRCharacter* Player) { PlayerCharacter = Player; }
 };

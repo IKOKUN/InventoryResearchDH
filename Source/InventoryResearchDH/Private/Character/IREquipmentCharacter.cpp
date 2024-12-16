@@ -201,9 +201,9 @@ void AIREquipmentCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	
-	PlayerCharacter = Cast<AIRCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	/*PlayerCharacter = Cast<AIRCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
     if (PlayerCharacter)
     {
         PlayerCharacter->RecordCharacter = this;
-    }
+    }*/
 }

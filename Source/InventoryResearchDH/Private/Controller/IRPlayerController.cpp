@@ -102,7 +102,9 @@ void AIRPlayerController::SetupInputComponent()
 
 void AIRPlayerController::Move(const FInputActionValue& Value)
 {
-	if (!bOnInspectObject || InventoryManagerComponent->GetIsInventoryOpen())
+	if (!bOnInspectObject 
+		|| InventoryManagerComponent && !InventoryManagerComponent->GetIsContainerOpen()
+		|| InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		const FVector2D InputAxisVector = Value.Get<FVector2D>();
 		const FRotator Rotation = GetControlRotation();
@@ -129,7 +131,9 @@ void AIRPlayerController::Look(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (!bOnInspectObject || InventoryManagerComponent->GetIsInventoryOpen())
+	if (!bOnInspectObject
+		|| InventoryManagerComponent && !InventoryManagerComponent->GetIsContainerOpen()
+		|| InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		if (APawn* ControlledPawn = GetPawn<APawn>())
 		{
@@ -140,7 +144,7 @@ void AIRPlayerController::Look(const FInputActionValue& Value)
 	}
 	else
 	{
-		if (LastUsableActor)
+		if (LastUsableActor && LastUsableActor->bInteract3D)
 		{
 			LastUsableActor->RotateObjectX(LookAxisVector.X);
 			LastUsableActor->RotateObjectY(LookAxisVector.Y);
@@ -489,11 +493,12 @@ void AIRPlayerController::StopRegenHealth()
 	}
 }
 
-void AIRPlayerController::SetInteractText(FText InputText)
+void AIRPlayerController::SetInteractText(FText InputText, bool bCanInspect)
 {
 	if (HUDReference)
 	{
 		HUDReference->InteractText->MessageText = InputText;
+		HUDReference->InteractText->SetInspectVisibility(bCanInspect);
 	}
 }
 
@@ -640,7 +645,7 @@ void AIRPlayerController::GetUsableActorFocus()
 
 			// Atur teks interaksi
 			FText ActionText = GetActorActionText(LastUsableActor);
-			SetInteractText(ActionText);
+			SetInteractText(ActionText, LastUsableActor->bCanInspect);
 			ShowInteractText();
 		}
 	}

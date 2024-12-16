@@ -2,6 +2,7 @@
 #include "Controller/IRPlayerController.h"
 #include "Character/IRCharacter.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SceneComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -12,8 +13,11 @@ AUsableActorBase::AUsableActorBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	RootComponent = SceneComponent;
+
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	RootComponent = StaticMeshComponent;
+	StaticMeshComponent->SetupAttachment(SceneComponent);
 }
 
 bool AUsableActorBase::OnWasUsed()
@@ -92,11 +96,14 @@ FText AUsableActorBase::GetUseActionText()
 
 void AUsableActorBase::InspectItem()
 {
-	// Mengatur timer
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle_WaitForCamera, this, &AUsableActorBase::WaitForCamera, 0.01f, true, 0.f);
-	InteractorPlayerCharacter->GetMovementComponent()->StopMovementImmediately();
-	//InteractorPlayerCharacter->DisableInput(InteractorPlayerController);
-	// UE_LOG(LogTemp, Log, TEXT("Timer started with interval: %f seconds"), TimeInterval);
+	if (bCanInspect)
+	{
+		// Mengatur timer
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_WaitForCamera, this, &AUsableActorBase::WaitForCamera, 0.01f, true, 0.f);
+		InteractorPlayerCharacter->GetMovementComponent()->StopMovementImmediately();
+		//InteractorPlayerCharacter->DisableInput(InteractorPlayerController);
+		// UE_LOG(LogTemp, Log, TEXT("Timer started with interval: %f seconds"), TimeInterval);
+	}
 }
 
 // ...
@@ -302,9 +309,14 @@ void AUsableActorBase::RotateObjectY(float AxisValue)
 			break;
 		}
 
-		NewObjectRotation = FRotator(AxisValue * RotationFactorY * 5.f, 0.f, AxisValue * RotationFactorX * 5.f);
-		AddActorWorldRotation(NewObjectRotation);
+		//NewObjectRotation = FRotator(AxisValue * RotationFactorY * 5.f, 0.f, AxisValue * RotationFactorX * 5.f);
+		//AddActorWorldRotation(NewObjectRotation);
+
+		FRotator ObjectRotation = FRotator(0.f, 0.f, AxisValue * -10.f);	
+		AddActorLocalRotation(ObjectRotation);
+		// AddActorWorldRotation(ObjectRotation);
 	}
+	
 }
 
 bool AUsableActorBase::GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutInvItemRow)
