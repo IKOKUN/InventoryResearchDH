@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "../Data/InventoryItem.h"
 #include "InventoryWidget.generated.h"
 
 class UInventorySlotWidget;
@@ -12,6 +13,7 @@ class UButton;
 class UTextBlock;
 class UUniformGridPanel;
 class UDragWidget;
+class UComboBoxString;
 /**
  * 
  */
@@ -50,6 +52,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bind Function")
 	ESlateVisibility GetInventoryVisibility() const;
 
+	/* Sorting Widget*/
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UComboBoxString> SortingInventoryComboBox;
+
+	TMap<FString, TArray<FInventoryItem>> CachedSortingInventoryMap;
+
+	// Tambahkan variabel untuk melacak status sorting saat ini
+	FString CurrentSortingStatus = "Sort By"; // Default adalah "Sort By"
+
+	UFUNCTION()
+	void OnSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+
+	void SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold = 14);
+	void SetSortingInventoryMapFromNewest();
+	void SetSortingInventoryMapFromOldest();
+	/* End Sorting Widget*/
 protected:
 	virtual void NativeConstruct() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

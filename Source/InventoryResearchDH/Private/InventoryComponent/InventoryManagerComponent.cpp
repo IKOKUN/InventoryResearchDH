@@ -254,6 +254,10 @@ void UInventoryManagerComponent::SetInventorySlotItem(int32 InvSlot, FItemInform
 				{
 					InventoryUI->InventorySlotWidgets[InvSlot]->InventorySlotIndex = InvSlot;
 				}
+
+				// Update the cached sorting inventory map when Set Inventory Slot Item is called
+				//InventoryUI->InventoryWidgetComp->CachedSortingInventoryMap["Sort By"] = PlayerInventory->GetInventoryItems();
+				// InventoryUI->InventoryWidgetComp->SortingInventoryComboBox[] InventoryUI->InventorySlotWidgets[InvSlot]
 			}
 			else
 			{
@@ -276,6 +280,9 @@ void UInventoryManagerComponent::ClearInventorySlotItem(int32 InvSlot)
 	if (InventoryUI)
 	{
 		InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation = FItemInformation();
+
+		// Update the cached sorting inventory map when Clear Inventory Slot Item is called
+		// InventoryUI->InventoryWidgetComp->CachedSortingInventoryMap["Sort By"] = PlayerInventory->GetInventoryItems();
 	}
 	else
 	{

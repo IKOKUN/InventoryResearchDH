@@ -59,4 +59,5 @@ protected:
 
 public:
 	FORCEINLINE TArray<FInventoryItem> GetInventoryItems() const { return InventoryItems; }
+	FORCEINLINE TArray<FInventoryItem> SetInventoryItems(const TArray<FInventoryItem> Items) { return InventoryItems = Items; }
 };

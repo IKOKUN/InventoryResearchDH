@@ -75,69 +75,8 @@ void UInventorySlotWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const
 			WBP_ToolTip->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
-		 
-	//if (!bIsRightMouseButtonDown)
-	//{
-	//	if (InvSlotItemInformation.Icon)
-	//	{
-	//		// Menampilkan tooltip
-	//		if (PlayerController)
-	//		{
-	//			// SlotToolTipInfo = GetToolTipWidget(); // Mendapatkan tooltip widget
-	//			if (WBP_ToolTip)
-	//			{
-	//				// Mendapatkan posisi kursor mouse
-	//				// FVector2D MousePosition;
-	//				// PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
-
-
-	//				// Mendapatkan posisi dan ukuran widget slot
-	//				FGeometry WidgetGeometry = GetCachedGeometry();
-	//				FVector2D WidgetPosition = WidgetGeometry.GetAbsolutePosition(); // Mendapatkan posisi absolut
-	//				FVector2D WidgetSize = WidgetGeometry.GetLocalSize(); // Mendapatkan ukuran widget
-	//				FVector2D TooltipPosition;
-	//				// Menghitung posisi tooltip berdasarkan posisi widget slot
-	//				if (WidgetPosition.X > 2000.f)
-	//				{
-	//					TooltipPosition = WidgetPosition - FVector2D(1898.f, 65.f); // Offset ke kanan
-	//				}
-	//				else
-	//				{
-	//					TooltipPosition = WidgetPosition + FVector2D(105.f, -40.f); // Offset ke kiri
-	//				}
-
-	//				// Log untuk memeriksa posisi dan ukuran
-	//				// UE_LOG(LogTemp, Log, TEXT("Widget Position: X=%f, Y=%f"), WidgetPosition.X, WidgetPosition.Y);
-	//				//UE_LOG(LogTemp, Log, TEXT("Widget Size: X=%f, Y=%f"), WidgetSize.X, WidgetSize.Y);
-
-	//				// Memastikan tooltip berada dalam batas layar
-	//				FVector2D ViewportSize;
-	//				if (GEngine && GEngine->GameViewport)
-	//				{
-	//					GEngine->GameViewport->GetViewportSize(ViewportSize);
-	//				}
-	//				// UE_LOG(LogTemp, Log, TEXT("Mouse Position: X=%f, Y=%f"), MousePosition.X, MousePosition.Y);
-
-	//				// UE_LOG(LogTemp, Log, TEXT("Tooltip Position: X=%f, Y=%f"), TooltipPosition.X, TooltipPosition.Y);
-
-	//				SlotToolTipInfo->AddToViewport(); // Menambahkan ke viewport
-	//				SlotToolTipInfo->SetPositionInViewport(TooltipPosition);
-	//			}
-	//			else
-	//			{
-	//				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Tool Tip Invalid"));
-	//			}
-	//		}
-	//	}
-	//}
-	//else
-	//{
-	//	if (SlotToolTipInfo)
-	//	{
-	//		SlotToolTipInfo->RemoveFromParent();
-	//		SlotToolTipInfo = nullptr;
-	//	}
-	//}
+	
+	// UE_LOG(LogTemp, Log, TEXT("Mouse entered the slot : %d"), InventorySlotIndex);
 }
 
 void UInventorySlotWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
