@@ -52,22 +52,36 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bind Function")
 	ESlateVisibility GetInventoryVisibility() const;
 
-	/* Sorting Widget*/
+	/* Sorting and Filter Widget*/
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UComboBoxString> SortingInventoryComboBox;
 
 	TMap<FString, TArray<FInventoryItem>> CachedSortingInventoryMap;
+	TMap<FString, TArray<FInventoryItem>> CachedFilterInventoryMap;
 
 	// Tambahkan variabel untuk melacak status sorting saat ini
 	FString CurrentSortingStatus = "Sort By"; // Default adalah "Sort By"
 
 	UFUNCTION()
-	void OnSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+	void OnSortingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
 	void SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold = 14);
 	void SetSortingInventoryMapFromNewest();
 	void SetSortingInventoryMapFromOldest();
 	/* End Sorting Widget*/
+
+	/* Filter Widget */
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UComboBoxString> FilterInventoryComboBox;
+
+	// Tambahkan variabel untuk melacak status sorting saat ini
+	FString CurrentFilterStatus = "Filter : All"; // Default adalah "Sort By"
+
+	UFUNCTION()
+	void OnFilterSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+
+	TArray<FInventoryItem> FilterInventoryByItemType(const TArray<FInventoryItem>& Inventory, EItemType ItemType);
+	/* End Filter Widget */
 protected:
 	virtual void NativeConstruct() override;
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

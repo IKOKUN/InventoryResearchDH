@@ -744,7 +744,7 @@ void AIRPlayerController::InitializePlayer()
 		return;
 	}
 
-	// Configure input mode and mouse cursor
+	//// Configure input mode and mouse cursor
 	bShowMouseCursor = false;
 	DefaultMouseCursor = EMouseCursor::GrabHand;
 

@@ -48,11 +48,15 @@ void UInventoryWidget::NativeConstruct()
 		// Tambahkan hasil sorting ke CachedSortingInventoryMap
 
 		// Mengikat event "OnSelectionChanged"
-		SortingInventoryComboBox->OnSelectionChanged.AddDynamic(this, &UInventoryWidget::OnSelectionChanged);
+		SortingInventoryComboBox->OnSelectionChanged.AddDynamic(this, &UInventoryWidget::OnSortingSelectionChanged);
+	}
+	if (FilterInventoryComboBox)
+	{
+		FilterInventoryComboBox->OnSelectionChanged.AddDynamic(this, &UInventoryWidget::OnFilterSelectionChanged);
 	}
 }
 
-void UInventoryWidget::OnSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
+void UInventoryWidget::OnSortingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
 	if (PlayerController)
 	{
@@ -65,7 +69,7 @@ void UInventoryWidget::OnSelectionChanged(FString SelectedItem, ESelectInfo::Typ
 					CachedSortingInventoryMap["Sort By"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
 				}
 				PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedSortingInventoryMap["Sort By"]);
-				PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+				PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots(); 
 
 				/*UE_LOG(LogTemp, Log, TEXT("Inventory Item : Original"));
 				int32 SlotIndex = 0;
@@ -189,8 +193,101 @@ void UInventoryWidget::OnSelectionChanged(FString SelectedItem, ESelectInfo::Typ
 	}
 }
 
+void UInventoryWidget::OnFilterSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	if (PlayerController)
+	{
+		// Filter berdasarkan EItemType
+		if (SelectedItem == "Filter : All")
+		{
+			if (CurrentFilterStatus == "Filter : All") // Cek apakah status saat ini berbeda
+			{
+				CachedFilterInventoryMap["Filter : All"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
+			}
+
+			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Filter : All"]);
+			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+
+			CurrentFilterStatus = "Filter : All";
+		}
+		// Filter berdasarkan EItemType
+		else if (SelectedItem == "Miscellaneous")
+		{
+			if (CurrentFilterStatus == "Filter : All") // Cek apakah status saat ini berbeda
+			{
+				CachedFilterInventoryMap["Filter : All"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
+			}
+			CachedFilterInventoryMap["Miscellaneous"] = CachedFilterInventoryMap["Filter : All"];
+
+			// Filter inventaris berdasarkan tipe Miscellaneous
+			CachedFilterInventoryMap["Miscellaneous"] = FilterInventoryByItemType(
+				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
+				EItemType::Miscellaneous
+			);
+
+			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Miscellaneous"]);
+			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+
+			CurrentFilterStatus = "Miscellaneous";
+		}
+		else if (SelectedItem == "Equipment")
+		{
+			if (CurrentFilterStatus == "Filter : All") // Cek apakah status saat ini berbeda
+			{
+				CachedFilterInventoryMap["Filter : All"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
+			}
+			CachedFilterInventoryMap["Equipment"] = CachedFilterInventoryMap["Filter : All"];
+
+			// Filter inventaris berdasarkan tipe Equipment
+			CachedFilterInventoryMap["Equipment"] = FilterInventoryByItemType(
+				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
+				EItemType::Equipment
+			);
+
+			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Equipment"]);
+			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+
+			CurrentFilterStatus = "Equipment";
+		}
+		else if (SelectedItem == "Consumable")
+		{
+			if (CurrentFilterStatus == "Filter : All") // Cek apakah status saat ini berbeda
+			{
+				CachedFilterInventoryMap["Filter : All"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
+			}
+			CachedFilterInventoryMap["Consumable"] = CachedFilterInventoryMap["Filter : All"];
+			// Filter inventaris berdasarkan tipe Consumable
+			CachedFilterInventoryMap["Consumable"] = FilterInventoryByItemType(
+				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
+				EItemType::Consumable
+			);
+
+			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Consumable"]);
+			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+
+			CurrentFilterStatus = "Consumable";
+		}
+		else
+		{
+			// Tangani filter atau opsi lain
+			UE_LOG(LogTemp, Warning, TEXT("Invalid filter or selection!"));
+		}
+	}
+}
+
 void UInventoryWidget::SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold)
 {
+	if (GEngine)
+	{
+		float DisplayGamma = GEngine->GetDisplayGamma();
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Get Display Gamma: %f"), DisplayGamma));
+
+		if (DisplayGamma != 0.0f) // Bandingkan secara eksplisit dengan 0.0f
+		{
+			GEngine->DisplayGamma = 2.2f;  // Set gamma ke 2.2f
+		}
+	}
+
 	// Pastikan key ada di CachedSortingInventoryMap
 	if (CachedSortingInventoryMap.Contains(SortingKey))
 	{
@@ -264,13 +361,27 @@ void UInventoryWidget::SetSortingInventoryMapFromRarerity(const FString& Sorting
 	}
 }
 
-
 void UInventoryWidget::SetSortingInventoryMapFromNewest()
 {
 }
 
 void UInventoryWidget::SetSortingInventoryMapFromOldest()
 {
+}
+
+TArray<FInventoryItem> UInventoryWidget::FilterInventoryByItemType(const TArray<FInventoryItem>& Inventory, EItemType ItemType)
+{
+	TArray<FInventoryItem> FilteredItems;
+
+	for (const FInventoryItem& Item : Inventory)
+	{
+		if (Item.ItemType == ItemType) // Cocokkan dengan ItemType
+		{
+			FilteredItems.Add(Item);
+		}
+	}
+
+	return FilteredItems;
 }
 
 FText UInventoryWidget::GetGoldText() const
