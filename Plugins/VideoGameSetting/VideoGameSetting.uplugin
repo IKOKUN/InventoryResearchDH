@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "VideoGameSetting",
+	"Description": "Simple Video Setting",
+	"Category": "Other",
+	"CreatedBy": "Eriko",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "VideoGameSetting",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

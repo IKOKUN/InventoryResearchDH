@@ -8,6 +8,7 @@
 #include "Data/ItemInformation.h"
 #include "UsableActor/ContainerActor.h"
 #include "UsableActor/WorldActor.h"
+#include "UsableActor/MissionActor.h"
 #include "Controller/IRPlayerController.h"
 #include "HUD/InventoryLayoutWidget.h"
 #include "HUD/InventoryWidget.h"
@@ -944,6 +945,43 @@ void UInventoryManagerComponent::ClearHotbarSlotWhenDrop(FName DroppedItemID)
 	}
 }
 
+void UInventoryManagerComponent::UseQuestItem(int32 InventorySlot)
+{
+	if (InventoryUI)
+	{
+		if (InventoryUI->InventorySlotWidgets.IsValidIndex(InventorySlot))
+		{
+			FItemInformation ItemInfo = InventoryUI->InventorySlotWidgets[InventorySlot]->InvSlotItemInformation;
+			if (ItemInfo.Icon)
+			{
+				if (ItemInfo.Type == EItemType::QuestItem)
+				{
+					// Use Quest Item
+					UE_LOG(LogTemp, Log, TEXT("Quest Item Used"));
+					// Remove Item From Inventory
+					TryRemoveItemFromInventory(PlayerInventory, ItemInfo.ID, 1);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Item Is Not A Quest Item"));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("Item Info Icon Is Not Valid"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Inventory Slot Index %d Is Out Of Bounds"), InventorySlot);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Inventory UI Not Set"));
+	}
+}
+
 void UInventoryManagerComponent::InitInventoryManagerUI(UInventoryLayoutWidget* InventoryWidget)
 {
 	InventoryUI = InventoryWidget;
@@ -1201,6 +1239,8 @@ void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot, int32 HotbarSlo
 	}
 	else
 	{
+		AIRPlayerController* LocPlayerController = Cast< AIRPlayerController>(GetOwner());
+
 		// use item from inventory
 		switch (ItemType(LocalInvItem))
 		{
@@ -1211,6 +1251,32 @@ void UInventoryManagerComponent::UseInventoryItem(int32 InvSlot, int32 HotbarSlo
 		case EItemType::Consumable:
 			UE_LOG(LogTemp, Log, TEXT("Use Consumable Item"));
 			UseConsumableItem(InvSlot, HotbarSlot, LocalInvItem);
+			break;
+		case EItemType::QuestItem:		
+			if (LocPlayerController)
+			{
+				AMissionActor* LocMissionActor = Cast<AMissionActor>(LocPlayerController->GetUsableActor());
+				if (LocMissionActor)
+				{
+					if (LocMissionActor->GetRequiredItemID() == LocalInvItem.ID)
+					{
+						LocPlayerController->CompleteMission();
+						//LocMissionActor->CompleteMission();
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Successfully Using Key"));
+						}
+						RemoveItem(PlayerInventory, InvSlot);
+					}
+					else
+					{
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Wrong Key, Find Right Key"));
+						}
+					}
+				}
+			}
 			break;
 		default:
 			break;

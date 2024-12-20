@@ -1,0 +1,33 @@
+[
+	{
+		"Name": "Tandy",
+		"Head": "Armor_Leather_Helmet",
+		"Shoulders": "None",
+		"Chest": "None",
+		"Hands": "Armor_Cardboard_Gloves",
+		"Legs": "None",
+		"Feet": "Armor_Leather_Boots",
+		"Accessory": "None",
+		"Back": "Equip_Leather_Backpack",
+		"RightRing": "None",
+		"LeftRing": "None",
+		"Waist": "Equip_Leather_Pouches",
+		"Trinket": "None",
+		"MainHand": "Weapon_Simple_Axe",
+		"OffHand": "None",
+		"Inventory": [
+			{
+				"ItemID": "NoneFood_Apple",
+				"Amount": 3
+			},
+			{
+				"ItemID": "Food_Hambone",
+				"Amount": 1
+			},
+			{
+				"ItemID": "Currency_Gold",
+				"Amount": 512
+			}
+		]
+	}
+]

@@ -1,0 +1,87 @@
+[
+	{
+		"Name": "Warrior",
+		"Head": "Armor_Cardboard_Helmet",
+		"Shoulders": "None",
+		"Chest": "None",
+		"Hands": "Armor_Cardboard_Gloves",
+		"Legs": "None",
+		"Feet": "None",
+		"Accessory": "None",
+		"Back": "None",
+		"RightRing": "None",
+		"LeftRing": "None",
+		"Waist": "None",
+		"Trinket": "None",
+		"MainHand": "Weapon_Simple_Axe",
+		"OffHand": "Shield_Wood_Planks",
+		"Inventory": [
+			{
+				"ItemID": "Food_Apple",
+				"Amount": 3
+			},
+			{
+				"ItemID": "Food_Hambone",
+				"Amount": 1
+			},
+			{
+				"ItemID": "Currency_Gold",
+				"Amount": 100
+			}
+		]
+	},
+	{
+		"Name": "Rogue",
+		"Head": "Armor_Leather_Hood",
+		"Shoulders": "None",
+		"Chest": "None",
+		"Hands": "None",
+		"Legs": "None",
+		"Feet": "Armor_Leather_Boots",
+		"Accessory": "None",
+		"Back": "Equip_Leather_Backpack",
+		"RightRing": "Equip_Leather_Ring",
+		"LeftRing": "Equip_Leather_Ring",
+		"Waist": "Equip_Leather_Pouches",
+		"Trinket": "None",
+		"MainHand": "Weapon_Bone_Dagger",
+		"OffHand": "None",
+		"Inventory": [
+			{
+				"ItemID": "Currency_Gold",
+				"Amount": 64
+			},
+			{
+				"ItemID": "None",
+				"Amount": 1
+			},
+			{
+				"ItemID": "None",
+				"Amount": 1
+			}
+		]
+	},
+	{
+		"Name": "Wizard",
+		"Head": "None",
+		"Shoulders": "Armor_Bladed_Shoulder",
+		"Chest": "None",
+		"Hands": "None",
+		"Legs": "None",
+		"Feet": "None",
+		"Accessory": "Equip_Bone_Amulet",
+		"Back": "None",
+		"RightRing": "Equip_Spiked_Ring",
+		"LeftRing": "Equip_Spiked_Ring",
+		"Waist": "None",
+		"Trinket": "NoneMisc_Human_Skull",
+		"MainHand": "Weapon_Bone_Dagger",
+		"OffHand": "None",
+		"Inventory": [
+			{
+				"ItemID": "None",
+				"Amount": 1
+			}
+		]
+	}
+]

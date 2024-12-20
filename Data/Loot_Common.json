@@ -1,0 +1,130 @@
+[
+	{
+		"Name": "Food_Apple",
+		"ID": "Food_Apple",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 2,
+		"DropChance": 0.9
+	},
+	{
+		"Name": "Food_Bread",
+		"ID": "Food_Bread",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 2,
+		"DropChance": 0.85
+	},
+	{
+		"Name": "Food_Baguette",
+		"ID": "Food_Baguette",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.12
+	},
+	{
+		"Name": "Food_Hambone",
+		"ID": "Food_Hambone",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.21
+	},
+	{
+		"Name": "Weapon_Bone_Dagger",
+		"ID": "Weapon_Bone_Dagger",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.3
+	},
+	{
+		"Name": "Weapon_Bone_Sword",
+		"ID": "Weapon_Bone_Sword",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.2
+	},
+	{
+		"Name": "Armor_Leather_Hood",
+		"ID": "Armor_Leather_Hood",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.2
+	},
+	{
+		"Name": "Armor_Leather_Helmet",
+		"ID": "Armor_Leather_Helmet",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.21
+	},
+	{
+		"Name": "Armor_Leather_Boots",
+		"ID": "Armor_Leather_Boots",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.2
+	},
+	{
+		"Name": "Armor_Bladed_Shoulder",
+		"ID": "Armor_Bladed_Shoulder",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.1
+	},
+	{
+		"Name": "Equip_Leather_Backpack",
+		"ID": "Equip_Leather_Backpack",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.2
+	},
+	{
+		"Name": "Equip_Leather_Pouches",
+		"ID": "Equip_Leather_Pouches",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.2
+	},
+	{
+		"Name": "Equip_Leather_Ring",
+		"ID": "Equip_Leather_Ring",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.5
+	},
+	{
+		"Name": "Equip_Spiked_Ring",
+		"ID": "Equip_Spiked_Ring",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.4
+	},
+	{
+		"Name": "Equip_Bone_Amulet",
+		"ID": "Equip_Bone_Amulet",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 1,
+		"DropChance": 0.1
+	},
+	{
+		"Name": "Currency_Gold",
+		"ID": "Currency_Gold",
+		"bUnique": false,
+		"MinAmount": 1,
+		"MaxAmount": 14,
+		"DropChance": 0.8
+	}
+]

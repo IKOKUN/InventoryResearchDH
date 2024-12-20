@@ -102,9 +102,11 @@ void AIRPlayerController::SetupInputComponent()
 
 void AIRPlayerController::Move(const FInputActionValue& Value)
 {
-	if (!bOnInspectObject 
-		|| InventoryManagerComponent && !InventoryManagerComponent->GetIsContainerOpen()
-		|| InventoryManagerComponent->GetIsInventoryOpen())
+
+	if (!bOnInspectObject
+		&& InventoryManagerComponent
+		&& !InventoryManagerComponent->GetIsContainerOpen()
+		&& !InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		const FVector2D InputAxisVector = Value.Get<FVector2D>();
 		const FRotator Rotation = GetControlRotation();
@@ -132,8 +134,9 @@ void AIRPlayerController::Look(const FInputActionValue& Value)
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	if (!bOnInspectObject
-		|| InventoryManagerComponent && !InventoryManagerComponent->GetIsContainerOpen()
-		|| InventoryManagerComponent->GetIsInventoryOpen())
+		&& InventoryManagerComponent
+		&& !InventoryManagerComponent->GetIsContainerOpen()
+		&& !InventoryManagerComponent->GetIsInventoryOpen())
 	{
 		if (APawn* ControlledPawn = GetPawn<APawn>())
 		{
@@ -539,6 +542,16 @@ void AIRPlayerController::HideInteractText()
 	{
 		HUDReference->InteractText->SetVisibility(ESlateVisibility::Hidden);
 	}
+}
+
+void AIRPlayerController::CompleteMission()
+{
+	if (LastUsableActor)
+	{
+		LastUsableActor->bWasUsed = true;
+	}
+
+	OpenEquipmentAndInventory();
 }
 
 AUsableActorBase* AIRPlayerController::GetUsableActor()

@@ -71,9 +71,9 @@ public:
 	// end IUsableActorInterface
 
 	// Inspect Object
-	AIRPlayerController* InteractorPlayerController = nullptr;
-	AIRCharacter* InteractorPlayerCharacter = nullptr;
-	APlayerCameraManager* IRCameraManager = nullptr;
+	TObjectPtr<AIRPlayerController> InteractorPlayerController = nullptr;
+	TObjectPtr<AIRCharacter> InteractorPlayerCharacter = nullptr;
+	TObjectPtr<APlayerCameraManager> IRCameraManager = nullptr;
 
 	FTimerHandle TimerHandle_WaitForCamera;
 

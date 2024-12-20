@@ -79,6 +79,9 @@ public:
 	void ShowInteractText();
 	void HideInteractText();
 
+	/* Complete Mission */
+	void CompleteMission();
+
 
 	AUsableActorBase* GetUsableActor();
 	void OnActorUsed();

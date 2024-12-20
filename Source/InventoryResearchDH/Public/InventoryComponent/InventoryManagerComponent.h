@@ -365,6 +365,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "User Interface | Hotbar")
 	void ClearHotbarSlotWhenDrop(FName DroppedItemID);
 
+	// Use Quest Item
+	UFUNCTION(BlueprintCallable, Category = "User Interface | Quest")
+	void UseQuestItem(int32 InventorySlot);
+
 	/* End Function user Interface */
 protected:
 	virtual void BeginPlay() override;

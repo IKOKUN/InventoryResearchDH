@@ -1,0 +1,19 @@
+[
+	{
+		"Name": "Muppet",
+		"Head": "Armor_Cardboard_Helmet",
+		"Shoulders": "Armor_Bladed_Shoulder",
+		"Chest": "None",
+		"Hands": "None",
+		"Legs": "None",
+		"Feet": "None",
+		"Accessory": "Armor_Leather_Boots",
+		"Back": "None",
+		"RightRing": "None",
+		"LeftRing": "None",
+		"Waist": "None",
+		"Trinket": "None",
+		"MainHand": "Weapon_Rifle_Assault",
+		"OffHand": "None"
+	}
+]

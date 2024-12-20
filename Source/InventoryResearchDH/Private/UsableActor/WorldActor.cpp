@@ -100,6 +100,7 @@ bool AWorldActor::OnActorUsed(APlayerController* PlayerController)
 		if (bSucces)
 		{
 			Destroy();
+            UE_LOG(LogTemp, Warning, TEXT("Successfuly Try Add Item To Inventory"));
 		}
 		else
 		{
