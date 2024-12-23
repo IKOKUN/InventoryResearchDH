@@ -1656,7 +1656,7 @@ void UInventoryManagerComponent::CloseInventoryWindow()
 				InventoryUI->InventorySlotWidgets[i]->bIsRightMouseButtonDown = false;
 			}
 
-			UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Hiding"));
+			// UE_LOG(LogTemp, Error, TEXT("InventoryVisibility Is Hiding"));
 		}
 		else
 		{

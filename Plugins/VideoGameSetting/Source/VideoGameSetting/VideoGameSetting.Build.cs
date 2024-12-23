@@ -25,8 +25,13 @@ public class VideoGameSetting : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
-				// ... add other public dependencies that you statically link with here ...
+                "Core",
+                "CoreUObject",
+                "Engine",
+                "InputCore",
+                "UMG", // Tambahkan UMG untuk UserWidget
+				"Slate",
+                "SlateCore" // Tambahkan SlateCore untuk widget terkait
 			}
 			);
 			
@@ -34,10 +39,6 @@ public class VideoGameSetting : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
-				"Engine",
-				"Slate",
-				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
