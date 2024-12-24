@@ -12,21 +12,6 @@ ALootActor::ALootActor()
 	ActionText = FText::FromString("Loot");
 }
 
-TArray<FName> ALootActor::GetDataTableRowNames(UDataTable* SrcDataTable)
-{
-	TArray<FName> RowNames;
-	if (!SrcDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("DataTable is null!"));
-		return RowNames;
-	}
-
-	// Mendapatkan semua nama baris dari Data Table
-	RowNames = SrcDataTable->GetRowNames();
-
-	return RowNames;
-}
-
 void ALootActor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -47,6 +32,33 @@ bool ALootActor::InitInventory()
 
 	return LoadInventoryItems(RandomInventoryItemArray.Num(), RandomInventoryItemArray);
 }
+
+TArray<FName> ALootActor::GetDataTableRowNames(TSoftObjectPtr<UDataTable> SrcDataTable)
+{
+	TArray<FName> RowNames;
+
+	// Cek jika DataTable valid dan telah dimuat
+	if (!SrcDataTable.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DataTable is invalid or not loaded!"));
+		return RowNames;
+	}
+
+	// Mendapatkan DataTable yang dimuat
+	UDataTable* LoadedDataTable = SrcDataTable.Get();
+
+	if (!LoadedDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DataTable is null after loading!"));
+		return RowNames;
+	}
+
+	// Mendapatkan semua nama baris dari DataTable
+	RowNames = LoadedDataTable->GetRowNames();
+
+	return RowNames;
+}
+
 
 TArray<FLootList> ALootActor::GetLootList()
 {

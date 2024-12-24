@@ -11,6 +11,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "GameFramework/GameUserSettings.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/Engine.h"
 
 void UGraphicSettingWidget::NativeConstruct()
 {
@@ -30,17 +31,34 @@ void UGraphicSettingWidget::NativeConstruct()
 	PostProcessingSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnPostProcessingSettingSelectionChanged);
 	ReflectionSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnReflectionSettingSelectionChanged);
 	ShadowSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnShadowSettingSelectionChanged);
+	GlobalIlluminationSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnGlobalIlluminationSelectionChanged);
 	ParticleEffectSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnParticleEffectSettingSelectionChanged);
 	FoliageSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnFoliageSettingSelectionChanged);
 	ShadingSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnShadingSettingSelectionChanged);
+
+
+	// Diubah Sementara menjadi VSyncEditor
+	SetVSyncEditor(false);
 	VSyncSetting->OnSelectionChanged.AddDynamic(this, &UGraphicSettingWidget::OnVSyncSettingSelectionChanged);
+
+	// Set Resolution Quality awal ke 100
+	SetResolutionQuality(100);
+	if (ResolutionQualitySlider)
+	{
+		ResolutionQualitySlider->OnValueChanged.AddDynamic(this, &UGraphicSettingWidget::OnResolutionQualitySliderValueChanged);
+	}
+
+	if (ResolutionQualityTextBox)
+	{
+		ResolutionQualityTextBox->OnTextChanged.AddDynamic(this, &UGraphicSettingWidget::OnResolutionQualityTextChanged);
+		ResolutionQualityTextBox->OnTextCommitted.AddDynamic(this, &UGraphicSettingWidget::OnResolutionQualityTextCommitted);
+	}
 
 
 	// Bind the slider's value change event
 	if (GammaSlider)
 	{
 		GammaSlider->OnValueChanged.AddDynamic(this, &UGraphicSettingWidget::OnBrightnessSliderValueChanged);
-		GammaSlider->SetValue(50.0f); // Set default slider value (middle point for example)
 	}
 
 	// Bind the text box's text change and commit events
@@ -48,13 +66,7 @@ void UGraphicSettingWidget::NativeConstruct()
 	{
 		GammaValueTextBox->OnTextChanged.AddDynamic(this, &UGraphicSettingWidget::OnGammaTextChanged);
 		GammaValueTextBox->OnTextCommitted.AddDynamic(this, &UGraphicSettingWidget::OnGammaTextCommitted);
-
-		// Set default text value
-		GammaValueTextBox->SetText(FText::FromString(TEXT("50")));
 	}
-
-	// Apply initial gamma value based on default slider position
-	UpdateGammaFromSlider(50.0f);
 
 	if (ColorBlindSetting)
 	{
@@ -123,10 +135,13 @@ void UGraphicSettingWidget::GetCurrentSettings()
     FString PostProcessing = SelectingConventer(GameUserSettings->GetPostProcessingQuality());
     FString Reflection = SelectingConventer(GameUserSettings->GetReflectionQuality());
     FString Shadow = SelectingConventer(GameUserSettings->GetShadowQuality());
+	FString GlobalIllumination = SelectingConventer(GameUserSettings->GetGlobalIlluminationQuality());
     FString ParticleEffect = SelectingConventer(GameUserSettings->GetVisualEffectQuality());
     FString Foliage = SelectingConventer(GameUserSettings->GetFoliageQuality());
     FString Shading = SelectingConventer(GameUserSettings->GetShadingQuality());
-    FString VSync = GameUserSettings->IsVSyncEnabled() ? "Enabled" : "Disabled";
+    // FString VSync = GameUserSettings->IsVSyncEnabled() ? "Enabled" : "Disabled";
+	float GammaSliderValue = FMath::GetMappedRangeValueClamped(FVector2D(0.0f, 4.4f), FVector2D(0.0f, 100.0f), (GEngine->DisplayGamma));
+
 
 	// Set setting saat ini ke combo box
     QualitySetting->SetSelectedOption(Quality);
@@ -138,10 +153,14 @@ void UGraphicSettingWidget::GetCurrentSettings()
 	PostProcessingSetting->SetSelectedOption(PostProcessing);
 	ReflectionSetting->SetSelectedOption(Reflection);
 	ShadowSetting->SetSelectedOption(Shadow);
+	GlobalIlluminationSetting->SetSelectedOption(GlobalIllumination);
 	ParticleEffectSetting->SetSelectedOption(ParticleEffect);
 	FoliageSetting->SetSelectedOption(Foliage);
 	ShadingSetting->SetSelectedOption(Shading);
-	VSyncSetting->SetSelectedOption(VSync);
+	VSyncSetting->SetSelectedOption("Disabled");
+	GammaSlider->SetValue(GammaSliderValue);
+    GammaValueTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), FMath::RoundToInt(GammaSliderValue))));
+	ResolutionQualityTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), 100)));
 }
 
 FString UGraphicSettingWidget::SelectingConventer(int32 LevelBase)
@@ -317,6 +336,15 @@ void UGraphicSettingWidget::OnShadowSettingSelectionChanged(FString SelectedItem
 	}
 }
 
+void UGraphicSettingWidget::OnGlobalIlluminationSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	if (GlobalIlluminationSetting)
+	{
+		GameUserSettings->SetGlobalIlluminationQuality(SelectionConventer(SelectedItem));
+		GameUserSettings->ApplySettings(false);
+	}
+}
+
 void UGraphicSettingWidget::OnParticleEffectSettingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
 	if (ParticleEffectSetting)
@@ -346,15 +374,18 @@ void UGraphicSettingWidget::OnShadingSettingSelectionChanged(FString SelectedIte
 
 void UGraphicSettingWidget::OnVSyncSettingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
 {
+	// Diubah Sementara Jadi VSyncEditor
 	if (VSyncSetting)
 	{
 		if (SelectedItem == "Disabled")
 		{
-			GameUserSettings->SetVSyncEnabled(false);
+			SetVSyncEditor(false);
+			//GameUserSettings->SetVSyncEnabled(false);
 		}
 		else if (SelectedItem == "Enabled")
 		{
-			GameUserSettings->SetVSyncEnabled(true);
+			SetVSyncEditor(true);
+			//GameUserSettings->SetVSyncEnabled(true);
 		}
 		GameUserSettings->ApplySettings(false);
 	}
@@ -424,7 +455,7 @@ void UGraphicSettingWidget::UpdateGammaFromSlider(float SliderValue)
 	// Update the text box with the new gamma value
 	if (GammaValueTextBox)
 	{
-		GammaValueTextBox->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), SliderValue)));
+		GammaValueTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), FMath::RoundToInt(SliderValue))));
 	}
 }
 
@@ -466,8 +497,63 @@ void UGraphicSettingWidget::UpdateGammaFromText(const FString& TextValue)
 	// Update the text box with the clamped gamma value (to ensure correctness)
 	if (GammaValueTextBox)
 	{
-		GammaValueTextBox->SetText(FText::FromString(FString::Printf(TEXT("%.2f"), SliderGamma)));
+		GammaValueTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), FMath::RoundToInt(SliderGamma))));
 	}
+}
+
+void UGraphicSettingWidget::OnResolutionQualitySliderValueChanged(float Value)
+{
+	UpdateResolutionQualityFromSlider(Value);
+}
+
+void UGraphicSettingWidget::OnResolutionQualityTextChanged(const FText& Text)
+{
+	FString TextValue = Text.ToString();
+	UpdateResolutionQualityFromText(TextValue);
+}
+
+void UGraphicSettingWidget::OnResolutionQualityTextCommitted(const FText& Text, ETextCommit::Type CommitType)
+{
+	FString TextValue = Text.ToString();
+	UpdateResolutionQualityFromText(TextValue);
+}
+
+void UGraphicSettingWidget::UpdateResolutionQualityFromSlider(float SliderValue)
+{	
+	// Update the text box with the new gamma value
+	if (ResolutionQualitySlider && ResolutionQualityTextBox)
+	{
+		//GameUserSettings->SetReflectionQuality(SelectionConventer(FString::Printf(TEXT("%d"), FMath::RoundToInt(SliderValue))));
+		ResolutionQualityTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), FMath::RoundToInt(SliderValue))));
+		SetResolutionQuality(SliderValue);
+		GameUserSettings->ApplySettings(false);	
+	}
+}
+
+void UGraphicSettingWidget::UpdateResolutionQualityFromText(const FString& TextValue)
+{
+	if (ResolutionQualitySlider && ResolutionQualityTextBox)
+	{
+		//GameUserSettings->SetResolutionS
+        //ResolutionQualityTextBox->SetText(FText::FromString(FString::Printf(TEXT("%d"), FMath::RoundToInt(FCString::Atof(*TextValue)))));		
+		ResolutionQualitySlider->SetValue(FCString::Atof(*TextValue));
+		SetResolutionQuality(FCString::Atof(*TextValue));
+		GameUserSettings->ApplySettings(false);
+	}
+}
+
+void UGraphicSettingWidget::SetResolutionQuality(float ResolutionQualityEditor)
+{
+	FString Command = FString::Printf(TEXT("sg.ResolutionQuality %d"), FMath::RoundToInt(ResolutionQualityEditor));
+	GEngine->Exec(nullptr, *Command);
+	UE_LOG(LogTemp, Log, TEXT("Resolution Quality set to %d"), FMath::RoundToInt(ResolutionQualityEditor));
+}
+
+void UGraphicSettingWidget::SetVSyncEditor(bool bEnableVSyncEditor)
+{
+	FString Command = bEnableVSyncEditor ? TEXT("r.VSyncEditor 1") : TEXT("r.VSyncEditor 0");
+	GEngine->Exec(nullptr, *Command);
+	UE_LOG(LogTemp, Log, TEXT("VSync %s"), bEnableVSyncEditor ? TEXT("enabled") : TEXT("disabled"));
 }
 
 

@@ -63,6 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GraphicSettingWidget")
 	void OnShadowSettingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
+    UFUNCTION(BlueprintCallable, Category = "GraphicSettingWidget")
+    void OnGlobalIlluminationSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+
 	UFUNCTION(BlueprintCallable, Category = "GraphicSettingWidget")
 	void OnParticleEffectSettingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
@@ -104,7 +107,38 @@ public:
 
     /** Updates the gamma value from text input */
     void UpdateGammaFromText(const FString& TextValue);
+
+    /** Callback for when the slider value changes */
+    UFUNCTION()
+    void OnResolutionQualitySliderValueChanged(float Value);
+
+    /** Callback for when the text in the text box changes */
+    UFUNCTION()
+    void OnResolutionQualityTextChanged(const FText& Text);
+
+    /** Callback for when the text box loses focus or text is committed */
+    UFUNCTION()
+    void OnResolutionQualityTextCommitted(const FText& Text, ETextCommit::Type CommitType);
+
+    /** Updates the gamma value in the engine settings */
+    void UpdateResolutionQualityFromSlider(float SliderValue);
+
+    /** Updates the gamma value from text input */
+    void UpdateResolutionQualityFromText(const FString& TextValue);
+
+
+	void SetResolutionQuality(float ResolutionQualityEditor);
+    void SetVSyncEditor(bool bEnableVSyncEditor);
+
 protected:
+    /** Slider for adjusting gamma */
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<USlider> ResolutionQualitySlider;
+
+    /** Text block to display the gamma value */
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UEditableTextBox> ResolutionQualityTextBox;
+
 	// For Setting Brightness
 	// Combo Box for Color Blind
 	UPROPERTY(meta = (BindWidget))
@@ -114,7 +148,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UComboBoxString* ColorBlindStrengthSetting;
 
-
     /** Slider for adjusting gamma */
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<USlider> GammaSlider;
@@ -122,6 +155,7 @@ protected:
     /** Text block to display the gamma value */
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UEditableTextBox> GammaValueTextBox;
+
 	// Recomended Settings Button
 	UPROPERTY(meta = (BindWidget))
     TObjectPtr<UButton> RecommendedSettingsButton;
@@ -155,6 +189,9 @@ protected:
     UComboBoxString* ShadowSetting;
 
     UPROPERTY(meta = (BindWidget))
+    UComboBoxString* GlobalIlluminationSetting;
+
+    UPROPERTY(meta = (BindWidget))
     UComboBoxString* ParticleEffectSetting;
 
     UPROPERTY(meta = (BindWidget))
@@ -175,4 +212,5 @@ private:
 
     EColorVisionDeficiency SelectingColorBlindMode = EColorVisionDeficiency::NormalVision;
 	int32 SelectingColorBlindStrength = 10;
+
 };

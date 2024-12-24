@@ -295,8 +295,8 @@ FItemInformation UInventoryManagerComponent::GetInventorySlotItem(int32 InvSlot)
 {
 	if (InventoryUI)
 	{
+		UE_LOG(LogTemp, Error, TEXT("InventorySlotWidgets index %d: "), InvSlot);  // Pindahkan sebelum return
 		return InventoryUI->InventorySlotWidgets[InvSlot]->InvSlotItemInformation;
-		UE_LOG(LogTemp, Error, TEXT("InventorySlotWidgets index %d: "), InvSlot);
 	}
 	else
 	{

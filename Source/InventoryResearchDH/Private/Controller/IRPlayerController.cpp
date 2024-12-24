@@ -18,6 +18,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "TimerManager.h"
+#include "UsableActor/LootActor.h"
 
 AIRPlayerController::AIRPlayerController()
 {
@@ -824,7 +825,7 @@ void AIRPlayerController::LoadPlayerItems()
 	FName RowName = EnumToFNameByValue(LocalHeroClass);
 	//UE_LOG(LogTemp, Warning, TEXT("Trying to find row: %s"), *RowName.ToString());
 
-	if (GetDataTableRowByName(ClassStartingEquipment, HeroCategory, LocalNPCItems))
+	/*if (GetDataTableRowByName(ClassStartingEquipment, HeroCategory, LocalNPCItems))
 	{
 		// Tambahkan item ke LocalItemIds
 		if (LocalNPCItems.Head != NAME_None) LocalItemIds.Add(LocalNPCItems.Head);
@@ -924,28 +925,40 @@ void AIRPlayerController::LoadPlayerItems()
 				}
 			}
 		}*/
-	}
+	/*}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Row not found: %s"), *HeroCategory.ToString());
 		InventoryManagerComponent->InitInventoryItems();
 	}
-    
+	*/
+
+	UE_LOG(LogTemp, Warning, TEXT("Row not found: %s"), *HeroCategory.ToString());
+	InventoryManagerComponent->InitInventoryItems();
 }
 
-bool AIRPlayerController::GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FNPCItems& OutNPCInvItemRow)
+bool AIRPlayerController::GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FNPCItems& OutNPCInvItemRow)
 {
-	if (!SrcDataTable)
+	// Pastikan soft reference valid
+	if (!SrcDataTableSoftRef.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DataTable is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("DataTable soft reference is invalid!"));
 		return false;
 	}
 
-	FNPCItems* Row = SrcDataTable->FindRow<FNPCItems>(RowName, TEXT(""));
+	// Muat data table secara sinkron jika belum dimuat
+	UDataTable* SrcDataTable = SrcDataTableSoftRef.LoadSynchronous();
+	if (!SrcDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load DataTable!"));
+		return false;
+	}
 
+	// Cari row dalam data table
+	FNPCItems* Row = SrcDataTable->FindRow<FNPCItems>(RowName, TEXT(""));
 	if (Row)
 	{
-		OutNPCInvItemRow = *Row; // Ensure FNPCItems has a valid assignment operator
+		OutNPCInvItemRow = *Row; // Pastikan FInventoryItem memiliki operator penugasan yang valid
 		return true;
 	}
 	else
@@ -955,26 +968,30 @@ bool AIRPlayerController::GetDataTableRowByName(UDataTable* SrcDataTable, const 
 	}
 }
 
-bool AIRPlayerController::GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutNPCInvItemRow)
+bool AIRPlayerController::GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FInventoryItem& OutNPCInvItemRow)
 {
+	if (!SrcDataTableSoftRef.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DataTable soft reference is invalid!"));
+		return false;
+	}
+
+	UDataTable* SrcDataTable = SrcDataTableSoftRef.LoadSynchronous();
 	if (!SrcDataTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DataTable is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load DataTable!"));
 		return false;
 	}
 
 	FInventoryItem* Row = SrcDataTable->FindRow<FInventoryItem>(RowName, TEXT(""));
-
 	if (Row)
 	{
-		OutNPCInvItemRow = *Row; // Ensure FNPCItems has a valid assignment operator
+		OutNPCInvItemRow = *Row;
 		return true;
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Row not found: %s"), *RowName.ToString());
-		return false;
-	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Row not found: %s"), *RowName.ToString());
+	return false;
 }
 
 void AIRPlayerController::UI_Close_Inventory()

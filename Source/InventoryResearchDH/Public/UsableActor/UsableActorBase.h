@@ -114,11 +114,11 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Fungsi untuk mendapatkan data berdasarkan RowName
-	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutInvItemRow);
-	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FLootList& OutLootListRow);
+	bool GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FInventoryItem& OutInvItemRow);
+	bool GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FLootList& OutLootListRow);
 
 	UPROPERTY(EditAnywhere, Category = "Data Table")
-	TObjectPtr<UDataTable> DataTable;
+	TSoftObjectPtr<UDataTable> DataTable;
 
 public:
 	FORCEINLINE UStaticMeshComponent* GetStaticMeshComponent() const { return StaticMeshComponent; }

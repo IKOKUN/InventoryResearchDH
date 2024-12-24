@@ -319,19 +319,28 @@ void AUsableActorBase::RotateObjectY(float AxisValue)
 	
 }
 
-bool AUsableActorBase::GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutInvItemRow)
+bool AUsableActorBase::GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FInventoryItem& OutInvItemRow)
 {
-	if (!SrcDataTable)
+	// Pastikan soft reference valid
+	if (!SrcDataTableSoftRef.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DataTable is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("DataTable soft reference is invalid!"));
 		return false;
 	}
 
-	FInventoryItem* Row = SrcDataTable->FindRow<FInventoryItem>(RowName, TEXT(""));
+	// Muat data table secara sinkron jika belum dimuat
+	UDataTable* SrcDataTable = SrcDataTableSoftRef.LoadSynchronous();
+	if (!SrcDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load DataTable!"));
+		return false;
+	}
 
+	// Cari row dalam data table
+	FInventoryItem* Row = SrcDataTable->FindRow<FInventoryItem>(RowName, TEXT(""));
 	if (Row)
 	{
-		OutInvItemRow = *Row;
+		OutInvItemRow = *Row; // Pastikan FInventoryItem memiliki operator penugasan yang valid
 		return true;
 	}
 	else
@@ -341,19 +350,28 @@ bool AUsableActorBase::GetDataTableRowByName(UDataTable* SrcDataTable, const FNa
 	}
 }
 
-bool AUsableActorBase::GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FLootList& OutLootListRow)
+bool AUsableActorBase::GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FLootList& OutLootListRow)
 {
-	if (!SrcDataTable)
+	// Pastikan soft reference valid
+	if (!SrcDataTableSoftRef.IsValid())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DataTable is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("DataTable soft reference is invalid!"));
 		return false;
 	}
 
-	FLootList* Row = SrcDataTable->FindRow<FLootList>(RowName, TEXT(""));
+	// Muat data table secara sinkron jika belum dimuat
+	UDataTable* SrcDataTable = SrcDataTableSoftRef.LoadSynchronous();
+	if (!SrcDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load DataTable!"));
+		return false;
+	}
 
+	// Cari row dalam data table
+	FLootList* Row = SrcDataTable->FindRow<FLootList>(RowName, TEXT(""));
 	if (Row)
 	{
-		OutLootListRow = *Row;
+		OutLootListRow = *Row; // Pastikan FInventoryItem memiliki operator penugasan yang valid
 		return true;
 	}
 	else

@@ -92,14 +92,14 @@ public:
 	void LoadPlayerItems();
 
 
-	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FNPCItems& OutNPCInvItemRow);
-	bool GetDataTableRowByName(UDataTable* SrcDataTable, const FName RowName, FInventoryItem& OutNPCInvItemRow);
+	bool GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FNPCItems& OutNPCInvItemRow);
+	bool GetDataTableRowByName(TSoftObjectPtr<UDataTable> SrcDataTableSoftRef, const FName RowName, FInventoryItem& OutNPCInvItemRow);
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Data Table")
-	TObjectPtr<UDataTable> ClassStartingEquipment;
+	TSoftObjectPtr<UDataTable> ClassStartingEquipment;
 
 	UPROPERTY(EditAnywhere, Category = "Properties | Data Table")
-	TObjectPtr<UDataTable> ItemListDataTable;
+	TSoftObjectPtr<UDataTable> ItemListDataTable;
 
 	FName EnumToFName(EClassesHero EnumValue);
 	FName EnumToFNameByValue(EClassesHero EnumValue);

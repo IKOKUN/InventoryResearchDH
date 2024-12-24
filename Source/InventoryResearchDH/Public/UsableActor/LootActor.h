@@ -22,7 +22,7 @@ public:
 	ALootActor();
 
 	UFUNCTION(BlueprintCallable, Category = "Data Table")
-	TArray<FName> GetDataTableRowNames(UDataTable* SrcDataTable);
+		TArray<FName> GetDataTableRowNames(TSoftObjectPtr<UDataTable> SrcDataTable);
 
 	// Load Item From Inventory
 	virtual bool InitInventory() override;
@@ -48,11 +48,12 @@ protected:
 	int32 MaxLootItems;
 
 	UPROPERTY(EditAnywhere, Category = "Data Table")
-	TObjectPtr<UDataTable> DataTableLootCommon;
+	TSoftObjectPtr<UDataTable> DataTableLootCommon;
 
 public:
 	// Get Item Max Size From Inventory 
 	int32 GetItemMaxStackSize(FInventoryItem InventoryItem);
 	// Check if item is Currency
 	bool GetItemIsCurrency(FInventoryItem InventoryItem);
+	
 };
