@@ -16,6 +16,7 @@ class AUsableActorBase;
 class AIRCharacter;
 class AIRHUD;
 class UInteractSlotWidget;
+class UDrawingWidget;
 struct FInputActionValue;
 
 UENUM(BlueprintType)
@@ -131,6 +132,8 @@ protected:
 	void Hotbar6();
 	void Hotbar7();
 	void Hotbar8();
+
+	void OpenDrawingWidget();
 	/* End  Input Function*/
 
 	/* Player Inventory Component for Handling Player Inventory*/
@@ -201,6 +204,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> Hotbar8Action;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> OpenDrawingWidgetAction;
 	/* End Input */
 
 	/* Character Properties */
@@ -262,6 +268,12 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TSubclassOf<UHUDLayoutWidget> MainHUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TObjectPtr<UDrawingWidget> DrawingWidget;
+
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UDrawingWidget> DrawingWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Properties")
 	bool bIsThirdPersonView = false;

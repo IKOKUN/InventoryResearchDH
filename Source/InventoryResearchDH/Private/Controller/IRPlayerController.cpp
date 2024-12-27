@@ -7,6 +7,7 @@
 #include "HUD/IRHUD.h"
 #include "HUD/HUDLayoutWidget.h"
 #include "HUD/InteractTextWidget.h"
+#include "HUD/Drawing/DrawingWidget.h"
 #include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "UsableActor/UsableActorBase.h"
@@ -94,6 +95,10 @@ void AIRPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(Hotbar6Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar6);
 		EnhancedInputComponent->BindAction(Hotbar7Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar7);
 		EnhancedInputComponent->BindAction(Hotbar8Action, ETriggerEvent::Started, this, &AIRPlayerController::Hotbar8);
+
+		// Drawing Widget
+		EnhancedInputComponent->BindAction(OpenDrawingWidgetAction, ETriggerEvent::Started, this, &AIRPlayerController::OpenDrawingWidget);
+
 	}
 	else
 	{
@@ -373,6 +378,28 @@ void AIRPlayerController::Hotbar8()
 	{
 		UE_LOG(LogTemp, Error, TEXT("InventoryManagerComponent is not valid"));
 	}
+}
+
+void AIRPlayerController::OpenDrawingWidget()
+{
+	if (DrawingWidgetClass)
+	{
+		if (DrawingWidget)
+		{
+			DrawingWidget->RemoveFromParent();
+			DrawingWidget = nullptr;
+		}
+		else
+		{
+			DrawingWidget = CreateWidget<UDrawingWidget>(GetWorld(), DrawingWidgetClass);
+			if (DrawingWidget)
+			{
+				DrawingWidget->AddToViewport();
+			}
+		}
+		
+	}
+
 }
 
 bool AIRPlayerController::SetHealth(int32 Amount, float Duration)
