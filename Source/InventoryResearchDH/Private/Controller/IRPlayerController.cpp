@@ -396,6 +396,10 @@ void AIRPlayerController::OpenDrawingWidget()
 			{
 				DrawingWidget->AddToViewport();
 			}
+
+			FInputModeUIOnly InputModeData;
+			SetInputMode(InputModeData);
+			bShowMouseCursor = true;
 		}
 		
 	}

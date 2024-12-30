@@ -7,6 +7,7 @@
 #include "Components/Border.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/Image.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
 
@@ -20,13 +21,102 @@ void UDrawingWidget::NativeConstruct()
 	SpawnRandomDots(DotCount);
 }
 
+void UDrawingWidget::NativeOnInitialized()
+{
+    Super::NativeOnInitialized();
+
+    LinePoints.Empty();
+    TemporaryLinePoints.Empty();
+    bIsDrawing = false;
+    LastDotIndex = -1;
+}
+
+FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    //FVector2D ClickPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    //FVector2D ClickPosition = InGeometry.AbsoluteToLocal(InMouseEvent->GetCachedGeometry().GetScreenSpacePosition().GetAbsolutePosition());
+    FVector2D ClickPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+    UE_LOG(LogTemp, Warning, TEXT("Click Position: (%f, %f)"), ClickPosition.X, ClickPosition.Y);
+
+    for (int32 i = 0; i < DotWidgets.Num(); i++)
+    {
+        UDotDrawWidget* DotWidget = DotWidgets[i];
+        //FVector2D DotPosition = DotWidget->GetCachedGeometry().GetAbsolutePosition();
+        FVector2D DotPosition = InGeometry.AbsoluteToLocal(DotWidget->GetCachedGeometry().GetAbsolutePosition());
+
+        UE_LOG(LogTemp, Warning, TEXT("Dot %d Position: (%f, %f)"), i, DotPosition.X, DotPosition.Y);
+
+        // Menghitung batas-batas kotak Dot (misalnya ukuran Dot 50x50)
+        float DotLeft = DotPosition.X - DotSize.X / 2;
+        float DotRight = DotPosition.X + DotSize.X / 2;
+        float DotTop = DotPosition.Y - DotSize.Y / 2;
+        float DotBottom = DotPosition.Y + DotSize.Y / 2;
+
+        UE_LOG(LogTemp, Warning, TEXT("Dot %d Position: (%f, %f), Left: %f, Right: %f, Top: %f, Bottom: %f"),
+            i, DotPosition.X, DotPosition.Y, DotLeft, DotRight, DotTop, DotBottom);
+
+        // Memeriksa apakah posisi klik berada dalam area Dot
+        if (ClickPosition.X >= DotLeft && ClickPosition.X <= DotRight &&
+            ClickPosition.Y >= DotTop && ClickPosition.Y <= DotBottom)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Dot %d clicked!"), i);
+
+            if (!bIsDrawing)
+            {
+                bIsDrawing = true;
+                LastDotIndex = i;
+                UE_LOG(LogTemp, Warning, TEXT("Drawing started from Dot %d."), i);
+            }
+            else if (LastDotIndex != i)
+            {
+                FVector2D LastDotPosition = DotWidgets[LastDotIndex]->GetCachedGeometry().GetAbsolutePosition();
+                TemporaryLinePoints.Empty();
+                LinePoints.Add(LastDotPosition);
+                LinePoints.Add(DotPosition);
+                LastDotIndex = i;
+
+                UE_LOG(LogTemp, Warning, TEXT("Line drawn from Dot %d to Dot %d."), LastDotIndex, i);
+            }
+
+            return FReply::Handled();
+        }
+    }
+
+    return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UDrawingWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    bIsDrawing = false;
+    TemporaryLinePoints.Empty();
+    return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
+}
+
+FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+    if (!bIsDrawing) return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
+
+    FVector2D CursorPosition = InGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+
+    TemporaryLinePoints.Empty();
+    if (LastDotIndex >= 0 && LastDotIndex < DotWidgets.Num())
+    {
+        UDotDrawWidget* LastDot = DotWidgets[LastDotIndex];
+        FVector2D LastDotPosition = LastDot->GetCachedGeometry().GetAbsolutePosition();
+        TemporaryLinePoints.Add(LastDotPosition);
+        TemporaryLinePoints.Add(CursorPosition);
+    }
+
+    return FReply::Handled();
+}
+
 void UDrawingWidget::SpawnRandomDots(int32 Count)
 {
     if (!DotDrawWidgetClass || !DrawCanvasPanel || !CanvasBorder) return;
 
     // Get CanvasBorder size
-    FVector2D BorderSize = FVector2D(600.f, 600.f); // Assuming fixed size, adjust if dynamic
-    FVector2D DotSize = FVector2D(50.0f, 50.0f); // Size of DotDrawWidget
+    FVector2D BorderSize = FVector2D(640.f, 640.f); // Assuming fixed size, adjust if dynamic
+    DotSize = FVector2D(50.0f, 50.0f); // Size of DotDrawWidget
 
     TArray<FVector2D> ExistingPositions; // Store existing positions
 
@@ -64,6 +154,12 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
         UDotDrawWidget* DotWidget = CreateWidget<UDotDrawWidget>(GetWorld(), DotDrawWidgetClass);
         if (DotWidget)
         {
+            if (i == 0)
+            {
+                // Set focus to the first dot
+                TSharedRef<SWidget> DotWidgetRef = DotWidget->TakeWidget();
+                FSlateApplication::Get().SetUserFocus(0, DotWidgetRef, EFocusCause::SetDirectly);
+            }
 			DotWidget->SetSequenceText(i + 1);
             // Add to CanvasPanel
             UCanvasPanelSlot* CanvasSlot = DrawCanvasPanel->AddChildToCanvas(DotWidget);
@@ -88,118 +184,60 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
 
 int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-    // Panggil logika default bawaan
     int32 CurrentLayer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
-
-    // Debug Line dari (0,0) ke (2000, 2000) untuk memverifikasi skala
-    FLinearColor DebugLineColor = FLinearColor::Black;
-    TArray<FVector2D> DebugLinePoints = { FVector2D(0, 0), FVector2D(2000, 2000) };
-
-    // Menggambar garis untuk memastikan lokasi debug
-    FSlateDrawElement::MakeLines(
-        OutDrawElements,
-        CurrentLayer,
-        AllottedGeometry.ToPaintGeometry(),
-        DebugLinePoints,
-        ESlateDrawEffect::None,
-        DebugLineColor,
-        true, // Anti-aliasing
-        2.0f  // Ketebalan
-    );
 
     if (DotWidgets.Num() < 2) return CurrentLayer;
 
-    FLinearColor LineColor = FLinearColor::Black;
+    FLinearColor LineColor = FLinearColor(0.5f, 0.5f, 0.5f, 0.5f);
     float LineThickness = 2.0f;
 
-    // Dapatkan ukuran layar untuk menghitung offset ke tengah
-    FVector2D ScreenSize = FVector2D(GSystemResolution.ResX, GSystemResolution.ResY); // Mendapatkan ukuran layar
-    FVector2D ScreenCenter = ScreenSize * 0.5f; // Titik tengah layar
-    FVector2D Offset(100, 30); // Geser 100 di X dan 30 di Y
-    ScreenCenter += Offset; // Update ScreenCenter dengan offset
-    UE_LOG(LogTemp, Warning, TEXT("ScreenSize: X=%f, Y=%f"), ScreenSize.X, ScreenSize.Y);
-    UE_LOG(LogTemp, Warning, TEXT("ScreenCenter with offset: X=%f, Y=%f"), ScreenCenter.X, ScreenCenter.Y);
-
-    // Ambil posisi global berdasarkan geometry
-    FVector2D WidgetAbsolutePosition = AllottedGeometry.GetAbsolutePosition();
-    float DPI = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(AllottedGeometry.GetLocalSize().X, AllottedGeometry.GetLocalSize().Y));
-
-    // Log Resolusi dan DPI
-    FVector2D ViewportSize = AllottedGeometry.GetLocalSize();  // Ukuran layar dari viewport
-    FVector2D WindowSize = FSlateApplication::Get().GetActiveTopLevelWindow()->GetSizeInScreen();  // Resolusi window
-
-    // Log ukuran viewport dan window
-    UE_LOG(LogTemp, Warning, TEXT("Viewport Size: X=%f, Y=%f"), ViewportSize.X, ViewportSize.Y);
-    UE_LOG(LogTemp, Warning, TEXT("Window Size: X=%f, Y=%f"), WindowSize.X, WindowSize.Y);
-    UE_LOG(LogTemp, Warning, TEXT("DPI Scale: %f"), DPI);
-
-    for (int32 i = 0; i < DotWidgets.Num(); i++)
+    for (int32 i = 0; i < DotWidgets.Num() - 1; i++)
     {
-        const UCanvasPanelSlot* SlotA = Cast<UCanvasPanelSlot>(DotWidgets[i]->Slot);
-        if (!SlotA) continue;
+        const UDotDrawWidget* DotA = DotWidgets[i];
+        const UDotDrawWidget* DotB = DotWidgets[i + 1];
 
-        // Dapatkan posisi relatif dari widget
-        FVector2D LocalPositionA = SlotA->GetPosition();
-        FVector2D WidgetSizeA = SlotA->GetSize();
+        if (!DotA || !DotB) continue;
 
-        // Log posisi lokal dan ukuran widget
-        UE_LOG(LogTemp, Warning, TEXT("LocalPositionA: X=%f, Y=%f"), LocalPositionA.X, LocalPositionA.Y);
-        UE_LOG(LogTemp, Warning, TEXT("WidgetSizeA: X=%f, Y=%f"), WidgetSizeA.X, WidgetSizeA.Y);
+        const UImage* DotImageA = DotA->GetDotImage();
+        const UImage* DotImageB = DotB->GetDotImage();
 
-        // Hitung posisi absolut dan tambahkan offset layar
-        FVector2D GlobalPositionA = AllottedGeometry.LocalToAbsolute(LocalPositionA);
-        GlobalPositionA -= WidgetSizeA * 0.5f; // Koreksi posisi dengan anchor tengah
-        GlobalPositionA += ScreenCenter; // Geser ke tengah layar dengan tambahan offset
+        if (!DotImageA || !DotImageB) continue;
 
-        // Log posisi absolut setelah perhitungan
-        UE_LOG(LogTemp, Warning, TEXT("GlobalPositionA (absolute): X=%f, Y=%f"), GlobalPositionA.X, GlobalPositionA.Y);
+        FVector2D AbsolutePositionA = AllottedGeometry.AbsoluteToLocal(DotImageA->GetCachedGeometry().GetAbsolutePosition());
+        FVector2D AbsolutePositionB = AllottedGeometry.AbsoluteToLocal(DotImageB->GetCachedGeometry().GetAbsolutePosition());
 
-        // Pertimbangkan DPI
-        GlobalPositionA *= DPI;
+        FVector2D Offset(30.0f, 30.0f);
+        AbsolutePositionA += Offset;
+        AbsolutePositionB += Offset;
 
-        // Log posisi absolut setelah mengaplikasikan DPI
-        UE_LOG(LogTemp, Warning, TEXT("GlobalPositionA (with DPI): X=%f, Y=%f"), GlobalPositionA.X, GlobalPositionA.Y);
+        // Ubah nama variabel lokal
+        TArray<FVector2D> LineSegmentPoints = { AbsolutePositionA, AbsolutePositionB };
 
-        for (int32 j = i + 1; j < DotWidgets.Num(); j++)
-        {
-            const UCanvasPanelSlot* SlotB = Cast<UCanvasPanelSlot>(DotWidgets[j]->Slot);
-            if (!SlotB) continue;
+        FSlateDrawElement::MakeLines(
+            OutDrawElements,
+            CurrentLayer,
+            AllottedGeometry.ToPaintGeometry(),
+            LineSegmentPoints,
+            ESlateDrawEffect::None,
+            LineColor,
+            true,
+            LineThickness
+        );
+    }
 
-            // Dapatkan posisi relatif dan ukuran widget untuk SlotB
-            FVector2D LocalPositionB = SlotB->GetPosition();
-            FVector2D WidgetSizeB = SlotB->GetSize();
-
-            // Log posisi lokal dan ukuran widget SlotB
-            UE_LOG(LogTemp, Warning, TEXT("LocalPositionB: X=%f, Y=%f"), LocalPositionB.X, LocalPositionB.Y);
-            UE_LOG(LogTemp, Warning, TEXT("WidgetSizeB: X=%f, Y=%f"), WidgetSizeB.X, WidgetSizeB.Y);
-
-            // Hitung posisi absolut dan tambahkan offset layar
-            FVector2D GlobalPositionB = AllottedGeometry.LocalToAbsolute(LocalPositionB);
-            GlobalPositionB -= WidgetSizeB * 0.5f; // Koreksi posisi dengan anchor tengah
-            GlobalPositionB += ScreenCenter; // Geser ke tengah layar dengan tambahan offset
-
-            // Log posisi absolut setelah perhitungan
-            UE_LOG(LogTemp, Warning, TEXT("GlobalPositionB (absolute): X=%f, Y=%f"), GlobalPositionB.X, GlobalPositionB.Y);
-
-            // Pertimbangkan DPI
-            GlobalPositionB *= DPI;
-
-            // Log posisi absolut setelah mengaplikasikan DPI
-            UE_LOG(LogTemp, Warning, TEXT("GlobalPositionB (with DPI): X=%f, Y=%f"), GlobalPositionB.X, GlobalPositionB.Y);
-
-            // Gambar garis antara dua titik
-            TArray<FVector2D> LinePoints = { GlobalPositionA, GlobalPositionB };
-            FSlateDrawElement::MakeLines(
-                OutDrawElements,
-                CurrentLayer,
-                AllottedGeometry.ToPaintGeometry(),
-                LinePoints,
-                ESlateDrawEffect::None,
-                LineColor,
-                true, // Anti-aliasing
-                LineThickness
-            );
-        }
+    // Draw temporary line
+    if (TemporaryLinePoints.Num() == 2)
+    {
+        FSlateDrawElement::MakeLines(
+            OutDrawElements,
+            CurrentLayer + 1,
+            AllottedGeometry.ToPaintGeometry(),
+            TemporaryLinePoints,
+            ESlateDrawEffect::None,
+            FLinearColor::Black, // Black line
+            true,
+            2.0f
+        );
     }
 
     return CurrentLayer;
@@ -209,98 +247,72 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
 /*
 int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-    // Panggil logika default bawaan
     int32 CurrentLayer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
-
-    // Debug Line dari (0,0) ke (2000, 2000) untuk memverifikasi skala
-    FLinearColor DebugLineColor = FLinearColor::Black;
-    TArray<FVector2D> DebugLinePoints = { FVector2D(0, 0), FVector2D(2000, 2000) };
-
-    // Menggambar garis untuk memastikan lokasi debug
-    FSlateDrawElement::MakeLines(
-        OutDrawElements,
-        CurrentLayer,
-        AllottedGeometry.ToPaintGeometry(),
-        DebugLinePoints,
-        ESlateDrawEffect::None,
-        DebugLineColor,
-        true, // Anti-aliasing
-        2.0f  // Ketebalan
-    );
 
     if (DotWidgets.Num() < 2) return CurrentLayer;
 
     FLinearColor LineColor = FLinearColor::Black;
     float LineThickness = 2.0f;
 
-    // Dapatkan ukuran layar untuk menghitung offset ke tengah
-    FVector2D ScreenSize = FVector2D(GSystemResolution.ResX, GSystemResolution.ResY); // Mendapatkan ukuran layar
-    FVector2D ScreenCenter = ScreenSize * 0.5f; // Titik tengah layar
+    // Logging resolusi viewport dan DPI
+    FVector2D ViewportSize = AllottedGeometry.GetLocalSize();
+    float DPI = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(ViewportSize.X, ViewportSize.Y));
+    UE_LOG(LogTemp, Warning, TEXT("Viewport Size: X=%f, Y=%f, DPI=%f"), ViewportSize.X, ViewportSize.Y, DPI);
 
-    // Ambil posisi global berdasarkan geometry dan tambahkan offset ke tengah
-    FVector2D WidgetAbsolutePosition = AllottedGeometry.GetAbsolutePosition();
-    float DPI = GetDefault<UUserInterfaceSettings>()->GetDPIScaleBasedOnSize(FIntPoint(AllottedGeometry.GetLocalSize().X, AllottedGeometry.GetLocalSize().Y));
-
-    // Log Resolusi dan DPI
-    FVector2D ViewportSize = AllottedGeometry.GetLocalSize();  // Ukuran layar dari viewport
-    FVector2D WindowSize = FSlateApplication::Get().GetActiveTopLevelWindow()->GetSizeInScreen();  // Resolusi window
-
-    // Log ukuran viewport dan window, serta DPI
-    UE_LOG(LogTemp, Warning, TEXT("Viewport Size: X=%f, Y=%f"), ViewportSize.X, ViewportSize.Y);
-    UE_LOG(LogTemp, Warning, TEXT("Window Size: X=%f, Y=%f"), WindowSize.X, WindowSize.Y);
-    UE_LOG(LogTemp, Warning, TEXT("DPI Scale: %f"), DPI);
-
-    for (int32 i = 0; i < DotWidgets.Num(); i++)
+    for (int32 i = 0; i < DotWidgets.Num() - 1; i++)
     {
-        const UCanvasPanelSlot* SlotA = Cast<UCanvasPanelSlot>(DotWidgets[i]->Slot);
-        if (!SlotA) continue;
+        const UDotDrawWidget* DotA = DotWidgets[i];
+        const UDotDrawWidget* DotB = DotWidgets[i + 1];
 
-        // Dapatkan posisi relatif dari widget
-        FVector2D LocalPositionA = SlotA->GetPosition();
-        FVector2D WidgetSizeA = SlotA->GetSize();
+        if (!DotA || !DotB) continue;
 
-        // Hitung posisi absolut dan tambahkan offset layar
-        FVector2D GlobalPositionA = AllottedGeometry.LocalToAbsolute(LocalPositionA);
-        GlobalPositionA -= WidgetSizeA * 0.5f; // Koreksi posisi dengan anchor tengah
-        GlobalPositionA += ScreenCenter; // Geser ke tengah layar
+        // Ambil posisi DotImage di dalam DotDrawWidget
+        const UImage* DotImageA = DotA->GetDotImage();
+        const UImage* DotImageB = DotB->GetDotImage();
 
-        // Pertimbangkan DPI
-        GlobalPositionA *= DPI;
+        if (!DotImageA || !DotImageB) continue;
 
-        for (int32 j = i + 1; j < DotWidgets.Num(); j++)
-        {
-            const UCanvasPanelSlot* SlotB = Cast<UCanvasPanelSlot>(DotWidgets[j]->Slot);
-            if (!SlotB) continue;
+        FVector2D ScreenSize = FVector2D(GSystemResolution.ResX, GSystemResolution.ResY); // Mendapatkan ukuran layar
+        UE_LOG(LogTemp, Warning, TEXT("ScreenSize: X=%f, Y=%f"), ScreenSize.X, ScreenSize.Y);
 
-            // Dapatkan posisi relatif dan ukuran widget untuk SlotB
-            FVector2D LocalPositionB = SlotB->GetPosition();
-            FVector2D WidgetSizeB = SlotB->GetSize();
+        // Hitung posisi absolut DotImage menggunakan GetCachedGeometry
+        // Sesudah
+        FVector2D AbsolutePositionA = AllottedGeometry.AbsoluteToLocal(DotImageA->GetCachedGeometry().GetAbsolutePosition());
+        FVector2D AbsolutePositionB = AllottedGeometry.AbsoluteToLocal(DotImageB->GetCachedGeometry().GetAbsolutePosition());
 
-            // Hitung posisi absolut dan tambahkan offset layar
-            FVector2D GlobalPositionB = AllottedGeometry.LocalToAbsolute(LocalPositionB);
-            GlobalPositionB -= WidgetSizeB * 0.5f; // Koreksi posisi dengan anchor tengah
-            GlobalPositionB += ScreenCenter; // Geser ke tengah layar
+        // Tambahkan offset
+        FVector2D Offset(35.0f, 40.0f);
+        AbsolutePositionA += Offset;
+        AbsolutePositionB += Offset;
 
-            // Pertimbangkan DPI
-            GlobalPositionB *= DPI;
+        // Log posisi absolut untuk debugging
+        UE_LOG(LogTemp, Warning, TEXT("AbsolutePositionA: X=%f, Y=%f"), AbsolutePositionA.X, AbsolutePositionA.Y);
+        UE_LOG(LogTemp, Warning, TEXT("AbsolutePositionB: X=%f, Y=%f"), AbsolutePositionB.X, AbsolutePositionB.Y);
 
-			// GlobalPositionA = GlobalPositionA + 100;
-			// GlobalPositionB = GlobalPositionB + 100;
 
-            // Gambar garis antara dua titik
-            TArray<FVector2D> LinePoints = { GlobalPositionA, GlobalPositionB };
-            FSlateDrawElement::MakeLines(
-                OutDrawElements,
-                CurrentLayer,
-                AllottedGeometry.ToPaintGeometry(),
-                LinePoints,
-                ESlateDrawEffect::None,
-                LineColor,
-                true, // Anti-aliasing
-                LineThickness
-            );
-        }
+        // Sesuaikan dengan DPI
+        AbsolutePositionA *= DPI;
+        AbsolutePositionB *= DPI;
+
+        // Log setelah koreksi DPI
+        UE_LOG(LogTemp, Warning, TEXT("AbsolutePositionA (with DPI): X=%f, Y=%f"), AbsolutePositionA.X, AbsolutePositionA.Y);
+        UE_LOG(LogTemp, Warning, TEXT("AbsolutePositionB (with DPI): X=%f, Y=%f"), AbsolutePositionB.X, AbsolutePositionB.Y);
+
+        // Gambar garis antara dua titik
+        TArray<FVector2D> LinePoints = { AbsolutePositionA, AbsolutePositionB };
+
+        FSlateDrawElement::MakeLines(
+            OutDrawElements,
+            CurrentLayer,
+            AllottedGeometry.ToPaintGeometry(),
+            LinePoints,
+            ESlateDrawEffect::None,
+            LineColor,
+            true,
+            LineThickness
+        );
     }
 
     return CurrentLayer;
-}*/
+}
+*/

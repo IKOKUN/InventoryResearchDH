@@ -7,6 +7,8 @@
 #include "DotDrawWidget.generated.h"
 
 class UTextBlock;
+class UImage;
+
 /**
  * 
  */
@@ -19,5 +21,11 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> SequenceTextBlock;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> DotImage;
+
 	void SetSequenceText(int32 Value) const;
+
+public:
+	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }
 };
