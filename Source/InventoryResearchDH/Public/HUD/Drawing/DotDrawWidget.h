@@ -26,6 +26,8 @@ public:
 
 	void SetSequenceText(int32 Value) const;
 
+	int32 DotIndex = 0;
+
 public:
 	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }
 };

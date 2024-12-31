@@ -8,6 +8,7 @@
 #include "HUD/HUDLayoutWidget.h"
 #include "HUD/InteractTextWidget.h"
 #include "HUD/Drawing/DrawingWidget.h"
+#include "HUD/Drawing/DotDrawWidget.h"
 #include "InventoryComponent/EquipmentInventoryComponent.h"
 #include "InventoryComponent/InventoryManagerComponent.h"
 #include "UsableActor/UsableActorBase.h"
@@ -395,11 +396,13 @@ void AIRPlayerController::OpenDrawingWidget()
 			if (DrawingWidget)
 			{
 				DrawingWidget->AddToViewport();
-			}
+				FInputModeUIOnly InputModeData;
+				InputModeData.SetWidgetToFocus(DrawingWidget->DotWidgets[0]->TakeWidget());
+				SetInputMode(InputModeData);
+				bShowMouseCursor = true;
 
-			FInputModeUIOnly InputModeData;
-			SetInputMode(InputModeData);
-			bShowMouseCursor = true;
+
+			}
 		}
 		
 	}

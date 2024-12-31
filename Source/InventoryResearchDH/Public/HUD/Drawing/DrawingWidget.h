@@ -35,9 +35,14 @@ protected:
     virtual void NativeConstruct() override;
 	virtual void NativeOnInitialized() override;
 
+    bool IsPointInsideDot(const FVector2D& Point, const FVector2D& DotPosition) const;
+
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+    void HandleMouseUpOnDot(int32 DotIndex, const FVector2D& DotPosition);
     virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
+    void UpdateTemporaryLine(const FVector2D& CursorPosition);
 
 
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
@@ -53,5 +58,11 @@ private:
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     TSubclassOf<UDotDrawWidget> DotDrawWidgetClass;
 
+    void ResetDrawingState();
+
     void SpawnRandomDots(int32 Count);
+	void PlayConnectionSound();
+	void PlayCompletionSound();
+    bool GenerateValidDotPosition(const FVector2D& BorderSize, const TArray<FVector2D>& ExistingPositions, FVector2D& OutPosition) const;
+    void AddDotToCanvas(UDotDrawWidget* DotWidget, const FVector2D& Position);
 };
