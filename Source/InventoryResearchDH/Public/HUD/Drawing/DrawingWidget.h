@@ -35,6 +35,9 @@ protected:
     virtual void NativeConstruct() override;
 	virtual void NativeOnInitialized() override;
 
+    float GetDPIScale();
+    FVector2D GetViewportLocalPosition(FVector2D ScreenPosition);
+
     bool IsPointInsideDot(const FVector2D& Point, const FVector2D& DotPosition) const;
 
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
