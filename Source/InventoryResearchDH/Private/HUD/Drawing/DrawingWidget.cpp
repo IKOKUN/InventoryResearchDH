@@ -11,14 +11,33 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Blueprint/SlateBlueprintLibrary.h"
+#include "TimerManager.h"
 #include "Engine/GameViewportClient.h" // Required for accessing the viewport client
+
 
 void UDrawingWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
     // Spawn dots sesuai jumlah yang diinginkan
-    SpawnRandomDots(DotCount);
+    FTimerHandle SpawnRandomDotTimer;
+    GetWorld()->GetTimerManager().SetTimer(SpawnRandomDotTimer, [this]()
+		{
+			SpawnRandomDots(DotCount);
+		}, 0.1f, false); // Tunggu sebentar agar layout selesai
+}
+
+void UDrawingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	// Update garis sementara jika sedang menggambar
+	if (bIsDrawing)
+	{
+		//FVector2D CursorPosition = GetViewportLocalPosition(GetOwningPlayer()->GetMousePosition());
+		//UpdateTemporaryLine(CursorPosition);
+	}
 }
 
 void UDrawingWidget::NativeOnInitialized()
@@ -186,36 +205,72 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
 
     if (!DotDrawWidgetClass || !DrawCanvasPanel || !CanvasBorder) return;
 
-    // Get CanvasBorder size and position
-    FVector2D BorderSize = CanvasBorder->GetDesiredSize();
-    FGeometry BorderGeometry = CanvasBorder->GetCachedGeometry();
-    FVector2D GlobalBorderPosition = BorderGeometry.GetAbsolutePosition();
+    // Get DPI scale
     float DPIScale = UWidgetLayoutLibrary::GetViewportScale(this);
-    GlobalBorderPosition /= DPIScale;
+
+    // Get CanvasBorder size and geometry
+    FGeometry BorderGeometry = CanvasBorder->GetCachedGeometry();
+    FVector2D BorderSize = BorderGeometry.GetAbsoluteSize();
+
+    FVector2D BorderTopLeftPosition = USlateBlueprintLibrary::GetLocalTopLeft(BorderGeometry);
+    
+
+    // Get Global Position of CanvasBorder in Screen Space
+    FVector2D AbsolutePosition = BorderGeometry.GetAbsolutePosition();
+    FVector2D GlobalBorderPosition = AbsolutePosition / DPIScale;
 
     DotSize = FVector2D(25.0f, 20.0f); // Size of DotDrawWidget
     TArray<FVector2D> ExistingPositions; // Store existing positions
+
+    if (CanvasBorder)
+    {
+        // Update geometry to ensure we're using the latest
+        BorderGeometry = CanvasBorder->GetCachedGeometry();
+        FVector2D PixelViewport;
+        FVector2D ViewportPosition;
+		USlateBlueprintLibrary::LocalToViewport(this, BorderGeometry, FVector2D::ZeroVector, PixelViewport, ViewportPosition);
+        // Get the Absolute position from the geometry
+        AbsolutePosition = BorderGeometry.GetAbsolutePosition();
+
+        // Adjust the Absolute Position based on DPI scale
+        GlobalBorderPosition = AbsolutePosition / DPIScale;
+
+
+
+        // Log the results
+        /*UE_LOG(LogTemp, Log, TEXT("AbsolutePosition: %s, GlobalBorderPosition: %s, LocalPosition: %s"),
+            *AbsolutePosition.ToString(), *GlobalBorderPosition.ToString(), *LocalPosition.ToString());*/
+
+        // Log the results
+        UE_LOG(LogTemp, Log, TEXT("PixelViewport: %s, ViewportPosition: %s, BorderTopLeftPosition : %s"),
+            *PixelViewport.ToString(), *ViewportPosition.ToString(), *BorderTopLeftPosition.ToString());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("CanvasBorder is null!"));
+    }
 
     for (int32 i = 0; i < Count; i++)
     {
         FVector2D RandomPosition;
         bool bIsValidPosition = false;
 
-        // Try generating valid random position
         for (int32 Attempt = 0; Attempt < 100; Attempt++) // Limit attempts to avoid infinite loop
         {
-            //float RandomX = FMath::RandRange(0.0f, BorderSize.X - DotSize.X);
-            float RandomX = FMath::RandRange(0.0f, 700.f - 20.f);
-            //float RandomY = FMath::RandRange(0.0f, BorderSize.Y - DotSize.Y);
-            float RandomY = FMath::RandRange(0.0f, 700.f - 25.f);
+            float RandomX = FMath::RandRange(0.0f, static_cast<float>(BorderSize.X - DotSize.X));
+            float RandomY = FMath::RandRange(0.0f, static_cast<float>(BorderSize.Y - DotSize.Y));
+            UE_LOG(LogTemp, Log, TEXT("BorderSizeX: %f, BorderSizeY: %f"), BorderSize.X, BorderSize.Y);
+            UE_LOG(LogTemp, Log, TEXT("DotSizeX: %f, DotSizeY: %f"), DotSize.X, DotSize.Y);
+			UE_LOG(LogTemp, Log, TEXT("RandomX: %f, RandomY: %f"), RandomX, RandomY);
+            //float RandomX = FMath::RandRange(0.0f, 700.0f - 20.0f); // Pastikan semua literal bertipe float
+            //float RandomY = FMath::RandRange(0.0f, 700.0f - 25.0f); // Literal float digunakan di sini
             RandomPosition = FVector2D(RandomX, RandomY);
 
             bIsValidPosition = true;
 
-            // Check against existing positions
             for (const FVector2D& ExistingPosition : ExistingPositions)
             {
-                if (FVector2D::DistSquared(RandomPosition, ExistingPosition) < FMath::Square(DotSize.X))
+                if (FVector2D::DistSquared(RandomPosition, ExistingPosition) < FMath::Square(DotSize.X * 0.5f)) // Longgarkan validasi
                 {
                     bIsValidPosition = false;
                     break;
@@ -225,9 +280,19 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
             if (bIsValidPosition) break;
         }
 
-        // If no valid position found, skip this dot
-        if (!bIsValidPosition) continue;
+        if (!bIsValidPosition)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Failed to find valid position for dot %d after 100 attempts."), i);
+            continue; // Skip this dot if no valid position found
+        }
 
+        // Log positions
+        UE_LOG(LogTemp, Log, TEXT("Dot %d: RandomPosition (Local): %s"), i, *RandomPosition.ToString());
+        UE_LOG(LogTemp, Log, TEXT("Dot %d: CanvasBorder Global Position: %s"), i, *GlobalBorderPosition.ToString());
+
+        FVector2D FinalPosition = GlobalBorderPosition + RandomPosition;
+        UE_LOG(LogTemp, Log, TEXT("Dot %d: FinalPosition (Global): %s"), i, *FinalPosition.ToString());
+        
         // Create DotDrawWidget
         UDotDrawWidget* DotWidget = CreateWidget<UDotDrawWidget>(GetWorld(), DotDrawWidgetClass);
         if (DotWidget)
@@ -236,20 +301,30 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
             DotWidget->DotIndex = i;
             DotWidget->SetSequenceText(i + 1);
 
+            // Set Position Dot With Timer
+			// this function is need because if we set the position directly, the geometry of the widget is not yet updated
+			// so we need to wait a little bit for the layout to complete
+			FTimerHandle SetPositionDotTimer;
+            GetWorld()->GetTimerManager().SetTimer(SetPositionDotTimer, [DotWidget, this]()
+                {
+                    //DotWidget->DotImage.
+                }, 0.1f, false); // Tunggu sebentar agar layout selesai
+
+            UE_LOG(LogTemp, Log, TEXT("Dot Widget Successfully Spawn"));
             // Add to DrawCanvasPanel
             UCanvasPanelSlot* CanvasSlot = DrawCanvasPanel->AddChildToCanvas(DotWidget);
             if (CanvasSlot)
             {
                 // Adjust position to be relative to the CanvasBorder's global position
-                FVector2D FinalPosition = GlobalBorderPosition + RandomPosition;
-                CanvasSlot->SetPosition(RandomPosition);
+                CanvasSlot->SetPosition(FinalPosition);
                 CanvasSlot->SetSize(DotSize);
 
                 // Add position to list
                 ExistingPositions.Add(FinalPosition);
 
                 // Log the position
-                UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s"), i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString());
+                UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s, FinalPosition: %s"),
+                    i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString(), *FinalPosition.ToString());
             }
             else
             {
@@ -262,9 +337,9 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
                 TSharedRef<SWidget> DotWidgetRef = DotWidget->TakeWidget();
                 FSlateApplication::Get().SetUserFocus(0, DotWidgetRef, EFocusCause::SetDirectly);
 
-                // Defer task to set mouse location
+                // Set mouse location in screen space
                 FTimerHandle TimerHandle;
-                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [DotWidget, GlobalBorderPosition, RandomPosition, this]()
+                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [DotWidget, GlobalBorderPosition, RandomPosition, DPIScale, this]()
                     {
                         if (!DotWidget)
                         {
@@ -272,7 +347,7 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
                             return;
                         }
 
-                        FVector2D FinalCursorPosition = GlobalBorderPosition + RandomPosition;
+                        FVector2D FinalCursorPosition = GlobalBorderPosition + RandomPosition * DPIScale;
                         APlayerController* PlayerController = GetOwningPlayer();
                         if (PlayerController)
                         {

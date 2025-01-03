@@ -33,6 +33,7 @@ public:
 
 protected:
     virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnInitialized() override;
 
     float GetDPIScale();
@@ -52,6 +53,8 @@ protected:
         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
         int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 private:
+	float CurrentDeltaTime = 0.f;
+
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UBorder> CanvasBorder;
 

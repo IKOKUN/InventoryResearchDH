@@ -397,7 +397,7 @@ void AIRPlayerController::OpenDrawingWidget()
 			{
 				DrawingWidget->AddToViewport();
 				FInputModeUIOnly InputModeData;
-				InputModeData.SetWidgetToFocus(DrawingWidget->DotWidgets[0]->TakeWidget());
+				//InputModeData.SetWidgetToFocus(DrawingWidget->DotWidgets[0]->TakeWidget());
 				SetInputMode(InputModeData);
 				bShowMouseCursor = true;
 
