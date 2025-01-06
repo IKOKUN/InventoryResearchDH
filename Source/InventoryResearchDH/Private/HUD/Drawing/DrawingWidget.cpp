@@ -79,11 +79,13 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
             continue;
         }
 
-        // Ambil posisi lokal DotImage terhadap widget utama
-        FVector2D DotImageLocalPosition = InGeometry.AbsoluteToLocal(DotWidget->DotImage->GetCachedGeometry().GetAbsolutePosition());
-        FVector2D DotImageSize = DotWidget->DotImage->GetCachedGeometry().GetAbsoluteSize();
+        // Ambil geometri DotImage
+        FGeometry DotImageGeometry = DotWidget->DotImage->GetCachedGeometry();
+        FVector2D DotImageAbsolutePosition = DotImageGeometry.GetAbsolutePosition();
+        FVector2D DotImageLocalPosition = InGeometry.AbsoluteToLocal(DotImageAbsolutePosition);
+        FVector2D DotImageSize = DotImageGeometry.GetLocalSize();
 
-        // Perhitungan tepi Dot
+        // Perhitungan batas Dot
         FVector2D DotLeftTop = DotImageLocalPosition - (DotImageSize * 0.5f);
         FVector2D DotRightBottom = DotImageLocalPosition + (DotImageSize * 0.5f);
 
@@ -91,6 +93,9 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
         float Margin = 5.f;
         DotLeftTop -= FVector2D(Margin, Margin);
         DotRightBottom += FVector2D(Margin, Margin);
+
+        UE_LOG(LogTemp, Warning, TEXT("DotImageAbsolutePosition : %s, DotImageLocalPosition: %s"),
+            *DotImageAbsolutePosition.ToString(), *DotImageLocalPosition.ToString());
 
         UE_LOG(LogTemp, Warning, TEXT("Checking Dot %d with Bounds: LeftTop=%s, RightBottom=%s"),
             i, *DotLeftTop.ToString(), *DotRightBottom.ToString());
@@ -206,7 +211,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
     if (!DotDrawWidgetClass || !DrawCanvasPanel || !CanvasBorder) return;
 
     // Get DPI scale
-    float DPIScale = UWidgetLayoutLibrary::GetViewportScale(this);
+   // float DPIScale = UWidgetLayoutLibrary::GetViewportScale(this);
+	float DPIScale = GetDPIScale();
 
     // Get CanvasBorder size and geometry
     FGeometry BorderGeometry = CanvasBorder->GetCachedGeometry();
@@ -221,7 +227,6 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
 
     DotSize = FVector2D(25.0f, 20.0f); // Size of DotDrawWidget
     TArray<FVector2D> ExistingPositions; // Store existing positions
-
     if (CanvasBorder)
     {
         // Update geometry to ensure we're using the latest
@@ -259,18 +264,20 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
         {
             float RandomX = FMath::RandRange(0.0f, static_cast<float>(BorderSize.X - DotSize.X));
             float RandomY = FMath::RandRange(0.0f, static_cast<float>(BorderSize.Y - DotSize.Y));
-            UE_LOG(LogTemp, Log, TEXT("BorderSizeX: %f, BorderSizeY: %f"), BorderSize.X, BorderSize.Y);
-            UE_LOG(LogTemp, Log, TEXT("DotSizeX: %f, DotSizeY: %f"), DotSize.X, DotSize.Y);
-			UE_LOG(LogTemp, Log, TEXT("RandomX: %f, RandomY: %f"), RandomX, RandomY);
+            //UE_LOG(LogTemp, Log, TEXT("BorderSizeX: %f, BorderSizeY: %f"), BorderSize.X, BorderSize.Y);
+            //UE_LOG(LogTemp, Log, TEXT("DotSizeX: %f, DotSizeY: %f"), DotSize.X, DotSize.Y);
+			//UE_LOG(LogTemp, Log, TEXT("RandomX: %f, RandomY: %f"), RandomX, RandomY);
             //float RandomX = FMath::RandRange(0.0f, 700.0f - 20.0f); // Pastikan semua literal bertipe float
             //float RandomY = FMath::RandRange(0.0f, 700.0f - 25.0f); // Literal float digunakan di sini
             RandomPosition = FVector2D(RandomX, RandomY);
 
             bIsValidPosition = true;
 
+            // Check for overlap with existing positions
             for (const FVector2D& ExistingPosition : ExistingPositions)
             {
-                if (FVector2D::DistSquared(RandomPosition, ExistingPosition) < FMath::Square(DotSize.X * 0.5f)) // Longgarkan validasi
+                // Ensure distance is greater than dot size to avoid overlap
+                if (FVector2D::DistSquared(RandomPosition, ExistingPosition) < FMath::Square(DotSize.X))
                 {
                     bIsValidPosition = false;
                     break;
@@ -287,11 +294,11 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
         }
 
         // Log positions
-        UE_LOG(LogTemp, Log, TEXT("Dot %d: RandomPosition (Local): %s"), i, *RandomPosition.ToString());
-        UE_LOG(LogTemp, Log, TEXT("Dot %d: CanvasBorder Global Position: %s"), i, *GlobalBorderPosition.ToString());
+        //UE_LOG(LogTemp, Log, TEXT("Dot %d: RandomPosition (Local): %s"), i, *RandomPosition.ToString());
+        //UE_LOG(LogTemp, Log, TEXT("Dot %d: CanvasBorder Global Position: %s"), i, *GlobalBorderPosition.ToString());
 
         FVector2D FinalPosition = GlobalBorderPosition + RandomPosition;
-        UE_LOG(LogTemp, Log, TEXT("Dot %d: FinalPosition (Global): %s"), i, *FinalPosition.ToString());
+        //UE_LOG(LogTemp, Log, TEXT("Dot %d: FinalPosition (Global): %s"), i, *FinalPosition.ToString());
         
         // Create DotDrawWidget
         UDotDrawWidget* DotWidget = CreateWidget<UDotDrawWidget>(GetWorld(), DotDrawWidgetClass);
@@ -304,11 +311,11 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
             // Set Position Dot With Timer
 			// this function is need because if we set the position directly, the geometry of the widget is not yet updated
 			// so we need to wait a little bit for the layout to complete
-			FTimerHandle SetPositionDotTimer;
-            GetWorld()->GetTimerManager().SetTimer(SetPositionDotTimer, [DotWidget, this]()
-                {
-                    //DotWidget->DotImage.
-                }, 0.1f, false); // Tunggu sebentar agar layout selesai
+			//FTimerHandle SetPositionDotTimer;
+   //         GetWorld()->GetTimerManager().SetTimer(SetPositionDotTimer, [DotWidget, this]()
+   //             {
+   //                 //DotWidget->DotImage.
+   //             }, 0.1f, false); // Tunggu sebentar agar layout selesai
 
             UE_LOG(LogTemp, Log, TEXT("Dot Widget Successfully Spawn"));
             // Add to DrawCanvasPanel
@@ -323,8 +330,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
                 ExistingPositions.Add(FinalPosition);
 
                 // Log the position
-                UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s, FinalPosition: %s"),
-                    i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString(), *FinalPosition.ToString());
+               /* UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s, FinalPosition: %s"),
+                    i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString(), *FinalPosition.ToString());*/
             }
             else
             {
@@ -333,28 +340,47 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
 
             if (i == 0)
             {
-                // Set focus to the first dot
-                TSharedRef<SWidget> DotWidgetRef = DotWidget->TakeWidget();
-                FSlateApplication::Get().SetUserFocus(0, DotWidgetRef, EFocusCause::SetDirectly);
-
-                // Set mouse location in screen space
+                // Set mouse location ke posisi DotWidget pertama
                 FTimerHandle TimerHandle;
-                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [DotWidget, GlobalBorderPosition, RandomPosition, DPIScale, this]()
+                GetWorld()->GetTimerManager().SetTimer(TimerHandle, [DotWidget, DPIScale, this]()
                     {
-                        if (!DotWidget)
+                        // Set focus to the first dot
+                        TSharedRef<SWidget> DotWidgetRef = DotWidget->TakeWidget();
+                        FSlateApplication::Get().SetUserFocus(0, DotWidgetRef, EFocusCause::SetDirectly);
+
+				        // Ambil Geometry dari DotWidget
+				        FGeometry DotGeometry = DotWidget->GetCachedGeometry();
+				        FVector2D DotPosition = DotGeometry.GetAbsolutePosition();
+				        FVector2D DotSize = DotGeometry.GetAbsoluteSize();
+				        FVector2D DotCenter = DotPosition + DotSize * 0.5f;
+
+                        // Sesuaikan dengan DPI scaling
+                        FVector2D DotCenterScaled = DotCenter / (DPIScale + 0.088f) + FVector2D(0.f, -33.f);
+
+                        UE_LOG(LogTemp, Log, TEXT("DPIScale: %f"), DPIScale);
+
+                        // Tambahkan offset window (untuk mode windowed)
+                        if (GEngine && GEngine->GameViewport)
                         {
-                            UE_LOG(LogTemp, Warning, TEXT("DotWidget is no longer valid."));
-                            return;
+                            TSharedPtr<SWindow> Window = GEngine->GameViewport->GetWindow();
+                            if (Window.IsValid())
+                            {
+                                FVector2D WindowPositionDesktop = Window->GetPositionInScreen();
+                                DotCenterScaled += WindowPositionDesktop;
+                            }
                         }
 
-                        FVector2D FinalCursorPosition = GlobalBorderPosition + RandomPosition * DPIScale;
+                        // Log untuk debugging
+                        UE_LOG(LogTemp, Log, TEXT("DotWidget[0] Absolute Position: %s"), *DotPosition.ToString());
+                        UE_LOG(LogTemp, Log, TEXT("DotWidget[0] Size: %s"), *DotSize.ToString());
+                        UE_LOG(LogTemp, Log, TEXT("DotWidget[0] Center Position: %s"), *DotCenter.ToString());
+            
                         APlayerController* PlayerController = GetOwningPlayer();
                         if (PlayerController)
                         {
-                            PlayerController->SetMouseLocation(FinalCursorPosition.X, FinalCursorPosition.Y);
+                            PlayerController->SetMouseLocation(DotCenterScaled.X, DotCenterScaled.Y);
                         }
-
-                    }, 0.01f, false); // Wait a short time for layout to complete
+                }, 1.f, false); // Tunggu agar layout selesai
             }
         }
         DotWidgets.Add(DotWidget);
@@ -402,9 +428,10 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
             DotImageB->GetCachedGeometry().GetAbsolutePosition() / DPIScale
         );
 
-        FVector2D Offset(15.0f, 15.0f);
-        AbsolutePositionA += Offset;
-        AbsolutePositionB += Offset;
+        FVector2D OffsetA = DotImageA->GetCachedGeometry().GetAbsoluteSize() / 2;
+		FVector2D OffsetB = DotImageB->GetCachedGeometry().GetAbsoluteSize() / 2;
+        AbsolutePositionA += OffsetA;
+        AbsolutePositionB += OffsetB;
 
         // Gambar garis antara dua titik
         TArray<FVector2D> LineSegmentPoints = { AbsolutePositionA, AbsolutePositionB };
