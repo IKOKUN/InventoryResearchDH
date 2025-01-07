@@ -117,6 +117,7 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
                 bIsDrawing = true;
                 LastDotIndex = i;
 
+				FVector2D DotPosition = DotImageLocalPosition + DotImageSize * 0.5f + FVector2D(30.f, 30.f);
                 TemporaryLinePoints.Add(DotImageLocalPosition);
                 TemporaryLinePoints.Add(ClickPosition);
 
@@ -145,10 +146,10 @@ FReply UDrawingWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const 
         // Konversi posisi Dot ke ruang lokal widget utama
         FVector2D DotPosition = InGeometry.AbsoluteToLocal(DotWidget->GetCachedGeometry().GetAbsolutePosition());
 
-        float DotLeft = DotPosition.X - DotSize.X / 2;
-        float DotRight = DotPosition.X + DotSize.X / 2;
-        float DotTop = DotPosition.Y - DotSize.Y / 2;
-        float DotBottom = DotPosition.Y + DotSize.Y / 2;
+        float DotLeft = DotPosition.X - DotSize.X / 2 - 10.f;
+        float DotRight = DotPosition.X + DotSize.X / 2 + 10.f;
+        float DotTop = DotPosition.Y - DotSize.Y / 2 - 10.f;
+        float DotBottom = DotPosition.Y + DotSize.Y / 2 + 10;
 
         if (ReleasePosition.X >= DotLeft && ReleasePosition.X <= DotRight &&
             ReleasePosition.Y >= DotTop && ReleasePosition.Y <= DotBottom)
@@ -197,7 +198,8 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
     if (LastDotIndex >= 0 && LastDotIndex < DotWidgets.Num())
     {
         TemporaryLinePoints.Empty();
-        FVector2D LastDotPosition = DotWidgets[LastDotIndex]->GetCachedGeometry().GetAbsolutePosition();
+        FVector2D LastDotPosition = InGeometry.AbsoluteToLocal(
+            DotWidgets[LastDotIndex]->GetCachedGeometry().GetAbsolutePosition())  + FVector2D(9.f, 9.f);
         TemporaryLinePoints.Add(LastDotPosition);
         TemporaryLinePoints.Add(CursorPosition);
     }
@@ -450,17 +452,66 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
 
     if (LinePoints.Num() >= 2)
     {
-        // Pastikan garis utama digambar
-        FSlateDrawElement::MakeLines(
-            OutDrawElements,
-            CurrentLayer,
-            AllottedGeometry.ToPaintGeometry(),
-            LinePoints,
-            ESlateDrawEffect::None,
-            FLinearColor::Green, // Warna garis
-            true,
-            2.0f
-        );
+        double CurrentTime = FPlatformTime::Seconds();
+
+        // Jika progres belum selesai, hitung progres
+        if (!bProgressCompleted)
+        {
+            if (StartTime <= 0)
+            {
+                StartTime = CurrentTime;
+                return CurrentLayer;
+                UE_LOG(LogTemp, Warning, TEXT("StartTime Initialized: %f"), StartTime);
+            }
+            
+            
+
+            double ElapsedTime = FMath::Max(CurrentTime - StartTime, 0.0);
+            double Progress = FMath::Clamp(ElapsedTime / Duration, 0.0, 1.0);
+
+            UE_LOG(LogTemp, Warning, TEXT("CurrentTime: %f, StartTime: %f, ElapsedTime: %f, progress: %f"), CurrentTime, StartTime, ElapsedTime, Progress);
+
+            FVector2D StartPoint = LinePoints[0];
+            FVector2D EndPoint = LinePoints[1];
+
+            // Hitung posisi garis berdasarkan progress
+            FVector2D CurrentEndPoint = FMath::Lerp(StartPoint, EndPoint, Progress);
+
+            TArray<FVector2D> ProgressiveLine = { StartPoint, CurrentEndPoint };
+
+            FSlateDrawElement::MakeLines(
+                OutDrawElements,
+                CurrentLayer,
+                AllottedGeometry.ToPaintGeometry(),
+                ProgressiveLine,
+                ESlateDrawEffect::None,
+                FLinearColor::Green, // Warna garis
+                true,
+                2.0f
+            );
+
+			//UE_LOG(LogTemp, Warning, TEXT("Progress: %f"), Progress);
+            // Tandai progres selesai jika sudah penuh
+            if (Progress >= 1)
+            {
+                StartTime = -1.0; // Reset waktu
+                bProgressCompleted = true; // Tandai progres selesai
+            }
+        }
+        else
+        {
+            // Gambar garis hijau penuh jika progres selesai
+            FSlateDrawElement::MakeLines(
+                OutDrawElements,
+                CurrentLayer,
+                AllottedGeometry.ToPaintGeometry(),
+                LinePoints,
+                ESlateDrawEffect::None,
+                FLinearColor::Green, // Warna garis
+                true,
+                2.0f
+            );
+        }
     }
 
     // Garis sementara untuk menggambar garis aktif
@@ -469,7 +520,7 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
         // Debugging log untuk memastikan titik-titiknya benar
         for (int32 i = 0; i < TemporaryLinePoints.Num(); ++i)
         {
-            UE_LOG(LogTemp, Warning, TEXT("TemporaryLinePoints[%d]: %s"), i, *TemporaryLinePoints[i].ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("TemporaryLinePoints[%d]: %s"), i, *TemporaryLinePoints[i].ToString());
         }
 
         FSlateDrawElement::MakeLines(

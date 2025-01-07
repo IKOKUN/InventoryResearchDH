@@ -23,13 +23,14 @@ public:
 	int32 DotCount = 5;
 
 	TArray<UDotDrawWidget*> DotWidgets;
-    TArray<FVector2D> LinePoints;
+    mutable TArray<FVector2D> LinePoints;
     TArray<FVector2D> TemporaryLinePoints;
     bool bIsDrawing = false; // Status menggambar garis
     int32 LastDotIndex; // Indeks dot terakhir yang disambungkan
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drawing")
     FVector2D DotSize = FVector2D(50.f, 50.f);
+    mutable bool bProgressCompleted = false;
 
 protected:
     virtual void NativeConstruct() override;
@@ -63,6 +64,20 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     TSubclassOf<UDotDrawWidget> DotDrawWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+	USoundBase* ConnectionSound;
+
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+	USoundBase* CompletionSound;
+
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+    mutable  double StartTime = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+    double Duration = 1;
+
+
 
     void ResetDrawingState();
 
