@@ -26,7 +26,14 @@ public:
 
 	void SetSequenceText(int32 Value) const;
 
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
 	int32 DotIndex = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	int32 ParentDotIndex = 0;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	bool bIsParent = false;
 
 public:
 	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }

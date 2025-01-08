@@ -22,17 +22,21 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Dot Widget")
 	int32 DotCount = 5;
 
-	TArray<UDotDrawWidget*> DotWidgets;
+	TArray<UDotDrawWidget*> DotParentWidgets;
+	TArray<UDotDrawWidget*> DotChildWidgets;
+
     mutable TArray<FVector2D> LinePoints;
     TArray<FVector2D> TemporaryLinePoints;
     bool bIsDrawing = false; // Status menggambar garis
-    int32 LastDotIndex; // Indeks dot terakhir yang disambungkan
+    int32 LastParentDotIndex; // Indeks dot terakhir yang disambungkan
+	int32 LastChildDotIndex; // Indeks dot terakhir yang disambungkan
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drawing")
     FVector2D DotSize = FVector2D(50.f, 50.f);
     mutable bool bProgressCompleted = false;
 
 protected:
+	virtual void NativePreConstruct() override;
     virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnInitialized() override;
@@ -62,8 +66,26 @@ private:
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UCanvasPanel> DrawCanvasPanel;
 
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UDotDrawWidget> DotParent0;
+
+    UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UDotDrawWidget> DotParent1;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UDotDrawWidget> DotParent2;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UDotDrawWidget> DotParent3;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UDotDrawWidget> DotParent4;
+
+    UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UDotDrawWidget> DotParent5;
+
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
-    TSubclassOf<UDotDrawWidget> DotDrawWidgetClass;
+    TSubclassOf<UDotDrawWidget> DotChildWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Drawing")
 	USoundBase* ConnectionSound;
@@ -77,9 +99,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Drawing")
     double Duration = 1;
 
+	float ProgressPercentage = 0.f;
 
+    // Fungsi untuk membuat DotChild
+	void CreatesAllDotChild();
 
-    void ResetDrawingState();
+	void ResetProgress();
 
     void SpawnRandomDots(int32 Count);
 	void PlayConnectionSound();
