@@ -19,8 +19,7 @@ class INVENTORYRESEARCHDH_API UDrawingWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Dot Widget")
-	int32 DotCount = 5;
+	
 
 	TArray<UDotDrawWidget*> DotParentWidgets;
 	TArray<UDotDrawWidget*> DotChildWidgets;
@@ -44,16 +43,9 @@ protected:
     float GetDPIScale();
     FVector2D GetViewportLocalPosition(FVector2D ScreenPosition);
 
-    bool IsPointInsideDot(const FVector2D& Point, const FVector2D& DotPosition) const;
-
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
     virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-    void HandleMouseUpOnDot(int32 DotIndex, const FVector2D& DotPosition);
     virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-
-    void UpdateTemporaryLine(const FVector2D& CursorPosition);
-
-
     virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
         int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -85,6 +77,9 @@ private:
 	TObjectPtr<UDotDrawWidget> DotParent5;
 
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
+    int32 DotCount = 5;
+
+    UPROPERTY(EditAnywhere, Category = "Dot Widget")
     TSubclassOf<UDotDrawWidget> DotChildWidgetClass;
 
 	UPROPERTY(EditAnywhere, Category = "Drawing")
@@ -103,12 +98,13 @@ private:
 
     // Fungsi untuk membuat DotChild
 	void CreatesAllDotChild();
-
 	void ResetProgress();
+	UDotDrawWidget* GetDotParentWidgetFromIndex(int32 Index);
+    void UpdateTemporaryLinePoints();
 
+    // Fungsi untuk menghitung percentage prgress berdasarkan lokasi mouse
+    float GetCursorProjectionOnLine(const FVector2D& LineStart, const FVector2D& LineEnd, const FVector2D& CursorLoc, float Tolerance);
     void SpawnRandomDots(int32 Count);
 	void PlayConnectionSound();
 	void PlayCompletionSound();
-    bool GenerateValidDotPosition(const FVector2D& BorderSize, const TArray<FVector2D>& ExistingPositions, FVector2D& OutPosition) const;
-    void AddDotToCanvas(UDotDrawWidget* DotWidget, const FVector2D& Position);
 };
