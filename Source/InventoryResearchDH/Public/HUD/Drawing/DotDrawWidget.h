@@ -25,6 +25,7 @@ public:
 	TObjectPtr<UImage> DotImage;
 
 	void SetSequenceText(int32 Value) const;
+	void SetDotImageBrushColorToGreen();
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
 	int32 DotIndex = 0;
@@ -34,6 +35,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
 	bool bIsParent = false;
+
+	
 
 public:
 	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }

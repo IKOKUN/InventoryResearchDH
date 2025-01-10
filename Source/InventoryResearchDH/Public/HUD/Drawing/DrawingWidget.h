@@ -19,20 +19,6 @@ class INVENTORYRESEARCHDH_API UDrawingWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	
-
-	TArray<UDotDrawWidget*> DotParentWidgets;
-	TArray<UDotDrawWidget*> DotChildWidgets;
-
-    mutable TArray<FVector2D> LinePoints;
-    TArray<FVector2D> TemporaryLinePoints;
-    bool bIsDrawing = false; // Status menggambar garis
-    int32 LastParentDotIndex; // Indeks dot terakhir yang disambungkan
-	int32 LastChildDotIndex; // Indeks dot terakhir yang disambungkan
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Drawing")
-    FVector2D DotSize = FVector2D(50.f, 50.f);
-    mutable bool bProgressCompleted = false;
 
 protected:
 	virtual void NativePreConstruct() override;
@@ -50,7 +36,16 @@ protected:
         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
         int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 private:
-	float CurrentDeltaTime = 0.f;
+    TArray<UDotDrawWidget*> DotParentWidgets;
+    TArray<UDotDrawWidget*> DotChildWidgets;
+
+    mutable TArray<FVector2D> LinePoints;
+    TArray<FVector2D> TemporaryLinePoints;
+    bool bIsDrawing = false; // Status menggambar garis
+    int32 LastParentDotIndex; // Indeks dot terakhir yang disambungkan
+	float ProgressPercentage = 0.f; // Persentase progress menggambar garis
+
+    mutable bool bProgressCompleted = false;
 
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UBorder> CanvasBorder;
@@ -82,29 +77,44 @@ private:
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     TSubclassOf<UDotDrawWidget> DotChildWidgetClass;
 
+    UPROPERTY(EditAnywhere, Category = "Dot Widget")
+    FVector2D DotSize = FVector2D(50.f, 50.f);
+
 	UPROPERTY(EditAnywhere, Category = "Drawing")
 	USoundBase* ConnectionSound;
 
 	UPROPERTY(EditAnywhere, Category = "Drawing")
 	USoundBase* CompletionSound;
 
-	UPROPERTY(EditAnywhere, Category = "Drawing")
-    mutable  double StartTime = 0;
 
-	UPROPERTY(EditAnywhere, Category = "Drawing")
-    double Duration = 1;
-
-	float ProgressPercentage = 0.f;
-
-    // Fungsi untuk membuat DotChild
-	void CreatesAllDotChild();
+	// Reset Progress when touch Next Dot Widget or stopped drawing
 	void ResetProgress();
-	UDotDrawWidget* GetDotParentWidgetFromIndex(int32 Index);
-    void UpdateTemporaryLinePoints();
+    
 
     // Fungsi untuk menghitung percentage prgress berdasarkan lokasi mouse
     float GetCursorProjectionOnLine(const FVector2D& LineStart, const FVector2D& LineEnd, const FVector2D& CursorLoc, float Tolerance);
-    void SpawnRandomDots(int32 Count);
 	void PlayConnectionSound();
 	void PlayCompletionSound();
+
+	// Function for Drawing Path Line
+	void DrawPathLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const;
+
+	// Function for Drawing Temporary Line
+	void DrawTemporaryLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const;
+
+	// Function for Drawing Fix Line
+	void DrawFixLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const;
+
+	// TODO: Update Temporary Line Points with lagging effect
+    void UpdateTemporaryLinePoints();
+
+	// TODO: Update Temporary Line with lagging effect
+    UPROPERTY(EditAnywhere, Category = "Drawing")
+    mutable  double StartTime = 0;
+
+	// TODO: Duration for lagging effect
+    UPROPERTY(EditAnywhere, Category = "Drawing")
+    double Duration = 1;
+
+    void SpawnRandomDots(int32 Count);
 };
