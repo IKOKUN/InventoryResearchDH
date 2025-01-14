@@ -9,23 +9,25 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Blueprint/SlateBlueprintLibrary.h"
 #include "TimerManager.h"
 #include "Engine/GameViewportClient.h" // Required for accessing the viewport client
+#include "Math/Vector.h"
 
 
 void UDrawingWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	DotParent0->SetSequenceText(1);
-	DotParent1->SetSequenceText(2);
-	DotParent2->SetSequenceText(3);
-	DotParent3->SetSequenceText(4);
-	DotParent4->SetSequenceText(5);
-	DotParent5->SetSequenceText(6);
+	DotWidget0->SetSequenceText(1);
+	DotWidget1->SetSequenceText(2);
+	DotWidget2->SetSequenceText(3);
+	DotWidget3->SetSequenceText(4);
+	DotWidget4->SetSequenceText(5);
+	DotWidget5->SetSequenceText(6);
 }
 
 void UDrawingWidget::NativeConstruct()
@@ -36,51 +38,44 @@ void UDrawingWidget::NativeConstruct()
     FTimerHandle SpawnRandomDotTimer;
     GetWorld()->GetTimerManager().SetTimer(SpawnRandomDotTimer, [this]()
         {
-            DotParentWidgets.Add(DotParent0);
-            DotParentWidgets.Add(DotParent1);
-            DotParentWidgets.Add(DotParent2);
-            DotParentWidgets.Add(DotParent3);
-            DotParentWidgets.Add(DotParent4);
-            DotParentWidgets.Add(DotParent5);
-		}, 0.1f, false); // Tunggu sebentar agar layout selesai agar nilai dari Geomtery sudah terisi
+            DotWidgets.Add(DotWidget0);
+            DotWidgets.Add(DotWidget1);
+            DotWidgets.Add(DotWidget2);
+            DotWidgets.Add(DotWidget3);
+            DotWidgets.Add(DotWidget4);
+            DotWidgets.Add(DotWidget5);
 
-    //DotParentWidgets.Add(DotParent0);
-    //DotParentWidgets.Add(DotParent1);
-    //DotParentWidgets.Add(DotParent2);
-    //DotParentWidgets.Add(DotParent3);
-    //DotParentWidgets.Add(DotParent4);
-    //DotParentWidgets.Add(DotParent5);
+            // Set First DotImage texture to ConnectionDotTexture
+            DotWidget0->SetDotImageTexture(false);
 
-    LastParentDotIndex = 0;
+            // Set mouse location ke posisi DotWidget pertama
+            FGeometry DotGeometry = DotWidget0->GetCachedGeometry();
+            FVector2D DotPosition = DotGeometry.GetAbsolutePosition();
+            FVector2D DotSize = DotGeometry.GetAbsoluteSize();
+            FVector2D DotCenter = DotPosition + DotSize * 0.5f;
+
+            // Sesuaikan dengan DPI scaling
+            FVector2D DotCenterScaled = DotCenter / GetDPIScale() - FVector2D(30.f, 30.f);
+
+            APlayerController* PlayerController = GetOwningPlayer();
+            if (PlayerController)
+            {
+                PlayerController->SetMouseLocation(DotCenterScaled.X, DotCenterScaled.Y);
+            }
+        }, 0.1f, false); // Tunggu sebentar agar layout selesai agar nilai dari Geomtery sudah terisi
+
+    LastDotIndex = 0;
     bIsDrawing = false;
     ProgressPercentage = 0.0f;
     StartTime = -1.0;
-	bProgressCompleted = false;
+    bProgressCompleted = false;
 
-	//CreatesAllDotChild();
-
-	// Setiap titik akan dihubungkan dengan titik berikutnya
-	// Jika sudah mencapai titik terakhir, maka akan kembali ke titik pertama
-	// DotCount = 5; // Jumlah titik yang akan digambar
-
-    // Spawn dots sesuai jumlah yang diinginkan
-    //  FTimerHandle SpawnRandomDotTimer;
-    //  GetWorld()->GetTimerManager().SetTimer(SpawnRandomDotTimer, [this]()
-		//{
-		//	SpawnRandomDots(DotCount);
-		//}, 0.1f, false); // Tunggu sebentar agar layout selesai
+    //CreatesAllDotChild();
 }
 
 void UDrawingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	// Update garis sementara jika sedang menggambar
-	//if (bIsDrawing)
-	//{
-		//FVector2D CursorPosition = GetViewportLocalPosition(GetOwningPlayer()->GetMousePosition());
-		//UpdateTemporaryLine(CursorPosition);
-	//}
 }
 
 void UDrawingWidget::NativeOnInitialized()
@@ -90,7 +85,7 @@ void UDrawingWidget::NativeOnInitialized()
     LinePoints.Empty();
     TemporaryLinePoints.Empty();
     bIsDrawing = false;
-    LastParentDotIndex = 0; // Tidak ada Dot aktif pada awalnya
+    LastDotIndex = 0; // Tidak ada Dot aktif pada awalnya
 }
 
 float UDrawingWidget::GetDPIScale()
@@ -123,9 +118,9 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
     UE_LOG(LogTemp, Warning, TEXT("Mouse Button Down at: %s"), *ClickPosition.ToString());
 
     // Periksa apakah klik pada Parent Dot
-    for (int32 i = 0; i < DotParentWidgets.Num(); i++)
+    for (int32 i = 0; i < DotWidgets.Num(); i++)
     {
-        UDotDrawWidget* ParentDotWidget = DotParentWidgets[i];
+        UDotDrawWidget* ParentDotWidget = DotWidgets[i];
         if (!ParentDotWidget || !ParentDotWidget->DotImage)
             continue;
 
@@ -150,7 +145,7 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
         if (ClickPosition.X >= ParentLeftTop.X && ClickPosition.X <= ParentRightBottom.X &&
             ClickPosition.Y >= ParentLeftTop.Y && ClickPosition.Y <= ParentRightBottom.Y)
         {
-            if (i != LastParentDotIndex)
+            if (i != LastDotIndex)
             {
                 UE_LOG(LogTemp, Warning, TEXT("Cannot click Parent Dot %d out of order! Resetting progress."), i);
                 ResetProgress();
@@ -159,7 +154,7 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
 
             // Klik Parent Dot yang benar
             bIsDrawing = true;
-            LastParentDotIndex = i;
+            LastDotIndex = i;
             TemporaryLinePoints.Empty();
 
             FVector2D ParentDotCenter = ParentDotPosition + ParentDotSize * 0.5f;
@@ -167,19 +162,19 @@ FReply UDrawingWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, cons
             LinePoints.Add(ParentDotCenter);
 
             // Ambil titik untuk Parent Dot berikutnya, pastikan ini adalah titik yang benar
-            int32 NextIndex = (i + 1) % DotParentWidgets.Num();
-            UDotDrawWidget* NextParentDotWidget = DotParentWidgets[NextIndex];
-            FGeometry NextParentDotGeometry = NextParentDotWidget->DotImage->GetCachedGeometry();
-            FVector2D NextParentDotPosition = InGeometry.AbsoluteToLocal(NextParentDotGeometry.GetAbsolutePosition());
-            FVector2D NextParentDotSize = NextParentDotGeometry.GetLocalSize();
-            FVector2D NextParentDotCenter = NextParentDotPosition + NextParentDotSize * 0.5f;
-            TemporaryLinePoints.Add(NextParentDotCenter);
+            int32 NextIndex = (i + 1) % DotWidgets.Num();
+            UDotDrawWidget* NextDotWidget = DotWidgets[NextIndex];
+            FGeometry NextDotGeometry = NextDotWidget->DotImage->GetCachedGeometry();
+            FVector2D NextDotPosition = InGeometry.AbsoluteToLocal(NextDotGeometry.GetAbsolutePosition());
+            FVector2D NextDotSize = NextDotGeometry.GetLocalSize();
+            FVector2D NextDotCenter = NextDotPosition + NextDotSize * 0.5f;
+            TemporaryLinePoints.Add(NextDotCenter);
 
-            UE_LOG(LogTemp, Warning, TEXT("NextParentDotCenter On Mouse Button Down: %s"), *NextParentDotCenter.ToString());
+            UE_LOG(LogTemp, Warning, TEXT("NextDotCenter On Mouse Button Down: %s"), *NextDotCenter.ToString());
 
             StartTime = FPlatformTime::Seconds(); // Mulai progres animasi
 
-            UE_LOG(LogTemp, Warning, TEXT("Started drawing from Parent Dot %d"), LastParentDotIndex);
+            UE_LOG(LogTemp, Warning, TEXT("Started drawing from Parent Dot %d"), LastDotIndex);
             return FReply::Handled();
         }
     }
@@ -203,7 +198,38 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
         FVector2D EndPoint = TemporaryLinePoints[1];
 
         // Hitung progres kursor pada garis
-        ProgressPercentage = GetCursorProjectionOnLine(StartPoint, EndPoint, CursorPosition, 100.0f);
+        if (DotWidgets[LastDotIndex]->bIsCurveDot)
+        {
+            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+            FVector2D Direction = EndPoint - StartPoint;
+            //FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+
+            // Pastikan Perpendicular selalu mengarah ke atas
+            //if (Perpendicular.Y > 0) // Jika tegak lurus mengarah ke bawah
+            //{
+            //    Perpendicular *= -1.0f; // Balik arahnya
+            //}
+
+            // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
+            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+            FVector2D ControlPoint1 = StartPoint + Direction * 0.33f + Perpendicular * CurveOffset;
+            FVector2D ControlPoint2 = StartPoint + Direction * 0.66f - Perpendicular * CurveOffset;
+
+			ProgressPercentage = GetCursorProjectionOnCurve(StartPoint, ControlPoint1, ControlPoint2, EndPoint, CursorPosition, 10.0f);
+            if (ProgressPercentage >= 0.0f)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Projection valid at t = %f"), ProgressPercentage);
+            }
+            else
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Cursor too far from curve"));
+            }
+        }  
+		else
+		{
+			ProgressPercentage = GetCursorProjectionOnLine(StartPoint, EndPoint, CursorPosition, 50.0f);
+		}
 
         if (ProgressPercentage < 0.0f)
         {
@@ -217,30 +243,30 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
         // Jika kursor mencapai akhir garis (ParentDot selanjutnya), proses pindah ke ParentDot berikutnya
         if (ProgressPercentage >= 1.0f)
         {
-            int32 NextIndex = (LastParentDotIndex + 1) % DotParentWidgets.Num(); // Loop kembali ke 0 setelah terakhir
-            if (NextIndex >= DotParentWidgets.Num())
+            int32 NextIndex = (LastDotIndex + 1) % DotWidgets.Num(); // Loop kembali ke 0 setelah terakhir
+            if (NextIndex >= DotWidgets.Num())
             {
                 NextIndex = 0; // Mendukung loop dari Dot5 → Dot0
             }
 
-            UDotDrawWidget* NextParentDotWidget = DotParentWidgets[NextIndex];
-            if (!NextParentDotWidget || !NextParentDotWidget->DotImage)
+            UDotDrawWidget* NextDotWidget = DotWidgets[NextIndex];
+            if (!NextDotWidget || !NextDotWidget->DotImage)
             {
                 ResetProgress();
                 return FReply::Handled();
             }
 
             // Ambil posisi ParentDot berikutnya
-            FGeometry NextParentDotGeometry = NextParentDotWidget->DotImage->GetCachedGeometry();
-            FVector2D NextParentDotPosition = InGeometry.AbsoluteToLocal(NextParentDotGeometry.GetAbsolutePosition());
-            FVector2D NextParentDotSize = NextParentDotGeometry.GetLocalSize();
-            FVector2D NextParentDotCenter = NextParentDotPosition + NextParentDotSize * 0.5f;
+            FGeometry NextDotGeometry = NextDotWidget->DotImage->GetCachedGeometry();
+            FVector2D NextDotPosition = InGeometry.AbsoluteToLocal(NextDotGeometry.GetAbsolutePosition());
+            FVector2D NextDotSize = NextDotGeometry.GetLocalSize();
+            FVector2D NextDotCenter = NextDotPosition + NextDotSize * 0.5f;
 
-            float DistanceToNextParentDot = FVector2D::Distance(CursorPosition, NextParentDotCenter);
-            UE_LOG(LogTemp, Warning, TEXT("DistanceToNextParentDot on MouseMove: %f"), DistanceToNextParentDot);
+            float DistanceToNextDot = FVector2D::Distance(CursorPosition, NextDotCenter);
+            UE_LOG(LogTemp, Warning, TEXT("DistanceToNextDot on MouseMove: %f"), DistanceToNextDot);
 
             // Jika kursor berada dalam jarak yang valid dari ParentDot berikutnya
-            if (DistanceToNextParentDot <= 50.f) // Threshold jarak
+            if (DistanceToNextDot <= 50.f) // Threshold jarak
             {
                 // Tambahkan titik akhir dari garis sebelumnya ke LinePoints
                 if (LinePoints.Num() == 0 || LinePoints.Last() != TemporaryLinePoints[0])
@@ -250,26 +276,39 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
                 LinePoints.Add(TemporaryLinePoints[1]);
 
                 // Lanjutkan ke ParentDot berikutnya
-                LastParentDotIndex = NextIndex; // Perbarui LastParentDotIndex ke indeks berikutnya
+                LastDotIndex = NextIndex; // Perbarui LastDotIndex ke indeks berikutnya
                 ProgressPercentage = 0.0f;
 
                 // Perbarui TemporaryLinePoints untuk garis baru
                 TemporaryLinePoints.Empty();
-                TemporaryLinePoints.Add(NextParentDotCenter);
+                TemporaryLinePoints.Add(NextDotCenter);
 
-                int32 NextNextIndex = (LastParentDotIndex + 1) % DotParentWidgets.Num();
-                UDotDrawWidget* NextNextParentDotWidget = DotParentWidgets[NextNextIndex];
-                if (NextNextParentDotWidget && NextNextParentDotWidget->DotImage)
+                int32 NextNextIndex = (LastDotIndex + 1) % DotWidgets.Num();
+                UDotDrawWidget* NextNextDotWidget = DotWidgets[NextNextIndex];
+                if (NextNextDotWidget && NextNextDotWidget->DotImage)
                 {
-                    FGeometry NextNextParentDotGeometry = NextNextParentDotWidget->DotImage->GetCachedGeometry();
-                    FVector2D NextNextParentDotPosition = InGeometry.AbsoluteToLocal(NextNextParentDotGeometry.GetAbsolutePosition());
-                    FVector2D NextNextParentDotSize = NextNextParentDotGeometry.GetLocalSize();
-                    FVector2D NextNextParentDotCenter = NextNextParentDotPosition + NextNextParentDotSize * 0.5f;
+                    FGeometry NextNextDotGeometry = NextNextDotWidget->DotImage->GetCachedGeometry();
+                    FVector2D NextNextDotPosition = InGeometry.AbsoluteToLocal(NextNextDotGeometry.GetAbsolutePosition());
+                    FVector2D NextNextDotSize = NextNextDotGeometry.GetLocalSize();
+                    FVector2D NextNextDotCenter = NextNextDotPosition + NextNextDotSize * 0.5f;
 
-                    TemporaryLinePoints.Add(NextNextParentDotCenter);
+                    TemporaryLinePoints.Add(NextNextDotCenter);
+                    
+                }
+                if (NextIndex == 0)
+                {
+                    PlayCompletionSound();
+                    NextDotWidget->SetDotImageTexture(true);
+                    NextDotWidget->PlayDotAnimation();
+                }
+                else
+                {
+                    PlayConnectionSound();
+					NextDotWidget->SetDotImageTexture(false);
+					NextDotWidget->PlayDotAnimation();
                 }
 
-                UE_LOG(LogTemp, Warning, TEXT("Moved to next Parent Dot %d"), LastParentDotIndex);
+                UE_LOG(LogTemp, Warning, TEXT("Moved to next Parent Dot %d"), LastDotIndex);
             }
         }
 
@@ -295,23 +334,23 @@ FReply UDrawingWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const 
     TemporaryLinePoints.Add(ReleasePosition);
 
     // Memeriksa apakah kursor berada dalam jarak yang valid dari ParentDot selanjutnya
-    if (LastParentDotIndex + 1 < DotParentWidgets.Num())
+    if (LastDotIndex + 1 < DotWidgets.Num())
     {
-        int32 NextIndex = (LastParentDotIndex + 1) % DotParentWidgets.Num();
-        UDotDrawWidget* NextParentDotWidget = DotParentWidgets[NextIndex];
-        FGeometry NextParentDotGeometry = NextParentDotWidget->DotImage->GetCachedGeometry();
-        FVector2D NextParentDotPosition = InGeometry.AbsoluteToLocal(NextParentDotGeometry.GetAbsolutePosition());
-        FVector2D NextParentDotSize = NextParentDotGeometry.GetLocalSize();
-        FVector2D NextParentDotCenter = NextParentDotPosition + NextParentDotSize * 0.5f;
+        int32 NextIndex = (LastDotIndex + 1) % DotWidgets.Num();
+        UDotDrawWidget* NextDotWidget = DotWidgets[NextIndex];
+        FGeometry NextDotGeometry = NextDotWidget->DotImage->GetCachedGeometry();
+        FVector2D NextDotPosition = InGeometry.AbsoluteToLocal(NextDotGeometry.GetAbsolutePosition());
+        FVector2D NextDotSize = NextDotGeometry.GetLocalSize();
+        FVector2D NextDotCenter = NextDotPosition + NextDotSize * 0.5f;
 
         // Hitung jarak antara posisi kursor dan titik pusat ParentDot berikutnya
-        float DistanceToNextParentDot = FVector2D::Distance(ReleasePosition, NextParentDotCenter);
+        float DistanceToNextDot = FVector2D::Distance(ReleasePosition, NextDotCenter);
 
-        UE_LOG(LogTemp, Warning, TEXT("DistanceToNextParentDot: %f"), DistanceToNextParentDot);
-        UE_LOG(LogTemp, Warning, TEXT("NextParentDotCenter On Mouse Button Up: %s"), *NextParentDotCenter.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("DistanceToNextDot: %f"), DistanceToNextDot);
+        UE_LOG(LogTemp, Warning, TEXT("NextDotCenter On Mouse Button Up: %s"), *NextDotCenter.ToString());
 
         // Jika jarak terlalu jauh, hanya reset TemporaryLinePoints, tidak menghapus LinePoints
-        if (DistanceToNextParentDot > 40.f) // SomeThreshold adalah jarak maksimum yang diperbolehkan
+        if (DistanceToNextDot > 40.f) // SomeThreshold adalah jarak maksimum yang diperbolehkan
         {
             UE_LOG(LogTemp, Warning, TEXT("Mouse Release not close enough to next Parent Dot, resetting TemporaryLinePoints only."));
             TemporaryLinePoints.Empty(); // Hanya reset garis sementara
@@ -320,12 +359,12 @@ FReply UDrawingWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const 
         }
 
         // Lanjutkan ke ParentDot berikutnya jika berada dalam jarak yang valid
-        LinePoints.Add(NextParentDotCenter); // Tambahkan titik akhir ke LinePoints
+        LinePoints.Add(NextDotCenter); // Tambahkan titik akhir ke LinePoints
 
-        LastParentDotIndex++;
+        LastDotIndex++;
         ProgressPercentage = 0.0f;
 
-        UE_LOG(LogTemp, Warning, TEXT("Moved to next Parent Dot %d"), LastParentDotIndex);
+        UE_LOG(LogTemp, Warning, TEXT("Moved to next Parent Dot %d"), LastDotIndex);
     }
 
     // Reset TemporaryLinePoints untuk menunggu interaksi berikutnya
@@ -361,26 +400,83 @@ float UDrawingWidget::GetCursorProjectionOnLine(const FVector2D& LineStart, cons
         return -1.0f; // Invalid progress
     }
 
-
-
     return Projection;
+}
+
+float UDrawingWidget::GetCursorProjectionOnCurve(const FVector2D& StartPos, const FVector2D& ControlPoint1, const FVector2D& ControlPoint2, const FVector2D& EndPos, const FVector2D& CursorLoc, float Tolerance)
+{
+    const int32 NumSteps = 100; // Resolusi iterasi
+    float ClosestT = -1.0f;
+    float MinDistanceSquared = FLT_MAX;
+
+    // Iterasi untuk mencari t optimal
+    for (int32 i = 0; i <= NumSteps; i++)
+    {
+        float t = static_cast<float>(i) / NumSteps;
+
+        // Evaluasi posisi pada kurva menggunakan fungsi Bezier
+        FVector2D BezierPoint = FMath::Pow(1 - t, 3) * StartPos +
+            3 * FMath::Pow(1 - t, 2) * t * ControlPoint1 +
+            3 * (1 - t) * FMath::Pow(t, 2) * ControlPoint2 +
+            FMath::Pow(t, 3) * EndPos;
+
+        // Hitung jarak kuadrat ke kursor
+        float DistanceSquared = (CursorLoc - BezierPoint).SizeSquared();
+
+        // Perbarui nilai jika jarak lebih kecil
+        if (DistanceSquared < MinDistanceSquared)
+        {
+            MinDistanceSquared = DistanceSquared;
+            ClosestT = t;
+        }
+    }
+
+    // Periksa apakah jarak ke kurva berada dalam toleransi
+    if (FMath::Sqrt(MinDistanceSquared) > Tolerance)
+    {
+        return -1.0f; // Tidak valid
+    }
+
+    return ClosestT; // t pada kurva yang paling dekat
+}
+
+TArray<FVector2D> UDrawingWidget::SampleBezierCurve(const FVector2D& StartPoint, const FVector2D& ControlPoint1, const FVector2D& ControlPoint2, const FVector2D& EndPoint, float CurrentPercentage, int32 SampleCount)
+{
+    TArray<FVector2D> SampledPoints;
+
+    // Pastikan variabel SampleCount terdefinisi
+    for (int32 i = 0; i <= SampleCount; i++)
+    {
+        float t = FMath::Clamp(static_cast<float>(i) / SampleCount * CurrentPercentage, 0.0f, 1.0f);
+        float OneMinusT = 1.0f - t;
+
+        FVector2D Point =
+            OneMinusT * OneMinusT * OneMinusT * StartPoint +
+            3 * OneMinusT * OneMinusT * t * ControlPoint1 +
+            3 * OneMinusT * t * t * ControlPoint2 +
+            t * t * t * EndPoint;
+
+        SampledPoints.Add(Point);
+    }
+
+    return SampledPoints;
 }
 
 int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
     int32 CurrentLayer = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 
-    if (DotParentWidgets.Num() < 2) return CurrentLayer;
+    if (DotWidgets.Num() < 2) return CurrentLayer;
 
 	DrawPathLine(OutDrawElements, AllottedGeometry, CurrentLayer);
 	DrawTemporaryLine(OutDrawElements, AllottedGeometry, CurrentLayer);
     DrawFixLine(OutDrawElements, AllottedGeometry, CurrentLayer);
 
-    //UE_LOG(LogTemp, Warning, TEXT("Drawing Permanent Lines:"));
-    //for (const FVector2D& Point : LinePoints)
-    //{
-    //    // UE_LOG(LogTemp, Warning, TEXT("Point: %s"), *Point.ToString());
-    //}
+    UE_LOG(LogTemp, Warning, TEXT("Drawing Permanent Lines:"));
+    for (const FVector2D& Point : LinePoints)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Point: %s"), *Point.ToString());
+    }
 
     /*UE_LOG(LogTemp, Warning, TEXT("Drawing Temporary Line:"));
     for (const FVector2D& TempPoint : TemporaryLinePoints)
@@ -396,37 +492,99 @@ void UDrawingWidget::DrawPathLine(FSlateWindowElementList& OutDrawElements, cons
     // Dapatkan faktor skala DPI
     float DPIScale = FSlateApplication::Get().GetApplicationScale();
 
+    const float CurveTension = 0.5f; // Nilai default untuk kelengkungan
     FLinearColor LineColor = FLinearColor(0.5f, 0.5f, 0.5f, 0.5f);
     float LineThickness = 2.0f;
 
     // Loop untuk menggambar garis antara titik-titik
-    for (int32 i = 0; i < DotParentWidgets.Num(); i++)
+    for (int32 i = 0; i < DotWidgets.Num(); i++)
     {
-        const UDotDrawWidget* DotA = DotParentWidgets[i];
-        const UDotDrawWidget* DotB = DotParentWidgets[(i + 1) % DotParentWidgets.Num()]; // Menghubungkan ke titik pertama saat i adalah titik terakhir
+        const UDotDrawWidget* CurrentDot = DotWidgets[i];
+        const UDotDrawWidget* NextDot = DotWidgets[(i + 1) % DotWidgets.Num()]; // Menghubungkan ke titik pertama saat i adalah titik terakhir
 
-        if (!DotA || !DotB) continue;
+        if (!CurrentDot || !NextDot) continue;
 
-        const UImage* DotImageA = DotA->GetDotImage();
-        const UImage* DotImageB = DotB->GetDotImage();
+        const UImage* CurrentDotImage = CurrentDot->GetDotImage();
+        const UImage* NextDotImage = NextDot->GetDotImage();
 
-        if (!DotImageA || !DotImageB) continue;
+        if (!CurrentDotImage || !NextDotImage) continue;
 
         // Dapatkan posisi absolut dan transformasi dengan DPI scaling
-        FVector2D AbsolutePositionA = AllottedGeometry.AbsoluteToLocal(
-            DotImageA->GetCachedGeometry().GetAbsolutePosition() / DPIScale
+        FVector2D StartPosition = AllottedGeometry.AbsoluteToLocal(
+            CurrentDotImage->GetCachedGeometry().GetAbsolutePosition() / DPIScale
         );
-        FVector2D AbsolutePositionB = AllottedGeometry.AbsoluteToLocal(
-			DotImageB->GetCachedGeometry().GetAbsolutePosition() / DPIScale
+        FVector2D EndPosition = AllottedGeometry.AbsoluteToLocal(
+            NextDotImage->GetCachedGeometry().GetAbsolutePosition() / DPIScale
         );
 
-        FVector2D OffsetA = DotImageA->GetCachedGeometry().GetAbsoluteSize() / 2;
-        FVector2D OffsetB = DotImageB->GetCachedGeometry().GetAbsoluteSize() / 2;
-        AbsolutePositionA += OffsetA;
-        AbsolutePositionB += OffsetB;
+        FVector2D CurrentOffset = CurrentDotImage->GetCachedGeometry().GetAbsoluteSize() / 2;
+        FVector2D NextOffset = NextDotImage->GetCachedGeometry().GetAbsoluteSize() / 2;
+        StartPosition += CurrentOffset;
+        EndPosition += NextOffset;
+
+
+        if (CurrentDot->bIsCurveDot)
+        {
+            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+            FVector2D Direction = EndPosition - StartPosition;
+            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+
+            // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
+            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+            FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
+            FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+
+            // Gambar kurva menggunakan MakeCubicBezierSpline
+            FSlateDrawElement::MakeCubicBezierSpline(
+                OutDrawElements,
+                LayerId,
+                AllottedGeometry.ToPaintGeometry(),
+                StartPosition,
+                ControlPoint1,
+                ControlPoint2,
+                EndPosition,
+                LineThickness,
+                ESlateDrawEffect::None,
+                LineColor
+            );
+
+            /*FSlateDrawElement::MakeSpline(
+                OutDrawElements,
+                LayerId,
+                AllottedGeometry.ToPaintGeometry(),
+                StartPosition,
+                ControlPoint1,
+                ControlPoint2,
+                EndPosition,
+                LineThickness,
+                ESlateDrawEffect::None,
+                LineColor
+            );*/
+
+            //UE_LOG(LogTemp, Warning, TEXT("Start Position: %s"), *StartPosition.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("End Position: %s"), *EndPosition.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("ControlPoint1: %s"), *ControlPoint1.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("ControlPoint2: %s"), *ControlPoint2.ToString());
+
+        }
+        else
+        {
+            // Gambar garis lurus
+            TArray<FVector2D> LineSegmentPoints = { StartPosition, EndPosition };
+            FSlateDrawElement::MakeLines(
+                OutDrawElements,
+                LayerId,
+                AllottedGeometry.ToPaintGeometry(),
+                LineSegmentPoints,
+                ESlateDrawEffect::None,
+                LineColor,
+                true,
+                LineThickness
+            );
+        }
 
         // Gambar garis antara dua titik
-        TArray<FVector2D> LineSegmentPoints = { AbsolutePositionA, AbsolutePositionB };
+        /*TArray<FVector2D> LineSegmentPoints = {CurrentAbsolutePosition, NextAbsolutePosition};
 
         FSlateDrawElement::MakeLines(
             OutDrawElements,
@@ -437,8 +595,30 @@ void UDrawingWidget::DrawPathLine(FSlateWindowElementList& OutDrawElements, cons
             LineColor,
             true,
             LineThickness
-        );
+        );*/
+
+        // Lengkungan (2)
+        FVector2D StartPoint2(100.0f, 150.0f); // Titik awal
+        FVector2D ControlPoint1(120.0f, 200.0f); // Kontrol titik 1
+        FVector2D ControlPoint2(150.0f, 200.0f); // Kontrol titik 2
+        FVector2D EndPoint2(200.0f, 150.0f); // Titik akhir
+        FLinearColor LineColor2 = FLinearColor::Black;
+
+		FSlateDrawElement::MakeCubicBezierSpline(
+			OutDrawElements,
+			LayerId,
+			AllottedGeometry.ToPaintGeometry(),
+            StartPoint2,
+			ControlPoint1,
+			ControlPoint2,
+			EndPoint2,
+			LineThickness, // Ketebalan garis
+			ESlateDrawEffect::None,
+			LineColor
+		);
     }
+
+
 }
 
 void UDrawingWidget::DrawTemporaryLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const
@@ -449,58 +629,208 @@ void UDrawingWidget::DrawTemporaryLine(FSlateWindowElementList& OutDrawElements,
         FVector2D TempStart = TemporaryLinePoints[0];
         FVector2D TempEnd = TemporaryLinePoints[1];
 
-        // Validasi ProgressPercentage
-        if (ProgressPercentage < 0.0f || ProgressPercentage > 1.0f)
+        if (DotWidgets[LastDotIndex]->bIsCurveDot)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Invalid Progress Percentage!"));
-            return;
+            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+            FVector2D Direction = TempEnd - TempStart;
+            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+
+
+
+
+            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+            FVector2D ControlPoint1 = TempStart + Direction * 0.33f + Perpendicular * CurveOffset;
+            FVector2D ControlPoint2 = TempStart + Direction * 0.66f - Perpendicular * CurveOffset;
+
+            // Panggil fungsi untuk mengambil sampel titik-titik
+            TArray<FVector2D> SampledPoints = const_cast<UDrawingWidget*>(this)->SampleBezierCurve(TempStart, ControlPoint1, ControlPoint2, TempEnd, ProgressPercentage, 100);
+
+
+            // Gunakan SampledPoints untuk menggambar garis
+            FSlateDrawElement::MakeLines(
+                OutDrawElements,
+                LayerId,
+                AllottedGeometry.ToPaintGeometry(),
+                SampledPoints,
+                ESlateDrawEffect::None,
+                FLinearColor::Blue,
+                true,
+                2.0f
+            );
+
+            // Hitung titik akhir progres berdasarkan ProgressPercentage
+            //FVector2D AnimatedEndPoint = FMath::Lerp(TempStart, TempEnd, ProgressPercentage);
+
+            //// Gambar kurva menggunakan MakeCubicBezierSpline
+            //FSlateDrawElement::MakeCubicBezierSpline(
+            //    OutDrawElements,
+            //    LayerId,
+            //    AllottedGeometry.ToPaintGeometry(),
+            //    TempStart,
+            //    ControlPoint1,
+            //    ControlPoint2,
+            //    TempEnd,
+            //    2.0f,
+            //    ESlateDrawEffect::None,
+            //    FLinearColor::Blue
+            //);
+
+            //UE_LOG(LogTemp, Warning, TEXT("Start Position: %s"), *StartPosition.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("End Position: %s"), *EndPosition.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("ControlPoint1: %s"), *ControlPoint1.ToString());
+            //UE_LOG(LogTemp, Warning, TEXT("ControlPoint2: %s"), *ControlPoint2.ToString());
+
         }
+        else
+        {
+            // Validasi ProgressPercentage
+            if (ProgressPercentage < 0.0f || ProgressPercentage > 1.0f)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Invalid Progress Percentage!"));
+                return;
+            }
 
-        // Hitung titik akhir progres berdasarkan ProgressPercentage
-        FVector2D AnimatedEndPoint = FMath::Lerp(TempStart, TempEnd, ProgressPercentage);
+            // Hitung titik akhir progres berdasarkan ProgressPercentage
+            FVector2D AnimatedEndPoint = FMath::Lerp(TempStart, TempEnd, ProgressPercentage);
 
-        // Gambar garis progresif
-        TArray<FVector2D> ProgressiveLine = { TempStart, AnimatedEndPoint };
+            // Gambar garis progresif
+            TArray<FVector2D> ProgressiveLine = { TempStart, AnimatedEndPoint };
 
-        FSlateDrawElement::MakeLines(
-            OutDrawElements,
-            LayerId + 1,
-            AllottedGeometry.ToPaintGeometry(),
-            ProgressiveLine,
-            ESlateDrawEffect::None,
-            FLinearColor::Blue, // Warna garis progresif
-            true,
-            2.0f
-        );
+            FSlateDrawElement::MakeLines(
+                OutDrawElements,
+                LayerId + 1,
+                AllottedGeometry.ToPaintGeometry(),
+                ProgressiveLine,
+                ESlateDrawEffect::None,
+                FLinearColor::Blue, // Warna garis progresif
+                true,
+                2.0f
+            );
+        }      
     }
 }
 
 void UDrawingWidget::DrawFixLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const
 {
+    if (DotWidgets.Num() < LinePoints.Num())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("DotWidgets and LinePoints size mismatch!"));
+        return;
+    }
+
     // Garis sementara untuk menggambar garis aktif
     if (LinePoints.Num() >= 2)
     {
-        // Debugging log untuk memastikan titik-titiknya benar
-        for (int32 i = 0; i < TemporaryLinePoints.Num(); ++i)
+        for (int32 i = 0; i < LinePoints.Num(); i++)
         {
-            //UE_LOG(LogTemp, Warning, TEXT("TemporaryLinePoints[%d]: %s"), i, *TemporaryLinePoints[i].ToString());
-        }
+            if (i - 1 >= 0)
+            {
+                FVector2D StartPosition = LinePoints[i - 1];
+                FVector2D EndPosition = LinePoints[i];
 
-        FSlateDrawElement::MakeLines(
-            OutDrawElements,
-            LayerId + 1,
-            AllottedGeometry.ToPaintGeometry(),
-            LinePoints,
-            ESlateDrawEffect::None,
-            FLinearColor::Red, // Garis sementara
-            true,
-            2.0f
-        );
+                if (DotWidgets.IsValidIndex(i - 1) && DotWidgets[i - 1]->bIsCurveDot) // Validasi index DotWidgets
+                {
+                    // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+                    FVector2D Direction = EndPosition - StartPosition;
+                    FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+
+                    // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
+                    float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+                    FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
+                    FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+
+                    // Gambar kurva menggunakan MakeCubicBezierSpline
+                    FSlateDrawElement::MakeCubicBezierSpline(
+                        OutDrawElements,
+                        LayerId + 1,
+                        AllottedGeometry.ToPaintGeometry(),
+                        StartPosition,
+                        ControlPoint1,
+                        ControlPoint2,
+                        EndPosition,
+                        2.f,
+                        ESlateDrawEffect::None,
+                        FLinearColor::Red
+                    );
+
+                    //UE_LOG(LogTemp, Warning, TEXT("Start Position: %s"), *StartPosition.ToString());
+                    //UE_LOG(LogTemp, Warning, TEXT("End Position: %s"), *EndPosition.ToString());
+                    //UE_LOG(LogTemp, Warning, TEXT("ControlPoint1: %s"), *ControlPoint1.ToString());
+                    //UE_LOG(LogTemp, Warning, TEXT("ControlPoint2: %s"), *ControlPoint2.ToString());
+
+                }
+                else if (DotWidgets.IsValidIndex(i - 1)) // Validasi jika bukan kurva
+                {
+                    // Gambar garis lurus
+                    TArray<FVector2D> LineSegmentPoints = { StartPosition, EndPosition };
+                    FSlateDrawElement::MakeLines(
+                        OutDrawElements,
+                        LayerId + 1,
+                        AllottedGeometry.ToPaintGeometry(),
+                        LineSegmentPoints,
+                        ESlateDrawEffect::None,
+                        FLinearColor::Red,
+                        true,
+                        2.f
+                    );
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Invalid DotWidgets index: %d"), i - 1);
+                }
+            }			
+        }
+        //FSlateDrawElement::MakeLines(
+        //    OutDrawElements,
+        //    LayerId + 1,
+        //    AllottedGeometry.ToPaintGeometry(),
+        //    LinePoints,
+        //    ESlateDrawEffect::None,
+        //    FLinearColor::Red, // Garis sementara
+        //    true,
+        //    2.0f
+        //);
     }
 }
 
+void UDrawingWidget::PlayConnectionSound()
+{
+    if (ConnectionSound)
+    {
+        UGameplayStatics::PlaySound2D(GetWorld(), ConnectionSound);
+    }
+}
+
+void UDrawingWidget::PlayCompletionSound()
+{
+    if (CompletionSound)
+    {
+        UGameplayStatics::PlaySound2D(GetWorld(), CompletionSound);
+    }
+}
+
+void UDrawingWidget::UpdateTemporaryLinePoints()
+{
+    if (TemporaryLinePoints.Num() >= 2)
+    {
+        double CurrentTime = FPlatformTime::Seconds();
+        double ElapsedTime = FMath::Max(CurrentTime - StartTime, 0.0);
+
+        float AnimationProgress = FMath::Clamp(ElapsedTime / 0.2f, 0.0f, 1.0f);
+
+        if (AnimationProgress >= 1.0f)
+        {
+            LinePoints.Add(TemporaryLinePoints.Last()); // Tambahkan titik terakhir
+            TemporaryLinePoints.Empty(); // Reset TemporaryLinePoints
+            StartTime = -1.0; // Reset waktu
+        }
+    }
+}
+
+/*
 void UDrawingWidget::SpawnRandomDots(int32 Count)
 {
+
     UE_LOG(LogTemp, Log, TEXT("Dot Spawn"));
 
     if (!DrawCanvasPanel || !CanvasBorder) return;
@@ -538,8 +868,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
 
 
         // Log the results
-        /*UE_LOG(LogTemp, Log, TEXT("AbsolutePosition: %s, GlobalBorderPosition: %s, LocalPosition: %s"),
-            *AbsolutePosition.ToString(), *GlobalBorderPosition.ToString(), *LocalPosition.ToString());*/
+        UE_LOG(LogTemp, Log, TEXT("AbsolutePosition: %s, GlobalBorderPosition: %s, LocalPosition: %s"),
+            *AbsolutePosition.ToString(), *GlobalBorderPosition.ToString(), *LocalPosition.ToString());
 
             // Log the results
         UE_LOG(LogTemp, Log, TEXT("PixelViewport: %s, ViewportPosition: %s, BorderTopLeftPosition : %s"),
@@ -596,7 +926,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
         //UE_LOG(LogTemp, Log, TEXT("Dot %d: FinalPosition (Global): %s"), i, *FinalPosition.ToString());
 
         // Create DotDrawWidget
-        UDotDrawWidget* DotWidget = CreateWidget<UDotDrawWidget>(GetWorld(), DotChildWidgetClass);
+        //UDotDrawWidget* DotWidget = CreateWidget<UDotDrawWidget>(GetWorld(), DotChildWidgetClass);
+        UDotDrawWidget* DotWidget = nullptr;
         if (DotWidget)
         {
             DotWidget->AddToViewport();
@@ -625,8 +956,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
                 ExistingPositions.Add(FinalPosition);
 
                 // Log the position
-               /* UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s, FinalPosition: %s"),
-                    i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString(), *FinalPosition.ToString());*/
+               UE_LOG(LogTemp, Log, TEXT("Dot %d - Local RandomPosition: %s, GlobalBorderPosition: %s, FinalPosition: %s"),
+                    i, *RandomPosition.ToString(), *GlobalBorderPosition.ToString(), *FinalPosition.ToString());
             }
             else
             {
@@ -678,34 +1009,8 @@ void UDrawingWidget::SpawnRandomDots(int32 Count)
                     }, 1.f, false); // Tunggu agar layout selesai
             }
         }
-        DotParentWidgets.Add(DotWidget);
+        DotWidgets.Add(DotWidget);
     }
-}
-
-void UDrawingWidget::PlayConnectionSound()
-{
 
 }
-
-void UDrawingWidget::PlayCompletionSound()
-{
-
-}
-
-void UDrawingWidget::UpdateTemporaryLinePoints()
-{
-    if (TemporaryLinePoints.Num() >= 2)
-    {
-        double CurrentTime = FPlatformTime::Seconds();
-        double ElapsedTime = FMath::Max(CurrentTime - StartTime, 0.0);
-
-        float AnimationProgress = FMath::Clamp(ElapsedTime / 0.2f, 0.0f, 1.0f);
-
-        if (AnimationProgress >= 1.0f)
-        {
-            LinePoints.Add(TemporaryLinePoints.Last()); // Tambahkan titik terakhir
-            TemporaryLinePoints.Empty(); // Reset TemporaryLinePoints
-            StartTime = -1.0; // Reset waktu
-        }
-    }
-}
+*/

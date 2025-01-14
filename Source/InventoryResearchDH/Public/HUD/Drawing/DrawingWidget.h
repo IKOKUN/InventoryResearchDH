@@ -36,13 +36,12 @@ protected:
         const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements,
         int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 private:
-    TArray<UDotDrawWidget*> DotParentWidgets;
-    TArray<UDotDrawWidget*> DotChildWidgets;
+    TArray<UDotDrawWidget*> DotWidgets;
 
     mutable TArray<FVector2D> LinePoints;
     TArray<FVector2D> TemporaryLinePoints;
     bool bIsDrawing = false; // Status menggambar garis
-    int32 LastParentDotIndex; // Indeks dot terakhir yang disambungkan
+    int32 LastDotIndex; // Indeks dot terakhir yang disambungkan
 	float ProgressPercentage = 0.f; // Persentase progress menggambar garis
 
     mutable bool bProgressCompleted = false;
@@ -54,28 +53,25 @@ private:
     TObjectPtr<UCanvasPanel> DrawCanvasPanel;
 
     UPROPERTY(meta = (BindWidget))
-    TObjectPtr<UDotDrawWidget> DotParent0;
+    TObjectPtr<UDotDrawWidget> DotWidget0;
 
     UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UDotDrawWidget> DotParent1;
+	TObjectPtr<UDotDrawWidget> DotWidget1;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UDotDrawWidget> DotParent2;
+	TObjectPtr<UDotDrawWidget> DotWidget2;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UDotDrawWidget> DotParent3;
+	TObjectPtr<UDotDrawWidget> DotWidget3;
 
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UDotDrawWidget> DotParent4;
+	TObjectPtr<UDotDrawWidget> DotWidget4;
 
     UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UDotDrawWidget> DotParent5;
+	TObjectPtr<UDotDrawWidget> DotWidget5;
 
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     int32 DotCount = 5;
-
-    UPROPERTY(EditAnywhere, Category = "Dot Widget")
-    TSubclassOf<UDotDrawWidget> DotChildWidgetClass;
 
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     FVector2D DotSize = FVector2D(50.f, 50.f);
@@ -91,8 +87,26 @@ private:
 	void ResetProgress();
     
 
-    // Fungsi untuk menghitung percentage prgress berdasarkan lokasi mouse
+    // Fungsi untuk menghitung percentage prgress berdasarkan lokasi mouse untuk line
     float GetCursorProjectionOnLine(const FVector2D& LineStart, const FVector2D& LineEnd, const FVector2D& CursorLoc, float Tolerance);
+
+    // Fungsi untuk menghitung percentage progress berdasarkan lokasi mouse untuk curved line
+    float GetCursorProjectionOnCurve(const FVector2D& StartPos,
+        const FVector2D& ControlPoint1,
+        const FVector2D& ControlPoint2,
+        const FVector2D& EndPos,
+        const FVector2D& CursorLoc,
+        float Tolerance);
+
+	// Fungsi untuk mendapatkan lokasi path berdasarkan percentage progress untuk curved line
+    TArray<FVector2D> SampleBezierCurve(
+        const FVector2D& StartPoint,
+        const FVector2D& ControlPoint1,
+        const FVector2D& ControlPoint2,
+        const FVector2D& EndPoint,
+        float CurrentPercentage,
+        int32 SampleCount = 50); // Default value
+
 	void PlayConnectionSound();
 	void PlayCompletionSound();
 

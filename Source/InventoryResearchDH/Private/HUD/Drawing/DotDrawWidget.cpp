@@ -20,3 +20,35 @@ void UDotDrawWidget::SetDotImageBrushColorToGreen()
         DotImage->SetColorAndOpacity(FLinearColor::Green);
 	}
 }
+
+void UDotDrawWidget::SetDotImageTexture(bool bComplete)
+{
+	if (DotImage)
+	{
+		if (bComplete && CompleteDotTexture)
+		{
+			DotImage->SetBrushFromTexture(CompleteDotTexture);
+		}
+		else if (ConnectionDotTexture)
+		{
+			DotImage->SetBrushFromTexture(ConnectionDotTexture);
+		}
+	}
+}
+
+void UDotDrawWidget::PlayDotAnimation()
+{
+	if (ConnectionDotAnimation)
+	{
+		PlayAnimation(ConnectionDotAnimation);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ConnectionDotAnimation is null"));
+	}
+}
+
+FVector2D UDotDrawWidget::GetDotCenterPosition() const
+{
+	return FVector2D();
+}

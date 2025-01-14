@@ -47,7 +47,7 @@ void UInventoryManagerComponent::InitInventoryItems()
 	}
 	else
 	{
-        UE_LOG(LogTemp, Error, TEXT("Player Inventory Not Set"));
+		UE_LOG(LogTemp, Error, TEXT("Player Inventory Not Set"));
 	}
 
 	

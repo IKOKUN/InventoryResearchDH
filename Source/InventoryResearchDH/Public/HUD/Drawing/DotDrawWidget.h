@@ -24,20 +24,27 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> DotImage;
 
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+    TObjectPtr<UWidgetAnimation> ConnectionDotAnimation;
+
 	void SetSequenceText(int32 Value) const;
 	void SetDotImageBrushColorToGreen();
+	void SetDotImageTexture(bool bComplete);
+	void PlayDotAnimation();
+	FVector2D GetDotCenterPosition() const;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	bool bIsCurveDot = false;
+
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
 	int32 DotIndex = 0;
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
-	int32 ParentDotIndex = 0;
+	UTexture2D* ConnectionDotTexture;
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
-	bool bIsParent = false;
-
-	
-
+	UTexture2D* CompleteDotTexture;
 public:
 	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }
 };
