@@ -47,8 +47,3 @@ void UDotDrawWidget::PlayDotAnimation()
 		UE_LOG(LogTemp, Warning, TEXT("ConnectionDotAnimation is null"));
 	}
 }
-
-FVector2D UDotDrawWidget::GetDotCenterPosition() const
-{
-	return FVector2D();
-}

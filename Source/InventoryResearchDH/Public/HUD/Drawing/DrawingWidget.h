@@ -73,14 +73,11 @@ private:
     UPROPERTY(EditAnywhere, Category = "Dot Widget")
     int32 DotCount = 5;
 
-    UPROPERTY(EditAnywhere, Category = "Dot Widget")
-    FVector2D DotSize = FVector2D(50.f, 50.f);
+	UPROPERTY(EditAnywhere, Category = "Drawing")
+	TObjectPtr<USoundBase> ConnectionSound;
 
 	UPROPERTY(EditAnywhere, Category = "Drawing")
-	USoundBase* ConnectionSound;
-
-	UPROPERTY(EditAnywhere, Category = "Drawing")
-	USoundBase* CompletionSound;
+	TObjectPtr<USoundBase> CompletionSound;
 
 
 	// Reset Progress when touch Next Dot Widget or stopped drawing
@@ -130,5 +127,6 @@ private:
     UPROPERTY(EditAnywhere, Category = "Drawing")
     double Duration = 1;
 
+	// TODO: Delete this function (for now i think this function is not used)
     void SpawnRandomDots(int32 Count);
 };
