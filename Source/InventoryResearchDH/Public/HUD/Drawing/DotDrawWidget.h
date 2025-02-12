@@ -45,6 +45,21 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Dot Properties")
 	UTexture2D* CompleteDotTexture;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	bool bIsRightDirection = true;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	bool bIsDoubleArch = false;
+
+    UPROPERTY(EditAnywhere, Category = "Dot Properties")
+    float AdditiveDirection1 = 0.33f;
+
+	UPROPERTY(EditAnywhere, Category = "Dot Properties")
+	float AdditiveDirection2 = 0.66f;
+
+    UPROPERTY(EditAnywhere, Category = "Dot Properties")
+    float CurveOffset = 200.0f;
 public:
 	FORCEINLINE UImage* GetDotImage() const { return DotImage.Get(); }
 };

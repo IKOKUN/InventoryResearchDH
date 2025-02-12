@@ -31,25 +31,43 @@ void UInventoryWidget::NativeConstruct()
 		CachedSortingInventoryMap.Add("Rarerity : Low To High", TArray<FInventoryItem>());
 		CachedSortingInventoryMap.Add("Newest", TArray<FInventoryItem>());
 		CachedSortingInventoryMap.Add("Oldest", TArray<FInventoryItem>());
+
+		// 
+		CachedFilterInventoryMap.Add("Filter : All", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Miscellaneous", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Equipment", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Consumable", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Currency", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Quest Item", TArray<FInventoryItem>());
+
+		CachedFilterInventoryMap.Add("Armor", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Weapon", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Shield", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Miscellaneous", TArray<FInventoryItem>());
+
+		CachedFilterInventoryMap.Add("Head", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Shoulder", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Chest", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Hands", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Legs", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Feet", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Back", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Waist", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Accessory", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Earring", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Ring", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Trinket", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Main-Hand", TArray<FInventoryItem>());
+		CachedFilterInventoryMap.Add("Off-Hand", TArray<FInventoryItem>());
+
 	}
 
 	if (SortingInventoryComboBox)
 	{
-		// Menambahkan item ke ComboBox
-		//SortingInventoryComboBox->AddOption(TEXT("Sort By"));
-		//SortingInventoryComboBox->AddOption(TEXT("Legendary"));
-		//SortingInventoryComboBox->AddOption(TEXT("Epic"));
-		//SortingInventoryComboBox->AddOption(TEXT("Rare"));
-		//SortingInventoryComboBox->AddOption(TEXT("Uncommon"));
-		//SortingInventoryComboBox->AddOption(TEXT("Common"));
-
-		//// Mengatur "Sort By" sebagai pilihan default
-		//SortingInventoryComboBox->SetSelectedOption(TEXT("Sort By"));
-		// Tambahkan hasil sorting ke CachedSortingInventoryMap
-
 		// Mengikat event "OnSelectionChanged"
 		SortingInventoryComboBox->OnSelectionChanged.AddDynamic(this, &UInventoryWidget::OnSortingSelectionChanged);
 	}
+
 	if (FilterInventoryComboBox)
 	{
 		FilterInventoryComboBox->OnSelectionChanged.AddDynamic(this, &UInventoryWidget::OnFilterSelectionChanged);
@@ -109,7 +127,7 @@ void UInventoryWidget::OnSortingSelectionChanged(FString SelectedItem, ESelectIn
 				CachedSortingInventoryMap["Rarerity : High To Low"] = CachedSortingInventoryMap["Sort By"];
 
 				// Sort "Rarerity : High To Low" (Descending order)
-				SetSortingInventoryMapFromRarerity("Rarerity : High To Low",
+				CachedSortingInventoryMap["Rarerity : High To Low"] = SetSortingInventoryMapFromRarerity("Rarerity : High To Low",
 					true,
 					PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
 
@@ -141,7 +159,7 @@ void UInventoryWidget::OnSortingSelectionChanged(FString SelectedItem, ESelectIn
 
 				CachedSortingInventoryMap["Rarerity : Low To High"] = CachedSortingInventoryMap["Sort By"];
 				// Sort "Rarerity : Low To High" (Ascending order)
-				SetSortingInventoryMapFromRarerity("Rarerity : Low To High",
+				CachedSortingInventoryMap["Rarerity : Low To High"] = SetSortingInventoryMapFromRarerity("Rarerity : Low To High",
 					false,
 					PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
 
@@ -221,9 +239,10 @@ void UInventoryWidget::OnFilterSelectionChanged(FString SelectedItem, ESelectInf
 
 			// Filter inventaris berdasarkan tipe Miscellaneous
 			CachedFilterInventoryMap["Miscellaneous"] = FilterInventoryByItemType(
-				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
-				EItemType::Miscellaneous
-			);
+				"Miscellaneous",
+				EItemType::Miscellaneous,
+				PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
+			
 
 			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Miscellaneous"]);
 			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
@@ -240,9 +259,9 @@ void UInventoryWidget::OnFilterSelectionChanged(FString SelectedItem, ESelectInf
 
 			// Filter inventaris berdasarkan tipe Equipment
 			CachedFilterInventoryMap["Equipment"] = FilterInventoryByItemType(
-				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
-				EItemType::Equipment
-			);
+				"Equipment",
+				EItemType::Equipment,
+				PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
 
 			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Equipment"]);
 			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
@@ -258,14 +277,32 @@ void UInventoryWidget::OnFilterSelectionChanged(FString SelectedItem, ESelectInf
 			CachedFilterInventoryMap["Consumable"] = CachedFilterInventoryMap["Filter : All"];
 			// Filter inventaris berdasarkan tipe Consumable
 			CachedFilterInventoryMap["Consumable"] = FilterInventoryByItemType(
-				PlayerController->GetPlayerInventoryComponent()->GetInventoryItems(),
-				EItemType::Consumable
-			);
+				"Consumable",
+				EItemType::Consumable,
+				PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
 
 			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Consumable"]);
 			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
 
 			CurrentFilterStatus = "Consumable";
+		}
+		else if (SelectedItem == "Quest Item")
+		{
+			if (CurrentFilterStatus == "Filter : All") // Cek apakah status saat ini berbeda
+			{
+				CachedFilterInventoryMap["Filter : All"] = PlayerController->GetPlayerInventoryComponent()->GetInventoryItems();
+			}
+			CachedFilterInventoryMap["Quest Item"] = CachedFilterInventoryMap["Filter : All"];
+			// Filter inventaris berdasarkan tipe Consumable
+			CachedFilterInventoryMap["Quest Item"] = FilterInventoryByItemType(
+				"Quest Item",
+				EItemType::QuestItem,
+				PlayerController->GetInventoryManagerComponent()->GetNumberOfEquipmentSlots());
+
+			PlayerController->GetPlayerInventoryComponent()->SetInventoryItems(CachedFilterInventoryMap["Quest Item"]);
+			PlayerController->GetInventoryManagerComponent()->RefreshInventorySlots();
+
+			CurrentFilterStatus = "Quest Item";
 		}
 		else
 		{
@@ -275,92 +312,127 @@ void UInventoryWidget::OnFilterSelectionChanged(FString SelectedItem, ESelectInf
 	}
 }
 
-void UInventoryWidget::SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold)
+
+
+TArray<FInventoryItem> UInventoryWidget::SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold)
 {
-	if (GEngine)
-	{
-		float DisplayGamma = GEngine->GetDisplayGamma();
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Get Display Gamma: %f"), DisplayGamma));
+	TArray<FInventoryItem> SortedInventory;
 
-		if (DisplayGamma != 0.0f) // Bandingkan secara eksplisit dengan 0.0f
-		{
-			GEngine->DisplayGamma = 2.2f;  // Set gamma ke 2.2f
-		}
-	}
-
-	// Pastikan key ada di CachedSortingInventoryMap
+	// Cek apakah key ada di cache
 	if (CachedSortingInventoryMap.Contains(SortingKey))
 	{
-		// Ambil array FInventoryItem berdasarkan key
-		TArray<FInventoryItem>& InventoryItems = CachedSortingInventoryMap[SortingKey];
+		// Ambil salinan array inventory dari cache
+		TArray<FInventoryItem> InventoryItems = CachedSortingInventoryMap[SortingKey];
 
-		// Jika jumlah item kurang dari threshold, tidak ada yang perlu diurutkan
+		// Jika jumlah item kurang dari atau sama dengan threshold, tidak ada yang perlu disort
 		if (InventoryItems.Num() <= SlotThreshold)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Not enough items to sort. Total items: %d, Threshold: %d"), InventoryItems.Num(), SlotThreshold);
-			return;
+			return InventoryItems;
 		}
 
-		// Filter item dari SlotThreshold ke atas
-		TArray<FInventoryItem> FilteredItems;
-		for (int32 SlotIndex = SlotThreshold; SlotIndex < InventoryItems.Num(); ++SlotIndex)
-		{
-			FInventoryItem& Item = InventoryItems[SlotIndex];
+		// Pisahkan equipment (slot 0 sampai SlotThreshold-1) dan backpack (SlotThreshold ke atas)
+		TArray<FInventoryItem> EquipmentItems;
+		TArray<FInventoryItem> BackpackItems;
 
-			// Pastikan item memiliki nama yang valid dan kualitas yang layak
-			if (!Item.Name.IsNone()) // Memfilter item dengan nama "None" dan Quality <= 0
+		// Equipment items: tetap ambil apa adanya (tidak disort)
+		for (int32 i = 0; i < SlotThreshold; ++i)
+		{
+			EquipmentItems.Add(InventoryItems[i]);
+		}
+
+		// Backpack items: filter dan ambil item yang valid (misalnya, nama tidak None)
+		for (int32 i = SlotThreshold; i < InventoryItems.Num(); ++i)
+		{
+			// Filter: hanya ambil item dengan nama valid
+			if (!InventoryItems[i].Name.IsNone())
 			{
-				FilteredItems.Add(Item);
-				UE_LOG(LogTemp, Log, TEXT("Before Sort - Filtered Name: %s, Slot Index: %d, Quality : %d"), *Item.Name.ToString(), SlotIndex, static_cast<uint8>(Item.Quality));
+				BackpackItems.Add(InventoryItems[i]);
+				UE_LOG(LogTemp, Log, TEXT("Before Sort - Filtered Name: %s, Slot Index: %d, Quality: %d"),
+					*InventoryItems[i].Name.ToString(), i, static_cast<uint8>(InventoryItems[i].Quality));
 			}
 		}
 
-		// Pastikan FilteredItems sudah terisi dengan item yang benar
-		/*UE_LOG(LogTemp, Log, TEXT("Filtered Items (before sorting):"));
-		for (int32 i = 0; i < FilteredItems.Num(); ++i)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Filtered Name: %s, Original Slot Index: %d"), *FilteredItems[i].Name.ToString(), i + SlotThreshold);
-		}*/
-
-		// Lakukan sorting pada filtered items
-		FilteredItems.Sort([bDescending](const FInventoryItem& A, const FInventoryItem& B)
+		// Lakukan sorting pada backpack items berdasarkan Quality
+		BackpackItems.Sort([bDescending](const FInventoryItem& A, const FInventoryItem& B)
 			{
-				// Descending order (high to low quality)
 				if (bDescending)
 				{
 					return static_cast<uint8>(A.Quality) > static_cast<uint8>(B.Quality);
 				}
-				// Ascending order (low to high quality)
 				else
 				{
 					return static_cast<uint8>(A.Quality) < static_cast<uint8>(B.Quality);
 				}
 			});
 
-		// Log hasil setelah sorting untuk memverifikasi hasil
-		/*UE_LOG(LogTemp, Log, TEXT("After Sort - Filtered Items:"));
-		for (int32 i = 0; i < FilteredItems.Num(); ++i)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Sorted Name: %s, Sorted Slot Index: %d, Quality: %d"), *FilteredItems[i].Name.ToString(), i + SlotThreshold, (int32)FilteredItems[i].Quality);
-		}*/
+		// Gabungkan kembali equipment items (tidak diubah) dengan backpack items yang telah diurutkan
+		SortedInventory.Append(EquipmentItems);
+		SortedInventory.Append(BackpackItems);
 
-		// Update InventoryItems dengan item yang sudah diurutkan, mulai dari SlotThreshold
-		for (int32 SlotIndex = SlotThreshold; SlotIndex < InventoryItems.Num(); ++SlotIndex)
-		{
-			if (SlotIndex - SlotThreshold < FilteredItems.Num())  // Ensure within bounds of FilteredItems
-			{
-				InventoryItems[SlotIndex] = FilteredItems[SlotIndex - SlotThreshold];
-				//UE_LOG(LogTemp, Log, TEXT("Updated Inventory Name: %s, New Slot Index: %d"), *InventoryItems[SlotIndex].Name.ToString(), SlotIndex);
-			}
-		}
+		return SortedInventory;
 	}
 	else
 	{
-		// Log jika key tidak ditemukan
 		UE_LOG(LogTemp, Warning, TEXT("Key '%s' not found in CachedSortingInventoryMap!"), *SortingKey);
+		return SortedInventory; // Kembalikan array kosong jika key tidak ditemukan
 	}
 }
 
+TArray<FInventoryItem> UInventoryWidget::FilterInventoryByItemType(const FString& FilterKey, EItemType ItemType, int32 SlotThreshold)
+{
+	TArray<FInventoryItem> FilteredInventory;
+
+	// Cek apakah key ada di cache
+	if (CachedFilterInventoryMap.Contains(FilterKey))
+	{
+		// Ambil salinan array inventory dari cache
+		TArray<FInventoryItem> InventoryItems = CachedFilterInventoryMap[FilterKey];
+
+		// Jika jumlah item kurang dari atau sama dengan threshold, tidak ada yang perlu disort
+		if (InventoryItems.Num() <= SlotThreshold)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Not enough items to sort. Total items: %d, Threshold: %d"), InventoryItems.Num(), SlotThreshold);
+			return InventoryItems;
+		}
+
+		// Pisahkan equipment (slot 0 sampai SlotThreshold-1) dan backpack (SlotThreshold ke atas)
+		TArray<FInventoryItem> EquipmentItems;
+		TArray<FInventoryItem> BackpackItems;
+
+		// Equipment items: tetap ambil apa adanya (tidak disort)
+		for (int32 i = 0; i < SlotThreshold; ++i)
+		{
+			EquipmentItems.Add(InventoryItems[i]);
+		}
+
+		// Backpack items: filter dan ambil item yang valid dan sesuai dengan tipe item
+		for (int32 i = SlotThreshold; i < InventoryItems.Num(); ++i)
+		{
+			// Filter: hanya ambil item dengan nama valid
+			if (!InventoryItems[i].Name.IsNone())
+			{
+				if (InventoryItems[i].ItemType == ItemType)
+				{
+					BackpackItems.Add(InventoryItems[i]);
+					UE_LOG(LogTemp, Log, TEXT("Before Filtered Name: %s, Slot Index: %d, Quality: %d"),
+						*InventoryItems[i].Name.ToString(), i, static_cast<uint8>(InventoryItems[i].Quality));
+				}
+			}
+		}
+
+		// Gabungkan kembali equipment items (tidak diubah) dengan backpack items yang telah diurutkan
+		FilteredInventory.Append(EquipmentItems);
+		FilteredInventory.Append(BackpackItems);
+
+		return FilteredInventory;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Key '%s' not found in CachedSortingInventoryMap!"), *FilterKey);
+		return FilteredInventory; // Kembalikan array kosong jika key tidak ditemukan
+	}
+}
 void UInventoryWidget::SetSortingInventoryMapFromNewest()
 {
 }
@@ -369,20 +441,27 @@ void UInventoryWidget::SetSortingInventoryMapFromOldest()
 {
 }
 
-TArray<FInventoryItem> UInventoryWidget::FilterInventoryByItemType(const TArray<FInventoryItem>& Inventory, EItemType ItemType)
+/*
+TArray<FInventoryItem> UInventoryWidget::FilterInventoryByItemType(const TArray<FInventoryItem> Inventory, EItemType ItemType, int32 SlotThreshold)
 {
-	TArray<FInventoryItem> FilteredItems;
-
-	for (const FInventoryItem& Item : Inventory)
+	TArray<FInventoryItem> InventoryTemp;
+	for (int32 i = 0; i < Inventory.Num(); i++)
 	{
-		if (Item.ItemType == ItemType) // Cocokkan dengan ItemType
+		if (i <= SlotThreshold)
 		{
-			FilteredItems.Add(Item);
+			// Jika index di bawah atau sama dengan threshold, tambahkan item apa adanya
+			InventoryTemp.Add(Inventory[i]);
+		}
+		else if (Inventory[i].ItemType == ItemType)
+		{
+			// Jika index di atas threshold dan tipe item cocok, tambahkan ke hasil filter
+			InventoryTemp.Add(Inventory[i]);
 		}
 	}
 
-	return FilteredItems;
+	return InventoryTemp;
 }
+*/
 
 FText UInventoryWidget::GetGoldText() const
 {

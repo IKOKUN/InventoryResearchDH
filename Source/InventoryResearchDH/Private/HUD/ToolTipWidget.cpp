@@ -76,6 +76,11 @@ FText UToolTipWidget::GetTypeText() const
 		TypeString = FString::Printf(TEXT("Consumable"));
 		return FText::FromString(TypeString);
 	}
+	else if (ItemToolTipInfo.ItemType == EItemType::QuestItem)
+	{
+		TypeString = FString::Printf(TEXT("Quest Item"));
+		return FText::FromString(TypeString);
+	}
 	else
 	{
 		TypeString = FString::Printf(TEXT("%s"), *UEnum::GetValueAsString(ItemToolTipInfo.ItemType));

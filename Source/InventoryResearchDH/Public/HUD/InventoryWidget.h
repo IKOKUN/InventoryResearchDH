@@ -57,7 +57,6 @@ public:
 	TObjectPtr<UComboBoxString> SortingInventoryComboBox;
 
 	TMap<FString, TArray<FInventoryItem>> CachedSortingInventoryMap;
-	TMap<FString, TArray<FInventoryItem>> CachedFilterInventoryMap;
 
 	// Tambahkan variabel untuk melacak status sorting saat ini
 	FString CurrentSortingStatus = "Sort By"; // Default adalah "Sort By"
@@ -65,7 +64,9 @@ public:
 	UFUNCTION()
 	void OnSortingSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
-	void SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold = 14);
+	//void SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold = 14);
+	TArray<FInventoryItem> SetSortingInventoryMapFromRarerity(const FString& SortingKey, bool bDescending, int32 SlotThreshold = 14);
+
 	void SetSortingInventoryMapFromNewest();
 	void SetSortingInventoryMapFromOldest();
 	/* End Sorting Widget*/
@@ -80,7 +81,11 @@ public:
 	UFUNCTION()
 	void OnFilterSelectionChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
-	TArray<FInventoryItem> FilterInventoryByItemType(const TArray<FInventoryItem>& Inventory, EItemType ItemType);
+	// TArray<FInventoryItem> FilterInventoryByItemType(const TArray<FInventoryItem> Inventory, EItemType ItemType, int32 SlotThreshold = 14);
+	TArray<FInventoryItem> FilterInventoryByItemType(const FString& FilterKey, EItemType ItemType, int32 SlotThreshold = 14);
+
+	TMap<FString, TArray<FInventoryItem>> CachedFilterInventoryMap;
+
 	/* End Filter Widget */
 protected:
 	virtual void NativeConstruct() override;

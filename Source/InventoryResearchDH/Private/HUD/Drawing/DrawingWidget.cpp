@@ -17,7 +17,6 @@
 #include "Engine/GameViewportClient.h" // Required for accessing the viewport client
 #include "Math/Vector.h"
 
-
 void UDrawingWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
@@ -224,23 +223,19 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
         // Hitung progres kursor pada garis
         if (DotWidgets[LastDotIndex]->bIsCurveDot)
         {
-            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
-            FVector2D Direction = EndPoint - StartPoint;
-            //FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
-            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+            FVector2D ControlPoint1;
+            FVector2D ControlPoint2;
+            const_cast<UDrawingWidget*>(this)->CalculateControlPoint(ControlPoint1,
+                ControlPoint2,
+                StartPoint,
+                EndPoint,
+                DotWidgets[LastDotIndex]->AdditiveDirection1,
+                DotWidgets[LastDotIndex]->AdditiveDirection2,
+                DotWidgets[LastDotIndex]->bIsRightDirection,
+                DotWidgets[LastDotIndex]->bIsDoubleArch,
+                DotWidgets[LastDotIndex]->CurveOffset);
 
-            // Pastikan Perpendicular selalu mengarah ke atas
-            //if (Perpendicular.Y > 0) // Jika tegak lurus mengarah ke bawah
-            //{
-            //    Perpendicular *= -1.0f; // Balik arahnya
-            //}
-
-            // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
-            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
-            FVector2D ControlPoint1 = StartPoint + Direction * 0.33f + Perpendicular * CurveOffset;
-            FVector2D ControlPoint2 = StartPoint + Direction * 0.66f - Perpendicular * CurveOffset;
-
-			ProgressPercentage = GetCursorProjectionOnCurve(StartPoint, ControlPoint1, ControlPoint2, EndPoint, CursorPosition, 10.0f);
+			ProgressPercentage = GetCursorProjectionOnCurve(StartPoint, ControlPoint1, ControlPoint2, EndPoint, CursorPosition, ToleranceDrawingDitance);
             if (ProgressPercentage >= 0.0f)
             {
                 UE_LOG(LogTemp, Warning, TEXT("Projection valid at t = %f"), ProgressPercentage);
@@ -252,7 +247,7 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
         }  
 		else
 		{
-			ProgressPercentage = GetCursorProjectionOnLine(StartPoint, EndPoint, CursorPosition, 50.0f);
+			ProgressPercentage = GetCursorProjectionOnLine(StartPoint, EndPoint, CursorPosition, ToleranceDrawingDitance);
 		}
 
         if (ProgressPercentage < 0.0f)
@@ -290,7 +285,7 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
             UE_LOG(LogTemp, Warning, TEXT("DistanceToNextDot on MouseMove: %f"), DistanceToNextDot);
 
             // Jika kursor berada dalam jarak yang valid dari Dot berikutnya
-            if (DistanceToNextDot <= 50.f) // Threshold jarak
+            if (DistanceToNextDot <= ToleranceDrawingDitance) // Threshold jarak
             {
                 // Tambahkan titik akhir dari garis sebelumnya ke LinePoints
                 if (LinePoints.Num() == 0 || LinePoints.Last() != TemporaryLinePoints[0])
@@ -337,7 +332,7 @@ FReply UDrawingWidget::NativeOnMouseMove(const FGeometry& InGeometry, const FPoi
         }
 
         // Debugging
-        UE_LOG(LogTemp, Warning, TEXT("Cursor Progress: %.2f%%"), ProgressPercentage * 100.0f);
+        //UE_LOG(LogTemp, Warning, TEXT("Cursor Progress: %.2f%%"), ProgressPercentage * 100.0f);
     }
     else
     {
@@ -459,6 +454,7 @@ float UDrawingWidget::GetCursorProjectionOnCurve(const FVector2D& StartPos, cons
     // Periksa apakah jarak ke kurva berada dalam toleransi
     if (FMath::Sqrt(MinDistanceSquared) > Tolerance)
     {
+        bIsDrawing = false;
         return -1.0f; // Tidak valid
     }
 
@@ -498,10 +494,10 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
     DrawFixLine(OutDrawElements, AllottedGeometry, CurrentLayer);
 
     UE_LOG(LogTemp, Warning, TEXT("Drawing Permanent Lines:"));
-    for (const FVector2D& Point : LinePoints)
+    /*for (const FVector2D& Point : LinePoints)
     {
         UE_LOG(LogTemp, Warning, TEXT("Point: %s"), *Point.ToString());
-    }
+    }*/
 
     /*UE_LOG(LogTemp, Warning, TEXT("Drawing Temporary Line:"));
     for (const FVector2D& TempPoint : TemporaryLinePoints)
@@ -510,6 +506,43 @@ int32 UDrawingWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Allot
     }*/
 
     return CurrentLayer;
+}
+
+void UDrawingWidget::CalculateControlPoint(FVector2D& ControlPoint1, FVector2D& ControlPoint2, FVector2D StartPos, FVector2D EndPos, float AdditiveDirection1, float AdditiveDirection2, bool bIsRightDirection, bool bIsDoubleArch, float Offset)
+{
+    // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+    FVector2D Direction = EndPos - StartPos;
+    FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+
+	// Buat titik kontrol berdasarkan arah yang ditentukan
+    FVector2D CP1Temp;
+	FVector2D CP2Temp;
+    if (bIsRightDirection)
+    {
+        CP1Temp = StartPos + Direction * AdditiveDirection1 + Perpendicular * Offset;
+        if (bIsDoubleArch)
+        {
+            CP2Temp = StartPos + Direction * AdditiveDirection2 - Perpendicular * Offset;
+        }
+        else
+        {
+            CP2Temp = StartPos + Direction * AdditiveDirection2 + Perpendicular * Offset;
+        }
+    }
+	else
+	{
+		CP1Temp = StartPos + Direction * AdditiveDirection1 - Perpendicular * Offset;
+		if (bIsDoubleArch)
+		{
+			CP2Temp = StartPos + Direction * AdditiveDirection2 + Perpendicular * Offset;
+		}
+        else
+        {
+            CP2Temp = StartPos + Direction * AdditiveDirection2 - Perpendicular * Offset;
+        }
+	}
+	ControlPoint1 = CP1Temp;
+	ControlPoint2 = CP2Temp;
 }
 
 void UDrawingWidget::DrawPathLine(FSlateWindowElementList& OutDrawElements, const FGeometry& AllottedGeometry, int32 LayerId) const
@@ -552,14 +585,26 @@ void UDrawingWidget::DrawPathLine(FSlateWindowElementList& OutDrawElements, cons
 
         if (CurrentDot->bIsCurveDot)
         {
-            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
-            FVector2D Direction = EndPosition - StartPosition;
-            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+            //// Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+            //FVector2D Direction = EndPosition - StartPosition;
+            //FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
 
-            // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
-            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
-            FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
-            FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+            //// Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
+            //float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+            //FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
+            //FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+
+			FVector2D ControlPoint1;
+			FVector2D ControlPoint2;
+            const_cast<UDrawingWidget*>(this)->CalculateControlPoint(ControlPoint1, 
+                ControlPoint2, 
+                StartPosition, 
+                EndPosition, 
+                CurrentDot->AdditiveDirection1, 
+                CurrentDot->AdditiveDirection2, 
+                CurrentDot->bIsRightDirection, 
+                CurrentDot->bIsDoubleArch, 
+                CurrentDot->CurveOffset);
 
             // Gambar kurva menggunakan MakeCubicBezierSpline
             FSlateDrawElement::MakeCubicBezierSpline(
@@ -656,16 +701,26 @@ void UDrawingWidget::DrawTemporaryLine(FSlateWindowElementList& OutDrawElements,
 
         if (DotWidgets[LastDotIndex]->bIsCurveDot)
         {
-            // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
-            FVector2D Direction = TempEnd - TempStart;
-            FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+            //// Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+            //FVector2D Direction = TempEnd - TempStart;
+            //FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
 
+            //float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+            //FVector2D ControlPoint1 = TempStart + Direction * 0.33f + Perpendicular * CurveOffset;
+            //FVector2D ControlPoint2 = TempStart + Direction * 0.66f - Perpendicular * CurveOffset;
 
+            FVector2D ControlPoint1;
+            FVector2D ControlPoint2;
+            const_cast<UDrawingWidget*>(this)->CalculateControlPoint(ControlPoint1,
+                ControlPoint2,
+                TempStart,
+                TempEnd,
+                DotWidgets[LastDotIndex]->AdditiveDirection1,
+                DotWidgets[LastDotIndex]->AdditiveDirection2,
+                DotWidgets[LastDotIndex]->bIsRightDirection,
+                DotWidgets[LastDotIndex]->bIsDoubleArch,
+                DotWidgets[LastDotIndex]->CurveOffset);
 
-
-            float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
-            FVector2D ControlPoint1 = TempStart + Direction * 0.33f + Perpendicular * CurveOffset;
-            FVector2D ControlPoint2 = TempStart + Direction * 0.66f - Perpendicular * CurveOffset;
 
             // Panggil fungsi untuk mengambil sampel titik-titik
             TArray<FVector2D> SampledPoints = const_cast<UDrawingWidget*>(this)->SampleBezierCurve(TempStart, ControlPoint1, ControlPoint2, TempEnd, ProgressPercentage, 100);
@@ -755,14 +810,26 @@ void UDrawingWidget::DrawFixLine(FSlateWindowElementList& OutDrawElements, const
 
                 if (DotWidgets.IsValidIndex(i - 1) && DotWidgets[i - 1]->bIsCurveDot) // Validasi index DotWidgets
                 {
-                    // Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
-                    FVector2D Direction = EndPosition - StartPosition;
-                    FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
+                    //// Tentukan vektor yang tegak lurus terhadap garis antara StartPosition dan EndPosition
+                    //FVector2D Direction = EndPosition - StartPosition;
+                    //FVector2D Perpendicular = FVector2D(-Direction.Y, Direction.X).GetSafeNormal();
 
-                    // Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
-                    float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
-                    FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
-                    FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+                    //// Tambahkan offset pada titik kontrol berdasarkan vektor tegak lurus
+                    //float CurveOffset = 300.0f; // Ubah sesuai kebutuhan
+                    //FVector2D ControlPoint1 = StartPosition + Direction * 0.33f + Perpendicular * CurveOffset;
+                    //FVector2D ControlPoint2 = StartPosition + Direction * 0.66f - Perpendicular * CurveOffset;
+
+                    FVector2D ControlPoint1;
+                    FVector2D ControlPoint2;
+                    const_cast<UDrawingWidget*>(this)->CalculateControlPoint(ControlPoint1,
+                        ControlPoint2,
+                        StartPosition,
+                        EndPosition,
+                        DotWidgets[i]->AdditiveDirection1,
+                        DotWidgets[i]->AdditiveDirection2,
+                        DotWidgets[i]->bIsRightDirection,
+                        DotWidgets[i]->bIsDoubleArch,
+                        DotWidgets[i]->CurveOffset);
 
                     // Gambar kurva menggunakan MakeCubicBezierSpline
                     FSlateDrawElement::MakeCubicBezierSpline(

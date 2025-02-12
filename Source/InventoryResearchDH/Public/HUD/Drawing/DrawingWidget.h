@@ -19,7 +19,7 @@ class INVENTORYRESEARCHDH_API UDrawingWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-
+	
 protected:
 	virtual void NativePreConstruct() override;
     virtual void NativeConstruct() override;
@@ -104,6 +104,17 @@ private:
         float CurrentPercentage,
         int32 SampleCount = 50); // Default value
 
+	// Fungsi untuk menghitung titik kontrol berdasarkan arah yang ditentukan
+    void CalculateControlPoint(FVector2D& ControlPoint1,
+        FVector2D& ControlPoint2,
+        FVector2D StartPos,
+        FVector2D EndPos,
+        float AdditiveDirection1,
+        float AdditiveDirection2,
+        bool bIsRightDirection,
+        bool bIsDoubleArch,
+        float Offset);
+
 	void PlayConnectionSound();
 	void PlayCompletionSound();
 
@@ -119,13 +130,11 @@ private:
 	// TODO: Update Temporary Line Points with lagging effect
     void UpdateTemporaryLinePoints();
 
-	// TODO: Update Temporary Line with lagging effect
     UPROPERTY(EditAnywhere, Category = "Drawing")
-    mutable  double StartTime = 0;
+    double ToleranceDrawingDitance = 50.f;
 
-	// TODO: Duration for lagging effect
-    UPROPERTY(EditAnywhere, Category = "Drawing")
-    double Duration = 1;
+	// TODO: Delete this variable (for now i think this function is not used)
+	float StartTime = FPlatformTime::Seconds(); // Mulai progres animasi
 
 	// TODO: Delete this function (for now i think this function is not used)
     void SpawnRandomDots(int32 Count);
